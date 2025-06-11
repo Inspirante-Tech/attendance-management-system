@@ -7,7 +7,6 @@ import { DailyAttendanceCheck } from '@/components/student/daily-attendance-chec
 import { AttendanceStats } from '@/components/student/attendance-stats'
 import { 
   User, 
-  Calendar, 
   TrendingUp, 
   BookOpen,
   GraduationCap,
@@ -29,10 +28,35 @@ const mockStudentData = {
   photo_url: null
 }
 
-export default function StudentDashboard() {
-  const [activeTab, setActiveTab] = useState('overview')
+export default function StudentDashboard() {  const [activeTab, setActiveTab] = useState('overview')
   const [studentData] = useState(mockStudentData)
   const [currentDate] = useState(new Date())
+  const [selectedDate, setSelectedDate] = useState<string | null>(null)
+  const [selectedDateData, setSelectedDateData] = useState<{
+    present: number
+    absent: number
+    total: number
+    classes: Array<{
+      course_name: string
+      course_code: string
+      status: 'present' | 'absent'
+    }>
+  } | null>(null)
+
+  // Handle date selection from calendar
+  const handleDateSelect = (date: string, data: {
+    present: number
+    absent: number
+    total: number
+    classes: Array<{
+      course_name: string
+      course_code: string
+      status: 'present' | 'absent'
+    }>
+  } | null) => {
+    setSelectedDate(date)
+    setSelectedDateData(data)
+  }
 
   // Mock function to load student data - replace with actual API call
   useEffect(() => {
@@ -41,12 +65,10 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 p-6">
-      <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
+      <div className="max-w-7xl mx-auto space-y-6">        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Student Dashboard</h1>
-            <p className="text-gray-600 mt-1">Welcome back, {studentData.name}!</p>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">Today</p>
@@ -75,9 +97,8 @@ export default function StudentDashboard() {
                 ) : (
                   <User className="w-8 h-8 text-white" />
                 )}
-              </div>
-              <div className="flex-1">
-                <CardTitle className="text-white text-2xl">{studentData.name}</CardTitle>
+              </div>              <div className="flex-1">
+                <CardTitle className="text-white text-2xl">Welcome back, {studentData.name}</CardTitle>
                 <CardDescription className="text-blue-100">
                   {studentData.usn} • Semester {studentData.semester} • {studentData.department}
                 </CardDescription>
@@ -112,19 +133,7 @@ export default function StudentDashboard() {
             }`}
           >
             <BookOpen className="w-4 h-4" />
-            <span>Dashboard</span>
-          </button>
-          <button
-            onClick={() => setActiveTab('attendance')}
-            className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
-              activeTab === 'attendance'
-                ? 'bg-white text-blue-600 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900'
-            }`}
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Attendance Calendar</span>
-          </button>
+            <span>Dashboard</span>          </button>
           <button
             onClick={() => setActiveTab('stats')}
             className={`flex-1 flex items-center justify-center space-x-2 py-2 px-4 rounded-md text-sm font-medium transition-colors ${
@@ -138,14 +147,39 @@ export default function StudentDashboard() {
           </button>
         </div>        {/* Content based on active tab */}
         {activeTab === 'overview' && (
-          <div className="w-full">
-            {/* Daily Attendance Check */}
-            <DailyAttendanceCheck studentId={studentData.user_id} />
+          <div className="space-y-6">
+            {/* Top Row - Summary Cards Side by Side */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Left Column - Daily Attendance Summary */}
+              <div className="w-full">
+                <DailyAttendanceCheck 
+                  studentId={studentData.user_id} 
+                  selectedDate={selectedDate}
+                  selectedDateData={selectedDateData}
+                  showDetailsCard={false}
+                />
+              </div>
+              
+              {/* Right Column - Attendance Calendar */}
+              <div className="w-full">
+                <AttendanceCalendar 
+                  studentId={studentData.user_id} 
+                  onDateSelect={handleDateSelect}
+                />
+              </div>
+            </div>
+            
+            {/* Bottom Row - Full Width Class Details */}
+            <div className="w-full">
+              <DailyAttendanceCheck 
+                studentId={studentData.user_id} 
+                selectedDate={selectedDate}
+                selectedDateData={selectedDateData}
+                showSummaryCard={false}
+                showDetailsCard={true}
+              />
+            </div>
           </div>
-        )}{activeTab === 'attendance' && (
-          <AttendanceCalendar 
-            studentId={studentData.user_id} 
-          />
         )}{activeTab === 'stats' && (
           <AttendanceStats studentId={studentData.user_id} compact={false} />
         )}

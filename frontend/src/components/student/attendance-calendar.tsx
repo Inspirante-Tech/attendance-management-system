@@ -15,7 +15,8 @@ import {
 
 interface AttendanceCalendarProps {
   studentId: string
-  academicYear: string
+  academicYear?: string
+  onDateSelect?: (date: string, data: MonthlyAttendance[string] | null) => void
 }
 
 interface MonthlyAttendance {
@@ -148,7 +149,7 @@ const mockMonthlyData: MonthlyAttendance = {
   ]}
 }
 
-export function AttendanceCalendar({ studentId }: AttendanceCalendarProps) {
+export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [monthlyData, setMonthlyData] = useState<MonthlyAttendance>({})
@@ -220,12 +221,10 @@ export function AttendanceCalendar({ studentId }: AttendanceCalendarProps) {
   const renderCalendarGrid = () => {
     const daysInMonth = getDaysInMonth(currentDate)
     const firstDay = getFirstDayOfMonth(currentDate)
-    const days = []
-
-    // Add empty cells for days before the first day of the month
+    const days = []    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-12 w-12" />
+        <div key={`empty-${i}`} className="h-6 w-6" />
       )
     }
 
@@ -236,167 +235,113 @@ export function AttendanceCalendar({ studentId }: AttendanceCalendarProps) {
       const isToday = new Date().toDateString() === new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString()
       const isSelected = selectedDate === dateKey
 
-      days.push(
-        <button
+      days.push(        <button
           key={day}
-          onClick={() => setSelectedDate(dateKey)}
-          className={`h-12 w-12 rounded-lg flex items-center justify-center text-sm font-medium transition-all duration-200 relative ${
+          onClick={() => {
+            setSelectedDate(dateKey)
+            const data = monthlyData[dateKey] || null
+            onDateSelect?.(dateKey, data)
+          }}
+          className={`h-6 w-6 rounded flex items-center justify-center text-xs font-medium transition-all duration-200 relative ${
             getDayColor(status)
           } ${
-            isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+            isSelected ? 'ring-1 ring-blue-500' : ''
           } ${
             isToday ? 'ring-1 ring-blue-300' : ''
           }`}
         >
           {day}
           {status !== 'no-class' && (
-            <div className="absolute -bottom-1 -right-1">
-              {status === 'full-present' && <CheckCircle className="w-3 h-3 text-green-600 bg-white rounded-full" />}
-              {status === 'full-absent' && <XCircle className="w-3 h-3 text-red-600 bg-white rounded-full" />}
-              {status === 'partial' && <Circle className="w-3 h-3 text-yellow-600 bg-white rounded-full" />}
+            <div className="absolute -bottom-0.5 -right-0.5">
+              {status === 'full-present' && <CheckCircle className="w-1.5 h-1.5 text-green-600 bg-white rounded-full" />}
+              {status === 'full-absent' && <XCircle className="w-1.5 h-1.5 text-red-600 bg-white rounded-full" />}
+              {status === 'partial' && <Circle className="w-1.5 h-1.5 text-yellow-600 bg-white rounded-full" />}
             </div>
           )}
         </button>
-      )
-    }
+      )    }
 
     return days
   }
-
-  const selectedDateData = selectedDate ? monthlyData[selectedDate] : null
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center space-x-2">
-                <CalendarIcon className="w-5 h-5 text-blue-600" />
-                <span>Attendance Calendar</span>
-              </CardTitle>
-              <CardDescription>
-                Click on any date to view detailed attendance
-              </CardDescription>
-            </div>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => loadMonthlyAttendance()}
-              disabled={loading}
-            >
-              <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {/* Calendar Header */}
-          <div className="flex items-center justify-between mb-6">
-            <Button variant="outline" size="sm" onClick={goToPreviousMonth}>
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <h3 className="text-lg font-semibold">
-              {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-            </h3>
-            <Button variant="outline" size="sm" onClick={goToNextMonth}>
-              <ChevronRight className="w-4 h-4" />
-            </Button>
-          </div>
-
-          {/* Day Labels */}
-          <div className="grid grid-cols-7 gap-2 mb-2">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="h-8 flex items-center justify-center text-sm font-medium text-gray-500">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar Grid */}
-          {loading ? (
-            <div className="flex items-center justify-center py-12">
-              <RefreshCw className="w-6 h-6 animate-spin text-blue-600 mr-2" />
-              <span className="text-gray-600">Loading calendar...</span>
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-2">
-              {renderCalendarGrid()}
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-6 flex flex-wrap gap-4 text-sm">
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-green-500 rounded"></div>
-              <span>Full Attendance</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-yellow-500 rounded"></div>
-              <span>Partial Attendance</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-red-500 rounded"></div>
-              <span>All Absent</span>
-            </div>
-            <div className="flex items-center space-x-2">
-              <div className="w-4 h-4 bg-gray-100 border rounded"></div>
-              <span>No Classes</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Selected Date Details */}
-      {selectedDate && selectedDateData && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              Attendance Details - {new Date(selectedDate).toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
+    <Card className="h-[310px] flex flex-col">
+      <CardHeader className="pb-2">
+        <div className="flex items-center justify-between">
+          <div>
+            <CardTitle className="flex items-center space-x-2 text-base">
+              <CalendarIcon className="w-4 h-4 text-blue-600" />
+              <span>Attendance Calendar</span>
             </CardTitle>
-            <CardDescription>
-              {selectedDateData.present} present, {selectedDateData.absent} absent out of {selectedDateData.total} classes
+            <CardDescription className="text-xs">
+              Click dates to view details
             </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {selectedDateData.classes.map((classInfo, index) => (
-                <div 
-                  key={index}
-                  className="flex items-center justify-between p-3 border rounded-lg"
-                >
-                  <div className="flex items-center space-x-3">
-                    <div className="flex-shrink-0">
-                      {classInfo.status === 'present' ? (
-                        <CheckCircle className="w-5 h-5 text-green-600" />
-                      ) : (
-                        <XCircle className="w-5 h-5 text-red-600" />
-                      )}
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{classInfo.course_name}</h4>                      <p className="text-sm text-gray-500">
-                        {classInfo.course_code}
-                      </p>
-                    </div>
-                  </div>
-                  <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                    classInfo.status === 'present' 
-                      ? 'bg-green-100 text-green-800' 
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {classInfo.status === 'present' ? 'Present' : 'Absent'}
-                  </div>
-                </div>
-              ))}
+          </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={() => loadMonthlyAttendance()}
+            disabled={loading}
+            className="h-6 px-2"
+          >
+            <RefreshCw className={`w-3 h-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            <span className="text-xs">Refresh</span>
+          </Button>
+        </div>      </CardHeader>
+      <CardContent className="pt-0 pb-3 flex-1 overflow-y-auto">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-2">
+          <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-6 w-6 p-0">
+            <ChevronLeft className="w-3 h-3" />
+          </Button>
+          <h3 className="text-sm font-semibold">
+            {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
+          </h3>
+          <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-6 w-6 p-0">
+            <ChevronRight className="w-3 h-3" />
+          </Button>
+        </div>
+
+        {/* Day Labels */}
+        <div className="grid grid-cols-7 gap-0.5 mb-1">
+          {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+            <div key={day} className="h-4 flex items-center justify-center text-xs font-medium text-gray-500">
+              {day}
             </div>
-          </CardContent>
-        </Card>
-      )}
-    </div>
+          ))}
+        </div>
+
+        {/* Calendar Grid */}
+        {loading ? (
+          <div className="flex items-center justify-center py-4">
+            <RefreshCw className="w-4 h-4 animate-spin text-blue-600 mr-1" />
+            <span className="text-gray-600 text-xs">Loading...</span>
+          </div>
+        ) : (
+          <div className="grid grid-cols-7 gap-0.5 mb-2">
+            {renderCalendarGrid()}
+          </div>
+        )}
+
+        {/* Compact Legend */}
+        <div className="grid grid-cols-4 gap-1 text-xs mb-2">
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-green-500 rounded"></div>
+            <span className="text-xs">Full</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-yellow-500 rounded"></div>
+            <span className="text-xs">Partial</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-red-500 rounded"></div>
+            <span className="text-xs">Absent</span>
+          </div>
+          <div className="flex items-center space-x-1">
+            <div className="w-2 h-2 bg-gray-200 border rounded"></div>
+            <span className="text-xs">None</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   )
 }
