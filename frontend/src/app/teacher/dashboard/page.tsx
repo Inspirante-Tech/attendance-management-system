@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { YearSelector } from '@/components/teacher/year-selector'
 import { DepartmentSelector } from '@/components/teacher/department-selector'
 import { CourseSelector } from '@/components/teacher/course-selector'
-import { AttendanceMarking } from '@/components/teacher/attendance-marking'
+import { CourseManagement } from '@/components/teacher/course-management'
 import { MasterSearch } from '@/components/teacher/master-search'
 import { OpenElectives } from '@/components/teacher/open-electives'
 import { 
@@ -272,16 +272,16 @@ export default function TeacherDashboard() {
               onCourseSelect={setSelectedCourse}
             />
           )}          {selectedYear && selectedDepartment && selectedCourse && (
-            <AttendanceMarking
+            <CourseManagement
               courseOffering={selectedCourse}
               selectedYear={selectedYear}
               selectedDepartment={selectedDepartment}
             />
           )}
 
-          {/* Open Electives Attendance (when course is selected but no department) */}
+          {/* Open Electives Course Management (when course is selected but no department) */}
           {selectedYear && !selectedDepartment && selectedCourse && (
-            <AttendanceMarking
+            <CourseManagement
               courseOffering={selectedCourse}
               selectedYear={selectedYear}
               selectedDepartment="Mixed Departments"
