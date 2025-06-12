@@ -5,7 +5,6 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Users, 
-  Calendar, 
   XCircle, 
   UserCheck, 
   UserX,
@@ -90,8 +89,6 @@ export function AttendanceMarking({
 }: AttendanceMarkingProps) {  const [students, setStudents] = useState<Student[]>(mockStudentData)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
-  const [currentDate] = useState(new Date())
-  const [syllabusCovered, setSyllabusCovered] = useState('')
 
   // Load student data when course offering changes
   const loadStudentData = async () => {
@@ -209,65 +206,61 @@ export function AttendanceMarking({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header Card */}
+    <div className="space-y-6">      {/* Header Card */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-xl">
+              <CardTitle className="text-base">
                 {courseOffering.course_code} - {courseOffering.course_name}
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-xs">
                 Section {courseOffering.class_section} • {selectedDepartment} • {selectedYear}
-              </CardDescription>
-            </div>
-            <div className="flex items-center space-x-4 text-sm text-gray-600">
-              <div className="flex items-center space-x-1">
-                <Calendar className="w-4 h-4" />
-                <span>{currentDate.toLocaleDateString('en-US', { 
-                  weekday: 'long', 
-                  year: 'numeric', 
-                  month: 'long', 
-                  day: 'numeric' 
-                })}</span>
-              </div>
-            </div>
+              </CardDescription>            </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="pt-0 pb-3">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
             <div className="flex items-center space-x-2">
-              <Users className="w-4 h-4 text-blue-500" />
+              <Users className="w-3 h-3 text-blue-500" />
               <div>
-                <p className="font-medium">{students.length}</p>
-                <p className="text-sm text-gray-600">Total Students</p>
+                <p className="font-medium text-xs">{students.length}</p>
+                <p className="text-xs text-gray-600">Total Students</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <UserCheck className="w-4 h-4 text-green-500" />
+              <UserCheck className="w-3 h-3 text-green-500" />
               <div>
-                <p className="font-medium text-green-600">{presentCount}</p>
-                <p className="text-sm text-gray-600">Present</p>
+                <p className="font-medium text-green-600 text-xs">{presentCount}</p>
+                <p className="text-xs text-gray-600">Present</p>
               </div>
             </div>
             <div className="flex items-center space-x-2">
-              <UserX className="w-4 h-4 text-red-500" />
+              <UserX className="w-3 h-3 text-red-500" />
               <div>
-                <p className="font-medium text-red-600">{absentCount}</p>
-                <p className="text-sm text-gray-600">Absent</p>
+                <p className="font-medium text-red-600 text-xs">{absentCount}</p>
+                <p className="text-xs text-gray-600">Absent</p>
               </div>
-            </div>
+            </div>          </div>
+
+          {/* Reset Button */}
+          <div className="mt-2 flex justify-end">
+            <button
+              onClick={markAllPresent}
+              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors"
+            >
+              Reset All to Present
+            </button>
           </div>
         
           {/* Attendance Percentage */}
-          <div className="mt-4">
-            <div className="flex justify-between text-sm text-gray-600 mb-1">
+          <div className="mt-1">
+            <div className="flex justify-between text-xs text-gray-600 mb-1">
               <span>Class Attendance</span>
               <span>{attendancePercentage.toFixed(1)}%</span>
-            </div>            <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+            </div>            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
               <div 
-                className={`h-2 rounded-full bg-emerald-500 transition-all duration-300 ${
+                className={`h-1 rounded-full bg-emerald-500 transition-all duration-300 ${
                   attendancePercentage >= 90 ? 'w-full' :
                   attendancePercentage >= 80 ? 'w-4/5' :
                   attendancePercentage >= 70 ? 'w-3/4' :
@@ -278,18 +271,7 @@ export function AttendanceMarking({
                   attendancePercentage >= 20 ? 'w-1/5' :
                   attendancePercentage >= 10 ? 'w-1/12' : 'w-0'
                 }`}
-              />            </div>
-          </div>
-
-          {/* Reset Button */}
-          <div className="mt-4 flex justify-end">
-            <button
-              onClick={markAllPresent}
-              className="px-4 py-2 bg-green-100 text-green-700 rounded-lg text-sm font-medium hover:bg-green-200 transition-colors"
-            >
-              Reset All to Present
-            </button>
-          </div>
+              />            </div>          </div>
         </CardContent>
       </Card>
 
@@ -337,24 +319,7 @@ export function AttendanceMarking({
                 </div>
               </div>
             ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Syllabus Covered */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Syllabus Covered</CardTitle>
-          <CardDescription>Record what was taught in today&apos;s class</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <textarea
-            value={syllabusCovered}
-            onChange={(e) => setSyllabusCovered(e.target.value)}
-            placeholder="Enter topics/chapters covered in today&apos;s class..."
-            className="w-full h-20 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 resize-none"
-          />
-        </CardContent>
+          </div>        </CardContent>
       </Card>
 
       {/* Save Button */}

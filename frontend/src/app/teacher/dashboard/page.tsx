@@ -28,9 +28,7 @@ const mockTeacherData = {
   photo_url: undefined
 }
 
-export default function TeacherDashboard() {
-  const [teacherData] = useState(mockTeacherData)
-  const [currentDate] = useState(new Date())
+export default function TeacherDashboard() {  const [teacherData] = useState(mockTeacherData)
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<{
@@ -138,18 +136,7 @@ export default function TeacherDashboard() {
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Teacher Dashboard</h1>
             <p className="text-gray-600 mt-1">Attendance Management System</p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm text-gray-500">Today</p>
-            <p className="text-lg font-semibold text-gray-900">
-              {currentDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
-              })}
-            </p>
-          </div>        </div>
+          </div></div>
 
         {/* Teacher Profile Card */}
         <Card className="bg-gradient-to-r from-emerald-600 to-green-700 text-white">

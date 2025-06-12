@@ -175,19 +175,7 @@ export function CourseSelector({ teacherId, selectedYear, selectedDepartment, on
                       <p className="text-sm font-medium text-gray-900">{course.attendance_percentage.toFixed(1)}%</p>
                       <p className="text-xs text-gray-500">Avg Attendance</p>
                     </div>
-                  </div>
-                </div>                {/* Progress Bar */}
-                <div>
-                  <div className="flex justify-between text-xs text-gray-600 mb-1">
-                    <span>Syllabus Progress</span>
-                    <span>{course.syllabus_completion}%</span>
-                  </div>                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div 
-                      className={`h-2 rounded-full bg-emerald-500 transition-all duration-300`}
-                      style={{ width: `${Math.min(100, Math.max(0, course.syllabus_completion))}%` }}
-                    />
-                  </div>
-                </div>
+                  </div>                </div>
                 
                 <div className="pt-2">
                   <button className="w-full py-2 px-4 bg-emerald-50 text-emerald-700 rounded-lg text-sm font-medium hover:bg-emerald-100 transition-colors">

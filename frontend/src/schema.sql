@@ -1,8 +1,8 @@
 -- Enable UUID extension
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
--- ENUM types
-CREATE TYPE user_role AS ENUM ('student', 'teacher', 'admin', 'parent', 'report_viewer');
+-- ENUM types (parent role removed)
+CREATE TYPE user_role AS ENUM ('student', 'teacher', 'admin', 'report_viewer');
 CREATE TYPE attendance_status AS ENUM ('present', 'absent');
 CREATE TYPE course_type AS ENUM ('core', 'department_elective', 'open_elective');
 
@@ -55,8 +55,8 @@ CREATE TABLE courses (
 CREATE TABLE department_elective_groups (
     group_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     group_name VARCHAR(150) NOT NULL, -- e.g., "Professional Elective 1"
-    department VARCHAR(50) NOT NULL,    -- The department this group is for (e.g., 'AI & ML')
-    semester INT NOT NULL,              -- The semester this group applies to
+    department VARCHAR(50) NOT NULL,      -- The department this group is for (e.g., 'AI & ML')
+    semester INT NOT NULL,                -- The semester this group applies to
     academic_year VARCHAR(10) NOT NULL,
     UNIQUE(group_name, department, semester, academic_year)
 );
@@ -128,17 +128,6 @@ CREATE TABLE admins (
   admin_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id UUID UNIQUE NOT NULL REFERENCES users(user_id) ON DELETE CASCADE
 );
-
--- PARENT-STUDENT LINKS
-CREATE TABLE parent_student_links (
-  link_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  parent_user_id UUID REFERENCES users(user_id) ON DELETE CASCADE,
-  student_id UUID REFERENCES students(student_id) ON DELETE CASCADE,
-  email VARCHAR(100),
-  UNIQUE(parent_user_id, student_id)
-);
-CREATE INDEX idx_parent_links_student_id ON parent_student_links(student_id);
-CREATE INDEX idx_parent_links_parent_user_id ON parent_student_links(parent_user_id);
 
 -- REPORT VIEWERS (access to full data; no restrictions)
 -- MODIFIED: Removed department

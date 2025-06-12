@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Star, BookOpen, ChevronRight } from 'lucide-react'
+import { BookOpen, ChevronRight } from 'lucide-react'
 
 interface OpenElectivesProps {
   teacherId: string

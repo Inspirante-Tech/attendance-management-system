@@ -83,9 +83,7 @@ export const studentApi = {
     return apiRequest<Array<{ period: string; percentage: number }>>(
       `/api/students/${studentId}/attendance/trend?${params.toString()}`
     )
-  },
-
-  // Get student's enrolled courses
+  },  // Get student's enrolled courses
   async getEnrolledCourses(studentId: string, academicYear?: string): Promise<any[]> {
     const params = academicYear ? `?academic_year=${academicYear}` : ''
     return apiRequest<any[]>(`/api/students/${studentId}/courses${params}`)
@@ -183,11 +181,10 @@ export const mockDataGenerators = {
       { name: 'Data Structures and Algorithms', code: 'CS301' },
       { name: 'Database Management Systems', code: 'CS302' },
       { name: 'Computer Networks', code: 'CS303' },
-      { name: 'Software Engineering', code: 'CS304' },
-      { name: 'Machine Learning', code: 'CS305' }
+      { name: 'Software Engineering', code: 'CS304' },      { name: 'Machine Learning', code: 'CS305' }
     ]
 
-    return subjects.map((subject, index) => {
+    return subjects.map((subject) => {
       const present = Math.floor(Math.random() * 10) + 20 // 20-30
       const absent = Math.floor(Math.random() * 8) + 2    // 2-10
       const total = present + absent
