@@ -18,7 +18,6 @@ interface DailyAttendanceProps {
       status: 'present' | 'absent'
     }>
   } | null
-  showSummaryCard?: boolean
   showDetailsCard?: boolean
 }
 
@@ -33,12 +32,9 @@ export function DailyAttendanceCheck({
   studentId, 
   selectedDate, 
   selectedDateData,
-  showSummaryCard = true,
   showDetailsCard = true
-}: DailyAttendanceProps) {
-  const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([])
+}: DailyAttendanceProps) {  const [attendanceData, setAttendanceData] = useState<AttendanceRecord[]>([])
   const [loading, setLoading] = useState(false)
-  const [currentDate] = useState(new Date())
 
   // Determine what data to display - selected date or today
   const isShowingSelectedDate = selectedDate && selectedDateData
@@ -47,14 +43,9 @@ export function DailyAttendanceCheck({
       course_name: classInfo.course_name,
       course_code: classInfo.course_code,
       teacher_name: '', // Selected date data doesn't have teacher names
-      status: classInfo.status as 'present' | 'absent' | 'not_marked',
-      hours: 3 // Default hours since not available in calendar data
+      status: classInfo.status as 'present' | 'absent' | 'not_marked',      hours: 3 // Default hours since not available in calendar data
     })) : 
     attendanceData
-
-  const displayDate = isShowingSelectedDate ? 
-    new Date(selectedDate) : 
-    currentDate
 
   // Mock function to load today's attendance - replace with actual API call
   const loadTodayAttendance = async () => {
@@ -69,19 +60,18 @@ export function DailyAttendanceCheck({
       setLoading(false)
     }
   }
-
   useEffect(() => {
     loadTodayAttendance()
   }, [studentId])
-
+  
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'present':
-        return <CheckCircle className="w-5 h-5 text-green-600" />
+        return <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600" />
       case 'absent':
-        return <XCircle className="w-5 h-5 text-red-600" />
+        return <XCircle className="w-4 h-4 sm:w-5 sm:h-5 text-red-600" />
       default:
-        return <Clock className="w-5 h-5 text-gray-400" />
+        return <Clock className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400" />
     }
   }
 
@@ -101,52 +91,22 @@ export function DailyAttendanceCheck({
         return 'text-green-600 bg-green-50 border-green-200'
       case 'absent':
         return 'text-red-600 bg-red-50 border-red-200'
-      default:        return 'text-gray-600 bg-gray-50 border-gray-200'
+      default:
+        return 'text-gray-600 bg-gray-50 border-gray-200'
     }
   }
-    const presentCount = displayData.filter(record => record.status === 'present').length
-  const absentCount = displayData.filter(record => record.status === 'absent').length
-    return (
+
+  return (
     <div className="space-y-3 sm:space-y-4">
-      {/* Summary Card - Same size as calendar */}
-      {showSummaryCard && (
-        <Card className="h-[250px] sm:h-[300px] flex flex-col">
-          <CardHeader className="pb-2 sm:pb-3 flex-shrink-0">
-            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
-              <Calendar className="w-4 h-4 text-blue-600" />
-              <span className="text-sm sm:text-base">{isShowingSelectedDate ? 'Selected Date Attendance' : 'Today\'s Attendance'}</span>
-            </CardTitle>
-            <CardDescription className="text-xs sm:text-sm">
-              {displayDate.toLocaleDateString('en-US', { 
-                weekday: 'long', 
-                month: 'short', 
-                day: 'numeric' 
-              })}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0 flex-1 flex items-center justify-center px-3 sm:px-6">
-            <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md">
-              <div className="text-center p-3 sm:p-6 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-2xl sm:text-4xl font-bold text-green-600">{presentCount}</div>
-                <div className="text-xs sm:text-sm text-green-700 mt-1 sm:mt-2">Present</div>
-              </div>
-              <div className="text-center p-3 sm:p-6 bg-red-50 rounded-lg border border-red-200">
-                <div className="text-2xl sm:text-4xl font-bold text-red-600">{absentCount}</div>
-                <div className="text-xs sm:text-sm text-red-700 mt-1 sm:mt-2">Absent</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}      {/* Detailed Attendance Card */}
-      {showDetailsCard && (
-        <Card>
+      {/* Detailed Attendance Card */}
+      {showDetailsCard && (        <Card className="h-full flex flex-col">
           <CardHeader className="pb-2 sm:pb-3">
             <CardTitle className="text-sm sm:text-base">Class Details</CardTitle>
             <CardDescription className="text-xs sm:text-sm">
               Individual class attendance for {isShowingSelectedDate ? 'selected date' : 'today'}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0">
+          <CardContent className="pt-0 flex-1 overflow-y-auto">
             {loading && !isShowingSelectedDate ? (
               <div className="flex items-center justify-center py-6">
                 <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
@@ -160,8 +120,7 @@ export function DailyAttendanceCheck({
                   </div>
                 ) : (
                   <div className="overflow-x-auto -mx-3 sm:mx-0">
-                    <div className="inline-block min-w-full align-middle">
-                      <table className="min-w-full text-xs sm:text-sm">                      <thead>
+                    <div className="inline-block min-w-full align-middle">                      <table className="min-w-full text-xs sm:text-sm">                      <thead>
                         <tr className="border-b border-gray-200">
                           <th className="text-left py-2 sm:py-3 px-2 font-medium text-gray-700 lg:hidden">Course</th>
                           <th className="hidden lg:table-cell text-left py-2 sm:py-3 px-2 font-medium text-gray-700">Course Code</th>
@@ -170,8 +129,7 @@ export function DailyAttendanceCheck({
                           <th className="text-center py-2 sm:py-3 px-2 font-medium text-gray-700">Attended</th>
                           <th className="text-center py-2 sm:py-3 px-2 font-medium text-gray-700">Status</th>
                         </tr>
-                      </thead>                      <tbody>
-                        {displayData.map((record, index) => (
+                      </thead><tbody>                        {displayData.map((record, index) => (
                           <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
                             {/* Combined course info for mobile/tablet */}
                             <td className="py-2 sm:py-3 px-2 lg:hidden">
@@ -182,17 +140,17 @@ export function DailyAttendanceCheck({
                             </td>
                             {/* Separate course code for desktop */}
                             <td className="hidden lg:table-cell py-2 sm:py-3 px-2">
-                              <div className="font-medium text-gray-900 text-sm">{record.course_code}</div>
+                              <div className="font-medium text-gray-900 text-xs sm:text-sm">{record.course_code}</div>
                             </td>
                             {/* Separate course name for desktop */}
                             <td className="hidden lg:table-cell py-2 sm:py-3 px-2">
-                              <div className="font-medium text-gray-900 text-sm min-w-[200px]">{record.course_name}</div>
+                              <div className="font-medium text-gray-900 text-xs sm:text-sm min-w-[160px]">{record.course_name}</div>
                             </td>
                             <td className="text-center py-2 sm:py-3 px-2">
-                              <span className="font-medium">{record.hours}</span>
+                              <span className="font-medium text-xs sm:text-sm">{record.hours}</span>
                             </td>
                             <td className="text-center py-2 sm:py-3 px-2">
-                              <span className="font-medium">{record.status === 'present' ? record.hours : 0}</span>
+                              <span className="font-medium text-xs sm:text-sm">{record.status === 'present' ? record.hours : 0}</span>
                             </td>
                             <td className="text-center py-2 sm:py-3 px-2">
                               <div className="flex items-center justify-center space-x-1 sm:space-x-2">

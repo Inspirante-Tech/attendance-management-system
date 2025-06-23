@@ -146,38 +146,26 @@ export default function StudentDashboard() {
             <TrendingUp className="w-3 h-3 sm:w-4 sm:h-4" />
             <span>Attendance</span>
           </button>
-        </div>{/* Content based on active tab */}        {activeTab === 'overview' && (
-          <div className="space-y-4 sm:space-y-6">
-            {/* Top Row - Summary Cards Side by Side */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6">
-              {/* Left Column - Daily Attendance Summary */}
-              <div className="w-full order-2 xl:order-1">
+        </div>        {/* Content based on active tab */}        {activeTab === 'overview' && (
+          <div className="space-y-4 sm:space-y-6">            {/* Single Row - Class Details (Left) and Calendar (Right) */}
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 h-auto lg:h-[320px]">
+              {/* Left Column - Class Details (Takes 2/3 width on desktop) */}
+              <div className="lg:col-span-2 order-2 lg:order-1 h-full">
                 <DailyAttendanceCheck 
                   studentId={studentData.user_id} 
                   selectedDate={selectedDate}
                   selectedDateData={selectedDateData}
-                  showDetailsCard={false}
+                  showDetailsCard={true}
                 />
               </div>
               
-              {/* Right Column - Attendance Calendar */}
-              <div className="w-full order-1 xl:order-2">
+              {/* Right Column - Compact Attendance Calendar (Takes 1/3 width on desktop) */}
+              <div className="lg:col-span-1 order-1 lg:order-2 h-full">
                 <AttendanceCalendar 
                   studentId={studentData.user_id} 
                   onDateSelect={handleDateSelect}
                 />
               </div>
-            </div>
-            
-            {/* Bottom Row - Full Width Class Details */}
-            <div className="w-full">
-              <DailyAttendanceCheck 
-                studentId={studentData.user_id} 
-                selectedDate={selectedDate}
-                selectedDateData={selectedDateData}
-                showSummaryCard={false}
-                showDetailsCard={true}
-              />
             </div>
           </div>
         )}{activeTab === 'stats' && (

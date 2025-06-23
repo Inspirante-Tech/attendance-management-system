@@ -106,7 +106,7 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
     const days = []    // Add empty cells for days before the first day of the month
     for (let i = 0; i < firstDay; i++) {
       days.push(
-        <div key={`empty-${i}`} className="h-6 w-6" />
+        <div key={`empty-${i}`} className="h-8 w-full" />
       )
     }
 
@@ -123,13 +123,12 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
             setSelectedDate(dateKey)
             const data = monthlyData[dateKey] || null
             onDateSelect?.(dateKey, data)
-          }}
-          className={`h-6 w-6 rounded flex items-center justify-center text-xs font-medium transition-all duration-200 relative ${
+          }}          className={`h-8 w-full rounded flex items-center justify-center text-xs font-medium transition-all duration-200 relative ${
             getDayColor(status)
           } ${
-            isSelected ? 'ring-1 ring-blue-500' : ''
+            isSelected ? 'ring-2 ring-blue-500' : ''
           } ${
-            isToday ? 'ring-1 ring-blue-300' : ''
+            isToday ? 'ring-2 ring-blue-300' : ''
           }`}
         >
           {day}
@@ -141,58 +140,52 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
             </div>
           )}
         </button>
-      )    }
-
-    return days
+      )    }    return days
   }
+  
   return (
-    <Card className="h-[310px] flex flex-col">
-      <CardHeader className="pb-2">        <div className="flex items-center justify-between">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-2 sm:pb-3">        <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center space-x-2 text-base">
+            <CardTitle className="flex items-center space-x-2 text-sm sm:text-base">
               <CalendarIcon className="w-4 h-4 text-blue-600" />
               <span>Attendance Calendar</span>
             </CardTitle>
-            <CardDescription className="text-xs">
+            <CardDescription className="text-xs sm:text-sm">
               Click dates to view details
             </CardDescription>
           </div>
-        </div></CardHeader>
-      <CardContent className="pt-0 pb-3 flex-1 overflow-y-auto">
+        </div></CardHeader>      <CardContent className="pt-0 pb-3 flex-1 overflow-y-auto flex flex-col">
         {/* Calendar Header */}
         <div className="flex items-center justify-between mb-2">
-          <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-6 w-6 p-0">
+          <Button variant="outline" size="sm" onClick={goToPreviousMonth} className="h-7 w-7 p-0">
             <ChevronLeft className="w-3 h-3" />
           </Button>
           <h3 className="text-sm font-semibold">
             {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
           </h3>
-          <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-6 w-6 p-0">
+          <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-7 w-7 p-0">
             <ChevronRight className="w-3 h-3" />
           </Button>
-        </div>        {/* Day Labels */}
+        </div>{/* Day Labels */}
         <div className="grid grid-cols-7 gap-0.5 mb-1">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="h-4 w-6 flex items-center justify-center text-xs font-medium text-gray-500">
+            <div key={day} className="h-6 w-full flex items-center justify-center text-xs font-medium text-gray-500">
               {day}
             </div>
           ))}
-        </div>
-
-        {/* Calendar Grid */}
+        </div>        {/* Calendar Grid */}
         {loading ? (
-          <div className="flex items-center justify-center py-4">
+          <div className="flex items-center justify-center py-8">
             <RefreshCw className="w-4 h-4 animate-spin text-blue-600 mr-1" />
             <span className="text-gray-600 text-xs">Loading...</span>
           </div>
         ) : (
-          <div className="grid grid-cols-7 gap-0.5 mb-2">
+          <div className="grid grid-cols-7 gap-0.5 mb-3 flex-1">
             {renderCalendarGrid()}
           </div>
-        )}
-
-        {/* Compact Legend */}
-        <div className="grid grid-cols-4 gap-1 text-xs mb-2">
+        )}        {/* Compact Legend */}
+        <div className="grid grid-cols-4 gap-1 text-xs mt-auto pt-2 border-t border-gray-100">
           <div className="flex items-center space-x-1">
             <div className="w-2 h-2 bg-green-500 rounded"></div>
             <span className="text-xs">Full</span>
