@@ -1,0 +1,211 @@
+{
+  "2025-06-02": {
+    "present": 3,
+    "absent": 1,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-03": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-04": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-05": {
+    "present": 2,
+    "absent": 2,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-06": {
+    "present": 2,
+    "absent": 2,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-09": {
+    "present": 0,
+    "absent": 4,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "absent" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-10": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-11": {
+    "present": 3,
+    "absent": 1,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-12": {
+    "present": 3,
+    "absent": 1,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-13": {
+    "present": 1,
+    "absent": 3,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-16": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-17": {
+    "present": 2,
+    "absent": 2,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "absent" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-18": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-19": {
+    "present": 3,
+    "absent": 1,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-20": {
+    "present": 0,
+    "absent": 4,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "absent" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-23": {
+    "present": 2,
+    "absent": 2,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "absent" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-24": {
+    "present": 4,
+    "absent": 0,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "present" }
+    ]
+  },
+  "2025-06-25": {
+    "present": 1,
+    "absent": 3,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "absent" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "absent" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  },
+  "2025-06-26": {
+    "present": 3,
+    "absent": 1,
+    "total": 4,
+    "classes": [
+      { "course_name": "Data Structures", "course_code": "CS301", "status": "present" },
+      { "course_name": "DBMS", "course_code": "CS302", "status": "present" },
+      { "course_name": "Networks", "course_code": "CS303", "status": "present" },
+      { "course_name": "Software Eng", "course_code": "CS304", "status": "absent" }
+    ]
+  }
+}

@@ -12,6 +12,7 @@ import {
   Circle,
   RefreshCw
 } from 'lucide-react'
+import mockAttendanceData from '@/data/mockAttendanceData.json'
 
 interface AttendanceCalendarProps {
   studentId: string
@@ -31,136 +32,17 @@ interface MonthlyAttendance {
   }
 }
 
-// Mock data - replace with actual API calls
-const mockMonthlyData: MonthlyAttendance = {
-  '2025-06-02': { present: 3, absent: 1, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-03': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-04': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-05': { present: 2, absent: 2, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-06': { present: 2, absent: 2, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-09': { present: 0, absent: 4, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'absent' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-10': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-11': { present: 3, absent: 1, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-12': { present: 3, absent: 1, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-13': { present: 1, absent: 3, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-16': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-17': { present: 2, absent: 2, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'absent' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-18': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-19': { present: 3, absent: 1, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-20': { present: 0, absent: 4, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'absent' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-23': { present: 2, absent: 2, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'absent' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-24': { present: 4, absent: 0, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'present' }
-  ]},
-  '2025-06-25': { present: 1, absent: 3, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'absent' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'absent' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]},
-  '2025-06-26': { present: 3, absent: 1, total: 4, classes: [
-    { course_name: 'Data Structures', course_code: 'CS301', status: 'present' },
-    { course_name: 'DBMS', course_code: 'CS302', status: 'present' },
-    { course_name: 'Networks', course_code: 'CS303', status: 'present' },
-    { course_name: 'Software Eng', course_code: 'CS304', status: 'absent' }
-  ]}
-}
-
 export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalendarProps) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [monthlyData, setMonthlyData] = useState<MonthlyAttendance>({})
-  const [loading, setLoading] = useState(false)
-  // Load attendance data for current month
+  const [loading, setLoading] = useState(false)  // Load attendance data for current month
   const loadMonthlyAttendance = async () => {
     setLoading(true)
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setMonthlyData(mockMonthlyData)
+      setMonthlyData(mockAttendanceData as MonthlyAttendance)
     } catch (error) {
       console.error('Error loading monthly attendance:', error)
     } finally {
@@ -265,8 +147,7 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
   }
   return (
     <Card className="h-[310px] flex flex-col">
-      <CardHeader className="pb-2">
-        <div className="flex items-center justify-between">
+      <CardHeader className="pb-2">        <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center space-x-2 text-base">
               <CalendarIcon className="w-4 h-4 text-blue-600" />
@@ -276,17 +157,7 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
               Click dates to view details
             </CardDescription>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={() => loadMonthlyAttendance()}
-            disabled={loading}
-            className="h-6 px-2"
-          >
-            <RefreshCw className={`w-3 h-3 mr-1 ${loading ? 'animate-spin' : ''}`} />
-            <span className="text-xs">Refresh</span>
-          </Button>
-        </div>      </CardHeader>
+        </div></CardHeader>
       <CardContent className="pt-0 pb-3 flex-1 overflow-y-auto">
         {/* Calendar Header */}
         <div className="flex items-center justify-between mb-2">
@@ -299,12 +170,10 @@ export function AttendanceCalendar({ studentId, onDateSelect }: AttendanceCalend
           <Button variant="outline" size="sm" onClick={goToNextMonth} className="h-6 w-6 p-0">
             <ChevronRight className="w-3 h-3" />
           </Button>
-        </div>
-
-        {/* Day Labels */}
+        </div>        {/* Day Labels */}
         <div className="grid grid-cols-7 gap-0.5 mb-1">
           {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-            <div key={day} className="h-4 flex items-center justify-center text-xs font-medium text-gray-500">
+            <div key={day} className="h-4 w-6 flex items-center justify-center text-xs font-medium text-gray-500">
               {day}
             </div>
           ))}

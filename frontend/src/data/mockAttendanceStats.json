@@ -1,0 +1,68 @@
+{
+  "courseAttendance": [
+    {
+      "course_name": "Data Structures and Algorithms",
+      "course_code": "CS301",
+      "present": 28,
+      "absent": 4,
+      "total": 32,
+      "percentage": 87.5,
+      "required_percentage": 75,
+      "status": "good"
+    },
+    {
+      "course_name": "Database Management Systems",
+      "course_code": "CS302",
+      "present": 30,
+      "absent": 2,
+      "total": 32,
+      "percentage": 93.75,
+      "required_percentage": 75,
+      "status": "good"
+    },
+    {
+      "course_name": "Computer Networks",
+      "course_code": "CS303",
+      "present": 24,
+      "absent": 8,
+      "total": 32,
+      "percentage": 75,
+      "required_percentage": 75,
+      "status": "warning"
+    },
+    {
+      "course_name": "Software Engineering",
+      "course_code": "CS304",
+      "present": 22,
+      "absent": 10,
+      "total": 32,
+      "percentage": 68.75,
+      "required_percentage": 75,
+      "status": "critical"
+    },
+    {
+      "course_name": "Machine Learning",
+      "course_code": "CS305",
+      "present": 26,
+      "absent": 6,
+      "total": 32,
+      "percentage": 81.25,
+      "required_percentage": 75,
+      "status": "good"
+    }
+  ],
+  "overallStats": {
+    "total_present": 130,
+    "total_absent": 30,
+    "total_classes": 160,
+    "overall_percentage": 81.25,
+    "trend": "up",
+    "monthly_trend": [
+      { "month": "Aug", "percentage": 78 },
+      { "month": "Sep", "percentage": 82 },
+      { "month": "Oct", "percentage": 79 },
+      { "month": "Nov", "percentage": 84 },
+      { "month": "Dec", "percentage": 81 }
+    ]
+  }
+}

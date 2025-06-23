@@ -1,0 +1,118 @@
+{
+  "studentData": {
+    "user_id": "123e4567-e89b-12d3-a456-426614174000",
+    "name": "Krishna N Acharya",
+    "usn": "NNM22AD026",
+    "phone": "+91 8088022968",
+    "email": "nnm22ad026@nmamit.in",
+    "college_name": "NMAM Institute of Technology",
+    "semester": 6,
+    "department": "Artificial Intelligence and Data Science",
+    "academic_year": "2024-25",
+    "photo_url": null
+  },
+  "marksData": [
+    {
+      "course_code": "AI6001",
+      "course_name": "Machine Learning",
+      "course_type": "core",
+      "has_theory_component": true,
+      "has_lab_component": true,
+      "theory_marks": {
+        "marks_id": "1",
+        "enrollment_id": "1",
+        "mse1_marks": 18,
+        "mse2_marks": 16,
+        "mse3_marks": null,
+        "task1_marks": 4,
+        "task2_marks": 3,
+        "task3_marks": 2,
+        "last_updated_at": "2024-01-15"
+      },
+      "lab_marks": {
+        "marks_id": "1",
+        "enrollment_id": "1",
+        "record_marks": 9,
+        "continuous_evaluation_marks": 18,
+        "lab_mse_marks": 19,
+        "last_updated_at": "2024-01-15"
+      },
+      "total_theory_marks": 43,
+      "total_lab_marks": 46,
+      "total_marks": 89,
+      "grade": "A+"
+    },
+    {
+      "course_code": "AI6002",
+      "course_name": "Deep Learning",
+      "course_type": "core",
+      "has_theory_component": true,
+      "has_lab_component": false,
+      "theory_marks": {
+        "marks_id": "2",
+        "enrollment_id": "2",
+        "mse1_marks": 15,
+        "mse2_marks": 17,
+        "mse3_marks": null,
+        "task1_marks": 3,
+        "task2_marks": 4,
+        "task3_marks": 2,
+        "last_updated_at": "2024-01-10"
+      },
+      "total_theory_marks": 41,
+      "total_marks": 41,
+      "grade": "A"
+    },
+    {
+      "course_code": "CS6003",
+      "course_name": "Cloud Computing",
+      "course_type": "department_elective",
+      "has_theory_component": true,
+      "has_lab_component": true,
+      "theory_marks": {
+        "marks_id": "3",
+        "enrollment_id": "3",
+        "mse1_marks": 19,
+        "mse2_marks": 18,
+        "mse3_marks": null,
+        "task1_marks": 4,
+        "task2_marks": 4,
+        "task3_marks": 2,
+        "last_updated_at": "2024-01-12"
+      },
+      "lab_marks": {
+        "marks_id": "3",
+        "enrollment_id": "3",
+        "record_marks": 10,
+        "continuous_evaluation_marks": 19,
+        "lab_mse_marks": 18,
+        "last_updated_at": "2024-01-12"
+      },
+      "total_theory_marks": 47,
+      "total_lab_marks": 47,
+      "total_marks": 94,
+      "grade": "O"
+    },
+    {
+      "course_code": "EN6004",
+      "course_name": "Technical Communication",
+      "course_type": "open_elective",
+      "has_theory_component": true,
+      "has_lab_component": false,
+      "theory_marks": {
+        "marks_id": "4",
+        "enrollment_id": "4",
+        "mse1_marks": 16,
+        "mse2_marks": 15,
+        "mse3_marks": null,
+        "task1_marks": 3,
+        "task2_marks": 3,
+        "task3_marks": 1,
+        "last_updated_at": "2024-01-08"
+      },
+      "total_theory_marks": 38,
+      "total_marks": 38,
+      "grade": "B+"
+    }
+  ]
+}

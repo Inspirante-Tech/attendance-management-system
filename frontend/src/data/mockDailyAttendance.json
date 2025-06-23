@@ -1,0 +1,37 @@
+[
+  {
+    "course_name": "Data Structures and Algorithms",
+    "course_code": "CS301",
+    "teacher_name": "Dr. Smith",
+    "status": "present",
+    "hours": 3
+  },
+  {
+    "course_name": "Database Management Systems",
+    "course_code": "CS302",
+    "teacher_name": "Prof. Johnson",
+    "status": "present",
+    "hours": 4
+  },
+  {
+    "course_name": "Computer Networks",
+    "course_code": "CS303",
+    "teacher_name": "Dr. Williams",
+    "status": "absent",
+    "hours": 3
+  },
+  {
+    "course_name": "Software Engineering",
+    "course_code": "CS304",
+    "teacher_name": "Prof. Brown",
+    "status": "present",
+    "hours": 3
+  },
+  {
+    "course_name": "Machine Learning",
+    "course_code": "CS305",
+    "teacher_name": "Dr. Davis",
+    "status": "present",
+    "hours": 4
+  }
+]

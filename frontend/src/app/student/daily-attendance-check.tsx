@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Clock, CheckCircle, XCircle, Calendar } from 'lucide-react'
+import mockDailyAttendance from '@/data/mockDailyAttendance.json'
 
 interface DailyAttendanceProps {
   studentId: string
@@ -28,46 +29,6 @@ interface AttendanceRecord {
   status: 'present' | 'absent' | 'not_marked'
   hours: number
 }
-
-// Mock data - replace with actual API calls
-const mockTodayAttendance: AttendanceRecord[] = [
-  {
-    course_name: 'Data Structures and Algorithms',
-    course_code: 'CS301',
-    teacher_name: 'Dr. Smith',
-    status: 'present',
-    hours: 3
-  },
-  {
-    course_name: 'Database Management Systems',
-    course_code: 'CS302',
-    teacher_name: 'Prof. Johnson',
-    status: 'present',
-    hours: 4
-  },
-  {
-    course_name: 'Computer Networks',
-    course_code: 'CS303',
-    teacher_name: 'Dr. Williams',
-    status: 'absent',
-    hours: 3
-  },
-  {
-    course_name: 'Software Engineering',
-    course_code: 'CS304',
-    teacher_name: 'Prof. Brown',
-    status: 'present',
-    hours: 3
-  },
-  {
-    course_name: 'Machine Learning',
-    course_code: 'CS305',
-    teacher_name: 'Dr. Davis',
-    status: 'present',
-    hours: 4
-  }
-]
-
 export function DailyAttendanceCheck({ 
   studentId, 
   selectedDate, 
@@ -101,7 +62,7 @@ export function DailyAttendanceCheck({
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
-      setAttendanceData(mockTodayAttendance)
+      setAttendanceData(mockDailyAttendance as AttendanceRecord[])
     } catch (error) {
       console.error('Error loading attendance:', error)
     } finally {
@@ -145,18 +106,17 @@ export function DailyAttendanceCheck({
   }
     const presentCount = displayData.filter(record => record.status === 'present').length
   const absentCount = displayData.filter(record => record.status === 'absent').length
-  
-  return (
-    <div className="space-y-4">
+    return (
+    <div className="space-y-3 sm:space-y-4">
       {/* Summary Card - Same size as calendar */}
       {showSummaryCard && (
-        <Card className="h-[300px] flex flex-col">
-          <CardHeader className="pb-3 flex-shrink-0">
-            <CardTitle className="flex items-center space-x-2 text-lg">
+        <Card className="h-[250px] sm:h-[300px] flex flex-col">
+          <CardHeader className="pb-2 sm:pb-3 flex-shrink-0">
+            <CardTitle className="flex items-center space-x-2 text-base sm:text-lg">
               <Calendar className="w-4 h-4 text-blue-600" />
-              <span>{isShowingSelectedDate ? 'Selected Date Attendance' : 'Today\'s Attendance'}</span>
+              <span className="text-sm sm:text-base">{isShowingSelectedDate ? 'Selected Date Attendance' : 'Today\'s Attendance'}</span>
             </CardTitle>
-            <CardDescription className="text-sm">
+            <CardDescription className="text-xs sm:text-sm">
               {displayDate.toLocaleDateString('en-US', { 
                 weekday: 'long', 
                 month: 'short', 
@@ -164,62 +124,92 @@ export function DailyAttendanceCheck({
               })}
             </CardDescription>
           </CardHeader>
-          <CardContent className="pt-0 flex-1 flex items-center justify-center">
-            <div className="grid grid-cols-2 gap-4 w-full max-w-md">
-              <div className="text-center p-6 bg-green-50 rounded-lg border border-green-200">
-                <div className="text-4xl font-bold text-green-600">{presentCount}</div>
-                <div className="text-sm text-green-700 mt-2">Present</div>
+          <CardContent className="pt-0 flex-1 flex items-center justify-center px-3 sm:px-6">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 w-full max-w-md">
+              <div className="text-center p-3 sm:p-6 bg-green-50 rounded-lg border border-green-200">
+                <div className="text-2xl sm:text-4xl font-bold text-green-600">{presentCount}</div>
+                <div className="text-xs sm:text-sm text-green-700 mt-1 sm:mt-2">Present</div>
               </div>
-              <div className="text-center p-6 bg-red-50 rounded-lg border border-red-200">
-                <div className="text-4xl font-bold text-red-600">{absentCount}</div>
-                <div className="text-sm text-red-700 mt-2">Absent</div>
+              <div className="text-center p-3 sm:p-6 bg-red-50 rounded-lg border border-red-200">
+                <div className="text-2xl sm:text-4xl font-bold text-red-600">{absentCount}</div>
+                <div className="text-xs sm:text-sm text-red-700 mt-1 sm:mt-2">Absent</div>
               </div>
             </div>
           </CardContent>
         </Card>
-      )}
-
-      {/* Detailed Attendance Card */}
+      )}      {/* Detailed Attendance Card */}
       {showDetailsCard && (
         <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Class Details</CardTitle>
-            <CardDescription className="text-sm">
+          <CardHeader className="pb-2 sm:pb-3">
+            <CardTitle className="text-sm sm:text-base">Class Details</CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
               Individual class attendance for {isShowingSelectedDate ? 'selected date' : 'today'}
             </CardDescription>
           </CardHeader>
           <CardContent className="pt-0">
             {loading && !isShowingSelectedDate ? (
               <div className="flex items-center justify-center py-6">
-                <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
-                <span className="text-gray-600 text-sm">Loading...</span>
-              </div>
-            ) : (
-              <div className="space-y-2">
+                <div className="w-4 h-4 sm:w-5 sm:h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mr-2"></div>
+                <span className="text-gray-600 text-xs sm:text-sm">Loading...</span>
+              </div>            ) : (
+              <div className="space-y-3">
                 {displayData.length === 0 ? (
                   <div className="text-center py-6 text-gray-500">
-                    <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-300" />
-                    <p className="text-sm">No classes scheduled</p>
+                    <Calendar className="w-6 h-6 sm:w-8 sm:h-8 mx-auto mb-2 text-gray-300" />
+                    <p className="text-xs sm:text-sm">No classes scheduled</p>
                   </div>
-                ) : (                  displayData.map((record, index) => (
-                    <div 
-                      key={index}
-                      className="flex items-center p-6 border rounded-lg hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex-shrink-0 mr-4">
-                        {getStatusIcon(record.status)}
-                      </div>                      <div className="flex-1 grid grid-cols-4 gap-8 items-center text-sm font-medium text-gray-900">
-                        <div className="text-center">{record.course_code}</div>
-                        <div className="text-center truncate" title={record.course_name}>{record.course_name}</div>
-                        <div className="text-center whitespace-nowrap">Total hours: {record.hours}</div>
-                        <div className="text-center whitespace-nowrap">Hours attended: {record.status === 'present' ? record.hours : 0}</div>
-                      </div>
-                      <div className={`ml-4 px-4 py-2 rounded-full text-sm font-medium border ${getStatusColor(record.status)}`}>
-                        {getStatusText(record.status)}
-                      </div>
+                ) : (
+                  <div className="overflow-x-auto -mx-3 sm:mx-0">
+                    <div className="inline-block min-w-full align-middle">
+                      <table className="min-w-full text-xs sm:text-sm">                      <thead>
+                        <tr className="border-b border-gray-200">
+                          <th className="text-left py-2 sm:py-3 px-2 font-medium text-gray-700 lg:hidden">Course</th>
+                          <th className="hidden lg:table-cell text-left py-2 sm:py-3 px-2 font-medium text-gray-700">Course Code</th>
+                          <th className="hidden lg:table-cell text-left py-2 sm:py-3 px-2 font-medium text-gray-700">Course Name</th>
+                          <th className="text-center py-2 sm:py-3 px-2 font-medium text-gray-700">Hours</th>
+                          <th className="text-center py-2 sm:py-3 px-2 font-medium text-gray-700">Attended</th>
+                          <th className="text-center py-2 sm:py-3 px-2 font-medium text-gray-700">Status</th>
+                        </tr>
+                      </thead>                      <tbody>
+                        {displayData.map((record, index) => (
+                          <tr key={index} className="border-b border-gray-100 hover:bg-gray-50">
+                            {/* Combined course info for mobile/tablet */}
+                            <td className="py-2 sm:py-3 px-2 lg:hidden">
+                              <div className="min-w-[100px] sm:min-w-[120px]">
+                                <div className="font-medium text-gray-900 text-xs sm:text-sm">{record.course_code}</div>
+                                <div className="text-gray-600 text-xs truncate">{record.course_name}</div>
+                              </div>
+                            </td>
+                            {/* Separate course code for desktop */}
+                            <td className="hidden lg:table-cell py-2 sm:py-3 px-2">
+                              <div className="font-medium text-gray-900 text-sm">{record.course_code}</div>
+                            </td>
+                            {/* Separate course name for desktop */}
+                            <td className="hidden lg:table-cell py-2 sm:py-3 px-2">
+                              <div className="font-medium text-gray-900 text-sm min-w-[200px]">{record.course_name}</div>
+                            </td>
+                            <td className="text-center py-2 sm:py-3 px-2">
+                              <span className="font-medium">{record.hours}</span>
+                            </td>
+                            <td className="text-center py-2 sm:py-3 px-2">
+                              <span className="font-medium">{record.status === 'present' ? record.hours : 0}</span>
+                            </td>
+                            <td className="text-center py-2 sm:py-3 px-2">
+                              <div className="flex items-center justify-center space-x-1 sm:space-x-2">
+                                <div className="flex-shrink-0">
+                                  {getStatusIcon(record.status)}
+                                </div>
+                                <span className={`px-1 sm:px-2 py-0.5 sm:py-1 rounded text-xs font-medium ${getStatusColor(record.status)}`}>
+                                  {getStatusText(record.status)}
+                                </span>
+                              </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                     </div>
-                  ))
-                )}
+                  </div>                )}
               </div>
             )}
           </CardContent>

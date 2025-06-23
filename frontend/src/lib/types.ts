@@ -170,3 +170,49 @@ export interface DepartmentData {
   icon_bg: string
   icon_color: string
 }
+
+// Marks interfaces
+export interface TheoryMarks {
+  marks_id: string
+  enrollment_id: string
+  mse1_marks?: number
+  mse2_marks?: number
+  mse3_marks?: number
+  task1_marks?: number
+  task2_marks?: number
+  task3_marks?: number
+  last_updated_at: string
+}
+
+export interface LabMarks {
+  marks_id: string
+  enrollment_id: string
+  record_marks?: number
+  continuous_evaluation_marks?: number
+  lab_mse_marks?: number
+  last_updated_at: string
+}
+
+export interface CourseMarks {
+  course_code: string
+  course_name: string
+  course_type: 'core' | 'department_elective' | 'open_elective'
+  has_theory_component: boolean
+  has_lab_component: boolean
+  theory_marks?: TheoryMarks
+  lab_marks?: LabMarks
+  total_theory_marks?: number
+  total_lab_marks?: number
+  total_marks?: number
+  grade?: string
+}
+
+export interface MarksOverview {
+  total_courses: number
+  passed_courses: number
+  failed_courses: number
+  pending_courses: number
+  overall_percentage: number
+  gpa?: number
+  semester_rank?: number
+}
