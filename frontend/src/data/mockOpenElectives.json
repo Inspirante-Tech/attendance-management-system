@@ -1,0 +1,50 @@
+[
+  {
+    "course_id": "oe_001",
+    "course_code": "OE401",
+    "course_name": "Introduction to Artificial Intelligence",
+    "department_id": "OPEN_ELECTIVE",
+    "total_students": 45,
+    "classes_completed": 20,
+    "total_classes": 40,
+    "attendance_percentage": 88.5,
+    "course_type": "open_elective",
+    "is_open_elective": true
+  },
+  {
+    "course_id": "oe_002",
+    "course_code": "OE402",
+    "course_name": "Digital Marketing and E-Commerce",
+    "department_id": "OPEN_ELECTIVE",
+    "total_students": 38,
+    "classes_completed": 18,
+    "total_classes": 35,
+    "attendance_percentage": 92.1,
+    "course_type": "open_elective",
+    "is_open_elective": true
+  },
+  {
+    "course_id": "oe_003",
+    "course_code": "OE403",
+    "course_name": "Environmental Science and Sustainability",
+    "department_id": "OPEN_ELECTIVE",
+    "total_students": 42,
+    "classes_completed": 22,
+    "total_classes": 38,
+    "attendance_percentage": 85.7,
+    "course_type": "open_elective",
+    "is_open_elective": true
+  },
+  {
+    "course_id": "oe_004",
+    "course_code": "OE404",
+    "course_name": "Financial Literacy and Investment",
+    "department_id": "OPEN_ELECTIVE",
+    "total_students": 35,
+    "classes_completed": 15,
+    "total_classes": 32,
+    "attendance_percentage": 90.3,
+    "course_type": "open_elective",
+    "is_open_elective": true
+  }
+]

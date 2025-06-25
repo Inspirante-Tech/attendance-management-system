@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { Course, Section } from './dropdown-navigation'
+import mockAnalyticsDataImport from '@/data/mockAnalyticsData.json'
 
 interface AttendanceAnalyticsProps {
   courseOffering: Course
@@ -32,97 +33,8 @@ interface StudentAnalytics {
   email?: string
 }
 
-// Mock analytics data - replace with actual API call
-const mockAnalyticsData: StudentAnalytics[] = [
-  {
-    student_id: '1',
-    usn: 'NNM22CS001',
-    name: 'Aditya Sharma',
-    total_classes: 45,
-    attended_classes: 43,
-    attendance_percentage: 95.6,
-    department: 'Computer Science',
-    phone: '+91 9876543210',
-    email: 'aditya.sharma@student.nmamit.in'
-  },
-  {
-    student_id: '2',
-    usn: 'NNM22AIDS002',
-    name: 'Bhavana Nair',
-    total_classes: 45,
-    attended_classes: 38,
-    attendance_percentage: 84.4,
-    department: 'AI & Data Science',
-    phone: '+91 9876543211',
-    email: 'bhavana.nair@student.nmamit.in'
-  },
-  {
-    student_id: '3',
-    usn: 'NNM22ISE003',
-    name: 'Chetan Kumar',
-    total_classes: 45,
-    attended_classes: 32,
-    attendance_percentage: 71.1,
-    department: 'Information Science',
-    phone: '+91 9876543212',
-    email: 'chetan.kumar@student.nmamit.in'
-  },
-  {
-    student_id: '4',
-    usn: 'NNM22ECE004',
-    name: 'Divya Rao',
-    total_classes: 45,
-    attended_classes: 41,
-    attendance_percentage: 91.1,
-    department: 'Electronics & Communication',
-    phone: '+91 9876543213',
-    email: 'divya.rao@student.nmamit.in'
-  },
-  {
-    student_id: '5',
-    usn: 'NNM22ME005',
-    name: 'Rahul Verma',
-    total_classes: 45,
-    attended_classes: 30,
-    attendance_percentage: 66.7,
-    department: 'Mechanical Engineering',
-    phone: '+91 9876543214',
-    email: 'rahul.verma@student.nmamit.in'
-  },
-  {
-    student_id: '6',
-    usn: 'NNM22CE006',
-    name: 'Priya Singh',
-    total_classes: 45,
-    attended_classes: 33,
-    attendance_percentage: 73.3,
-    department: 'Civil Engineering',
-    phone: '+91 9876543215',
-    email: 'priya.singh@student.nmamit.in'
-  },
-  {
-    student_id: '7',
-    usn: 'NNM22CS007',
-    name: 'Arjun Menon',
-    total_classes: 45,
-    attended_classes: 44,
-    attendance_percentage: 97.8,
-    department: 'Computer Science',
-    phone: '+91 9876543216',
-    email: 'arjun.menon@student.nmamit.in'
-  },
-  {
-    student_id: '8',
-    usn: 'NNM22AIDS008',
-    name: 'Sneha Reddy',
-    total_classes: 45,
-    attended_classes: 36,
-    attendance_percentage: 80.0,
-    department: 'AI & Data Science',
-    phone: '+91 9876543217',
-    email: 'sneha.reddy@student.nmamit.in'
-  }
-]
+// Type the imported data
+const mockAnalyticsData: StudentAnalytics[] = mockAnalyticsDataImport as StudentAnalytics[]
 
 export function AttendanceAnalytics({
   courseOffering,
@@ -171,7 +83,7 @@ export function AttendanceAnalytics({
   }
 
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-4">
       {/* Header */}
       <Card>
         <CardHeader className="pb-4">

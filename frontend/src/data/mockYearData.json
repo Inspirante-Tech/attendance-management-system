@@ -1,0 +1,23 @@
+[
+  {
+    "year": "2nd Year",
+    "academic_year": "2024-25",
+    "semester": 4,
+    "total_students": 580,
+    "total_courses": 12
+  },
+  {
+    "year": "3rd Year", 
+    "academic_year": "2024-25",
+    "semester": 6,
+    "total_students": 550,
+    "total_courses": 15
+  },
+  {
+    "year": "4th Year",
+    "academic_year": "2024-25", 
+    "semester": 8,
+    "total_students": 520,
+    "total_courses": 8
+  }
+]

@@ -1,0 +1,50 @@
+[
+  {
+    "student_id": "1",
+    "usn": "NNM22CS001",
+    "name": "Aditya Sharma",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "2",
+    "usn": "NNM22CS002", 
+    "name": "Bhavana Nair",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "3",
+    "usn": "NNM22CS003",
+    "name": "Chetan Kumar",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "4",
+    "usn": "NNM22CS004",
+    "name": "Divya Rao",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "5",
+    "usn": "NNM22CS005",
+    "name": "Eshan Joshi",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "6",
+    "usn": "NNM22CS006",
+    "name": "Fatima Khan",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "7",
+    "usn": "NNM22CS007",
+    "name": "Ganesh Reddy",
+    "attendance_status": "present"
+  },
+  {
+    "student_id": "8",
+    "usn": "NNM22CS008",
+    "name": "Harini Shetty",
+    "attendance_status": "present"
+  }
+]

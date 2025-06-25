@@ -12,6 +12,7 @@ import {
   ChevronRight,
   X
 } from 'lucide-react'
+import mockSearchDataImport from '@/data/mockSearchData.json'
 
 interface SearchResult {
   id: string
@@ -35,283 +36,8 @@ interface MasterSearchProps {
   placeholder?: string
 }
 
-// Mock search data - replace with actual API calls
-const mockSearchData: SearchResult[] = [
-  // Years
-  {
-    id: 'year_2',
-    type: 'year',
-    title: '2nd Year',
-    subtitle: 'Semester 4 • 2024-25',
-    description: '580 students, 12 courses',
-    metadata: { academic_year: '2024-25', semester: 4 }
-  },
-  {
-    id: 'year_3',
-    type: 'year',
-    title: '3rd Year',
-    subtitle: 'Semester 6 • 2024-25',
-    description: '550 students, 15 courses',
-    metadata: { academic_year: '2024-25', semester: 6 }
-  },
-  {
-    id: 'year_4',
-    type: 'year',
-    title: '4th Year',
-    subtitle: 'Semester 8 • 2024-25',
-    description: '520 students, 8 courses',
-    metadata: { academic_year: '2024-25', semester: 8 }
-  },
-  // Departments
-  {
-    id: 'dept_cse',
-    type: 'department',
-    title: 'Computer Science Engineering',
-    subtitle: 'CSE',
-    description: '120 students, 8 courses',
-    metadata: { department: 'Computer Science Engineering', year: '3rd Year' }
-  },
-  {
-    id: 'dept_aids',
-    type: 'department',
-    title: 'Artificial Intelligence and Data Science',
-    subtitle: 'AIDS',
-    description: '80 students, 6 courses',
-    metadata: { department: 'Artificial Intelligence and Data Science', year: '3rd Year' }
-  },
-  {
-    id: 'dept_ise',
-    type: 'department',
-    title: 'Information Science Engineering',
-    subtitle: 'ISE',
-    description: '100 students, 7 courses',
-    metadata: { department: 'Information Science Engineering', year: '3rd Year' }
-  },
-  {
-    id: 'dept_ece',
-    type: 'department',
-    title: 'Electronics and Communication',
-    subtitle: 'ECE',
-    description: '90 students, 6 courses',
-    metadata: { department: 'Electronics and Communication', year: '3rd Year' }
-  },
-  {
-    id: 'dept_me',
-    type: 'department',
-    title: 'Mechanical Engineering',
-    subtitle: 'ME',
-    description: '85 students, 5 courses',
-    metadata: { department: 'Mechanical Engineering', year: '3rd Year' }
-  },
-  {
-    id: 'dept_ce',
-    type: 'department',
-    title: 'Civil Engineering',
-    subtitle: 'CE',
-    description: '75 students, 5 courses',
-    metadata: { department: 'Civil Engineering', year: '3rd Year' }
-  },
-  // Courses
-  {
-    id: 'course_cs301',
-    type: 'course',
-    title: 'CS301 - Data Structures and Algorithms',
-    subtitle: 'Section A • Core Course',
-    description: '60 students, 24 classes held',
-    metadata: { 
-      course_code: 'CS301', 
-      section: 'A', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'course_cs302',
-    type: 'course',
-    title: 'CS302 - Database Management Systems',
-    subtitle: 'Section A • Core Course',
-    description: '60 students, 20 classes held',
-    metadata: { 
-      course_code: 'CS302', 
-      section: 'A', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'course_cs303',
-    type: 'course',
-    title: 'CS303 - Computer Networks',
-    subtitle: 'Section B • Core Course',
-    description: '58 students, 22 classes held',
-    metadata: { 
-      course_code: 'CS303', 
-      section: 'B', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'course_cs304',
-    type: 'course',
-    title: 'CS304 - Operating Systems',
-    subtitle: 'Section A • Department Elective',
-    description: '60 students, 18 classes held',
-    metadata: { 
-      course_code: 'CS304', 
-      section: 'A', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'course_aids201',
-    type: 'course',
-    title: 'AIDS201 - Machine Learning Fundamentals',
-    subtitle: 'Section A • Core Course',
-    description: '40 students, 16 classes held',
-    metadata: { 
-      course_code: 'AIDS201', 
-      section: 'A', 
-      department: 'Artificial Intelligence and Data Science',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'course_ise301',
-    type: 'course',
-    title: 'ISE301 - Software Engineering',
-    subtitle: 'Section A • Core Course',
-    description: '50 students, 18 classes held',
-    metadata: { 
-      course_code: 'ISE301', 
-      section: 'A', 
-      department: 'Information Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  // Students
-  {
-    id: 'student_1',
-    type: 'student',
-    title: 'Aditya Sharma',
-    subtitle: 'NNM22CS001',
-    description: 'Computer Science Engineering • 3rd Year',
-    metadata: { 
-      usn: 'NNM22CS001', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'student_2',
-    type: 'student',
-    title: 'Bhavana Nair',
-    subtitle: 'NNM22CS002',
-    description: 'Computer Science Engineering • 3rd Year',
-    metadata: { 
-      usn: 'NNM22CS002', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'student_3',
-    type: 'student',
-    title: 'Chetan Kumar',
-    subtitle: 'NNM22CS003',
-    description: 'Computer Science Engineering • 3rd Year',
-    metadata: { 
-      usn: 'NNM22CS003', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'student_4',
-    type: 'student',
-    title: 'Divya Rao',
-    subtitle: 'NNM22CS004',
-    description: 'Computer Science Engineering • 3rd Year',
-    metadata: { 
-      usn: 'NNM22CS004', 
-      department: 'Computer Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'student_5',
-    type: 'student',
-    title: 'Rahul Verma',
-    subtitle: 'NNM22AIDS001',
-    description: 'Artificial Intelligence and Data Science • 3rd Year',
-    metadata: { 
-      usn: 'NNM22AIDS001', 
-      department: 'Artificial Intelligence and Data Science',
-      year: '3rd Year'
-    }
-  },
-  {
-    id: 'student_6',
-    type: 'student',
-    title: 'Priya Singh',
-    subtitle: 'NNM22ISE001',
-    description: 'Information Science Engineering • 3rd Year',
-    metadata: { 
-      usn: 'NNM22ISE001', 
-      department: 'Information Science Engineering',
-      year: '3rd Year'
-    }
-  },
-  // Electives
-  {
-    id: 'elective_1',
-    type: 'elective',
-    title: 'Machine Learning',
-    subtitle: 'CS401 • Department Elective',
-    description: 'Computer Science Engineering • 4th Year',
-    metadata: { 
-      course_code: 'CS401', 
-      department: 'Computer Science Engineering',
-      year: '4th Year'
-    }
-  },
-  {
-    id: 'elective_2',
-    type: 'elective',
-    title: 'Web Technologies',
-    subtitle: 'CS402 • Department Elective',
-    description: 'Computer Science Engineering • 4th Year',
-    metadata: { 
-      course_code: 'CS402', 
-      department: 'Computer Science Engineering',
-      year: '4th Year'
-    }
-  },
-  {
-    id: 'elective_3',
-    type: 'elective',
-    title: 'Data Mining',
-    subtitle: 'CS403 • Open Elective',
-    description: 'Available for all departments • 4th Year',
-    metadata: { 
-      course_code: 'CS403', 
-      year: '4th Year'
-    }
-  },
-  {
-    id: 'elective_4',
-    type: 'elective',
-    title: 'Blockchain Technology',
-    subtitle: 'CS404 • Department Elective',
-    description: 'Computer Science Engineering • 4th Year',
-    metadata: { 
-      course_code: 'CS404', 
-      department: 'Computer Science Engineering',
-      year: '4th Year'
-    }
-  }
-]
+// Type the imported data and replace with actual API calls
+const mockSearchData: SearchResult[] = mockSearchDataImport as SearchResult[]
 
 export function MasterSearch({ onNavigate, placeholder = "Search years, departments, courses, students..." }: MasterSearchProps) {
   const [searchTerm, setSearchTerm] = useState('')
@@ -475,7 +201,7 @@ export function MasterSearch({ onNavigate, placeholder = "Search years, departme
   }
 
   return (
-    <div ref={searchRef} className="relative w-full max-w-2xl">
+    <div ref={searchRef} className="relative w-full max-w-2xl z-[70]">
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />        <input
           ref={inputRef}
@@ -502,7 +228,7 @@ export function MasterSearch({ onNavigate, placeholder = "Search years, departme
       </div>
 
       {isOpen && results.length > 0 && (
-        <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg border z-50 max-h-96 overflow-y-auto">
+        <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg border z-[70] max-h-96 overflow-y-auto">
           <CardContent className="p-0">
             <div className="py-2">
               {results.map((result, index) => (                <button
@@ -547,7 +273,7 @@ export function MasterSearch({ onNavigate, placeholder = "Search years, departme
       )}
 
       {isOpen && searchTerm && results.length === 0 && !loading && (
-        <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg border z-50">
+        <Card className="absolute top-full left-0 right-0 mt-2 shadow-lg border z-[70]">
           <CardContent className="p-4 text-center text-gray-500">
             <Search className="w-8 h-8 text-gray-300 mx-auto mb-2" />
             <p className="text-sm">No results found for &quot;{searchTerm}&quot;</p>

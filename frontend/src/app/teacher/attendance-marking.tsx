@@ -11,6 +11,8 @@ import {
 } from 'lucide-react'
 
 import { Course, Section } from './dropdown-navigation'
+import mockAttendanceStudentsImport from '@/data/mockAttendanceStudents.json'
+import mockOpenElectiveStudentsImport from '@/data/mockOpenElectiveStudents.json'
 
 interface AttendanceMarkingProps {
   courseOffering: Course
@@ -27,64 +29,16 @@ interface Student {
   photo_url?: string
 }
 
-// Mock data for students - replace with actual API call
-const mockStudentData: Student[] = [
-  {
-    student_id: '1',
-    usn: 'NNM22CS001',
-    name: 'Aditya Sharma',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '2',
-    usn: 'NNM22CS002', 
-    name: 'Bhavana Nair',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '3',
-    usn: 'NNM22CS003',
-    name: 'Chetan Kumar',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '4',
-    usn: 'NNM22CS004',
-    name: 'Divya Rao',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '5',
-    usn: 'NNM22CS005',
-    name: 'Eshan Joshi',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '6',
-    usn: 'NNM22CS006',
-    name: 'Fatima Khan',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '7',
-    usn: 'NNM22CS007',
-    name: 'Ganesh Reddy',
-    attendance_status: 'present'
-  },
-  {
-    student_id: '8',
-    usn: 'NNM22CS008',
-    name: 'Harini Shetty',
-    attendance_status: 'present'
-  }
-]
+// Type the imported data
+const mockAttendanceStudents: Student[] = mockAttendanceStudentsImport as Student[]
+const mockOpenElectiveStudents: Student[] = mockOpenElectiveStudentsImport as Student[]
 
 export function AttendanceMarking({
   courseOffering,
   selectedYear,
   selectedDepartment,
   selectedSection
-}: AttendanceMarkingProps) {  const [students, setStudents] = useState<Student[]>(mockStudentData)
+}: AttendanceMarkingProps) {  const [students, setStudents] = useState<Student[]>(mockAttendanceStudents)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [topicCovered, setTopicCovered] = useState('')
@@ -101,24 +55,10 @@ export function AttendanceMarking({
       // For open electives, load students from multiple departments
       if (courseOffering.course_code.startsWith('OE')) {
         // Mock data for open elective students from mixed departments
-        const mixedStudents: Student[] = [
-          { student_id: '1', usn: 'NNM22CS001', name: 'Aditya Sharma', attendance_status: 'present' },
-          { student_id: '2', usn: 'NNM22AIDS002', name: 'Bhavana Nair', attendance_status: 'present' },
-          { student_id: '3', usn: 'NNM22ISE003', name: 'Chetan Kumar', attendance_status: 'present' },
-          { student_id: '4', usn: 'NNM22ECE004', name: 'Divya Rao', attendance_status: 'present' },
-          { student_id: '5', usn: 'NNM22ME005', name: 'Rahul Verma', attendance_status: 'present' },
-          { student_id: '6', usn: 'NNM22CE006', name: 'Priya Singh', attendance_status: 'present' },
-          { student_id: '7', usn: 'NNM22CS007', name: 'Arjun Menon', attendance_status: 'present' },
-          { student_id: '8', usn: 'NNM22AIDS008', name: 'Sneha Reddy', attendance_status: 'present' },
-          { student_id: '9', usn: 'NNM22ISE009', name: 'Kavya Patel', attendance_status: 'present' },
-          { student_id: '10', usn: 'NNM22ECE010', name: 'Rohit Gupta', attendance_status: 'present' },
-          { student_id: '11', usn: 'NNM22ME011', name: 'Ananya Desai', attendance_status: 'present' },
-          { student_id: '12', usn: 'NNM22CE012', name: 'Vikram Jain', attendance_status: 'present' }
-        ]
-        setStudents(mixedStudents)
+        setStudents(mockOpenElectiveStudents)
       } else {
         // Regular departmental course students
-        setStudents(mockStudentData)
+        setStudents(mockAttendanceStudents)
       }
       
       // Simulate API delay

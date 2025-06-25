@@ -1,0 +1,82 @@
+{
+  "CSE": [
+    {
+      "section_id": "CSE-A",
+      "section_name": "A",
+      "department_id": "CSE",
+      "total_students": 60,
+      "present_today": 52,
+      "attendance_percentage": 86.7
+    },
+    {
+      "section_id": "CSE-B", 
+      "section_name": "B",
+      "department_id": "CSE",
+      "total_students": 58,
+      "present_today": 48,
+      "attendance_percentage": 82.8
+    },
+    {
+      "section_id": "CSE-C",
+      "section_name": "C",
+      "department_id": "CSE",
+      "total_students": 60,
+      "present_today": 45,
+      "attendance_percentage": 75.0
+    }
+  ],
+  "ISE": [
+    {
+      "section_id": "ISE-A",
+      "section_name": "A",
+      "department_id": "ISE",
+      "total_students": 55,
+      "present_today": 49,
+      "attendance_percentage": 89.1
+    },
+    {
+      "section_id": "ISE-B",
+      "section_name": "B",
+      "department_id": "ISE",
+      "total_students": 55,
+      "present_today": 44,
+      "attendance_percentage": 80.0
+    }
+  ],
+  "AIDS": [
+    {
+      "section_id": "AIDS-A",
+      "section_name": "A",
+      "department_id": "AIDS",
+      "total_students": 40,
+      "present_today": 36,
+      "attendance_percentage": 90.0
+    },
+    {
+      "section_id": "AIDS-B",
+      "section_name": "B",
+      "department_id": "AIDS",
+      "total_students": 40,
+      "present_today": 35,
+      "attendance_percentage": 87.5
+    }
+  ],
+  "ECE": [
+    {
+      "section_id": "ECE-A",
+      "section_name": "A",
+      "department_id": "ECE",
+      "total_students": 45,
+      "present_today": 41,
+      "attendance_percentage": 91.1
+    },
+    {
+      "section_id": "ECE-B",
+      "section_name": "B",
+      "department_id": "ECE",
+      "total_students": 45,
+      "present_today": 38,
+      "attendance_percentage": 84.4
+    }
+  ]
+}

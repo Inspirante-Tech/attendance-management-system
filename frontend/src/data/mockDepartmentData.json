@@ -1,0 +1,34 @@
+[
+  {
+    "department_id": "CSE",
+    "department_name": "Computer Science Engineering",
+    "short_name": "CSE",
+    "total_students": 120,
+    "total_courses": 8,
+    "active_classes_today": 6
+  },
+  {
+    "department_id": "AIDS",
+    "department_name": "Artificial Intelligence and Data Science",
+    "short_name": "AIDS",
+    "total_students": 80,
+    "total_courses": 6,
+    "active_classes_today": 4
+  },
+  {
+    "department_id": "ISE",
+    "department_name": "Information Science Engineering",
+    "short_name": "ISE",
+    "total_students": 100,
+    "total_courses": 7,
+    "active_classes_today": 5
+  },
+  {
+    "department_id": "ECE",
+    "department_name": "Electronics and Communication",
+    "short_name": "ECE",
+    "total_students": 90,
+    "total_courses": 6,
+    "active_classes_today": 4
+  }
+]

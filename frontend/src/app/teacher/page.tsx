@@ -111,9 +111,33 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
         resetSelection()
         const yearForElective = result.metadata?.year || '4th Year'
         setSelectedYear(yearForElective)
-        // For electives, navigate to the department offering it
-        if (result.metadata?.department) {
-          setSelectedDepartment(result.metadata.department)
+        
+        // For open electives, don't set department - they should appear in course dropdown
+        // Extract course info and set directly
+        const electiveParts = result.title.split(' - ')
+        if (electiveParts.length >= 2) {
+          setSelectedCourse({
+            course_id: result.id,
+            course_code: electiveParts[0],
+            course_name: electiveParts[1],
+            department_id: 'OPEN_ELECTIVE',
+            total_students: 45, // Default values for electives
+            classes_completed: 20,
+            total_classes: 40,
+            attendance_percentage: 88.0,
+            course_type: 'open_elective',
+            is_open_elective: true
+          })
+          
+          // Set mixed section for open electives
+          setSelectedSection({
+            section_id: 'MIXED',
+            section_name: 'Mixed',
+            department_id: 'OPEN_ELECTIVE',
+            total_students: 45,
+            present_today: 40,
+            attendance_percentage: 88.0
+          })
         }
         break
       default:

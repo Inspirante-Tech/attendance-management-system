@@ -10,6 +10,11 @@ import {
   BookOpen,
   Users
 } from 'lucide-react'
+import mockYearDataImport from '@/data/mockYearData.json'
+import mockDepartmentDataImport from '@/data/mockDepartmentData.json'
+import mockCourseDataImport from '@/data/mockCourseData.json'
+import mockOpenElectivesImport from '@/data/mockOpenElectives.json'
+import mockSectionDataImport from '@/data/mockSectionData.json'
 
 // Types for the navigation data
 interface Year {
@@ -38,6 +43,8 @@ export interface Course {
   classes_completed: number
   total_classes: number
   attendance_percentage: number
+  course_type?: 'regular' | 'open_elective'
+  is_open_elective?: boolean
 }
 
 export interface Section {
@@ -60,205 +67,12 @@ interface DropdownNavigationProps {
   onSectionSelect: (section: Section) => void
 }
 
-// Mock data - replace with actual API calls
-const mockYearData: Year[] = [
-  {
-    year: '2nd Year',
-    academic_year: '2024-25',
-    semester: 4,
-    total_students: 580,
-    total_courses: 12
-  },
-  {
-    year: '3rd Year', 
-    academic_year: '2024-25',
-    semester: 6,
-    total_students: 550,
-    total_courses: 15
-  },
-  {
-    year: '4th Year',
-    academic_year: '2024-25', 
-    semester: 8,
-    total_students: 520,
-    total_courses: 8
-  }
-]
-
-const mockDepartmentData: Department[] = [
-  {
-    department_id: 'CSE',
-    department_name: 'Computer Science Engineering',
-    short_name: 'CSE',
-    total_students: 120,
-    total_courses: 8,
-    active_classes_today: 6
-  },
-  {
-    department_id: 'AIDS',
-    department_name: 'Artificial Intelligence and Data Science',
-    short_name: 'AIDS',
-    total_students: 80,
-    total_courses: 6,
-    active_classes_today: 4
-  },
-  {
-    department_id: 'ISE',
-    department_name: 'Information Science Engineering',
-    short_name: 'ISE',
-    total_students: 100,
-    total_courses: 7,
-    active_classes_today: 5
-  },
-  {
-    department_id: 'ECE',
-    department_name: 'Electronics and Communication',
-    short_name: 'ECE',
-    total_students: 90,
-    total_courses: 6,
-    active_classes_today: 4
-  }
-]
-
-const mockCourseData: Record<string, Course[]> = {
-  'CSE': [
-    {
-      course_id: '1',
-      course_code: 'CS301',
-      course_name: 'Data Structures and Algorithms',
-      department_id: 'CSE',
-      total_students: 60,
-      classes_completed: 28,
-      total_classes: 45,
-      attendance_percentage: 85.2
-    },
-    {
-      course_id: '2',
-      course_code: 'CS302',
-      course_name: 'Database Management Systems',
-      department_id: 'CSE',
-      total_students: 60,
-      classes_completed: 25,
-      total_classes: 40,
-      attendance_percentage: 78.5
-    },
-    {
-      course_id: '3',
-      course_code: 'CS303',
-      course_name: 'Computer Networks',
-      department_id: 'CSE',
-      total_students: 58,
-      classes_completed: 22,
-      total_classes: 38,
-      attendance_percentage: 92.1
-    }
-  ],
-  'ISE': [
-    {
-      course_id: '4',
-      course_code: 'IS301',
-      course_name: 'Software Engineering',
-      department_id: 'ISE',
-      total_students: 55,
-      classes_completed: 30,
-      total_classes: 42,
-      attendance_percentage: 88.7
-    },
-    {
-      course_id: '5',
-      course_code: 'IS302',
-      course_name: 'Web Technologies',
-      department_id: 'ISE',
-      total_students: 55,
-      classes_completed: 26,
-      total_classes: 40,
-      attendance_percentage: 81.3
-    }
-  ]
-}
-
-const mockSectionData: Record<string, Section[]> = {
-  'CSE': [
-    {
-      section_id: 'CSE-A',
-      section_name: 'A',
-      department_id: 'CSE',
-      total_students: 60,
-      present_today: 52,
-      attendance_percentage: 86.7
-    },
-    {
-      section_id: 'CSE-B', 
-      section_name: 'B',
-      department_id: 'CSE',
-      total_students: 58,
-      present_today: 48,
-      attendance_percentage: 82.8
-    },
-    {
-      section_id: 'CSE-C',
-      section_name: 'C',
-      department_id: 'CSE',
-      total_students: 60,
-      present_today: 45,
-      attendance_percentage: 75.0
-    }
-  ],
-  'ISE': [
-    {
-      section_id: 'ISE-A',
-      section_name: 'A',
-      department_id: 'ISE',
-      total_students: 55,
-      present_today: 49,
-      attendance_percentage: 89.1
-    },
-    {
-      section_id: 'ISE-B',
-      section_name: 'B',
-      department_id: 'ISE',
-      total_students: 55,
-      present_today: 44,
-      attendance_percentage: 80.0
-    }
-  ],
-  'AIDS': [
-    {
-      section_id: 'AIDS-A',
-      section_name: 'A',
-      department_id: 'AIDS',
-      total_students: 40,
-      present_today: 36,
-      attendance_percentage: 90.0
-    },
-    {
-      section_id: 'AIDS-B',
-      section_name: 'B',
-      department_id: 'AIDS',
-      total_students: 40,
-      present_today: 35,
-      attendance_percentage: 87.5
-    }
-  ],
-  'ECE': [
-    {
-      section_id: 'ECE-A',
-      section_name: 'A',
-      department_id: 'ECE',
-      total_students: 45,
-      present_today: 41,
-      attendance_percentage: 91.1
-    },
-    {
-      section_id: 'ECE-B',
-      section_name: 'B',
-      department_id: 'ECE',
-      total_students: 45,
-      present_today: 38,
-      attendance_percentage: 84.4
-    }
-  ]
-}
+// Type the imported data  
+const mockYearData: Year[] = mockYearDataImport as Year[]
+const mockDepartmentData: Department[] = mockDepartmentDataImport as Department[]
+const mockCourseData: Record<string, Course[]> = mockCourseDataImport as Record<string, Course[]>
+const mockOpenElectives: Course[] = mockOpenElectivesImport as Course[]
+const mockSectionData: Record<string, Section[]> = mockSectionDataImport as Record<string, Section[]>
 
 export function DropdownNavigation({
   selectedYear,
@@ -306,25 +120,43 @@ export function DropdownNavigation({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
-  // Load courses when department changes
+  // Load courses when department changes or when year is selected (for open electives)
   useEffect(() => {
+    let allCourses: Course[] = []
+    
     if (selectedDepartment) {
+      // Load department-specific courses
       const deptCourses = mockCourseData[selectedDepartment] || []
-      setCourses(deptCourses)
-    } else {
-      setCourses([])
+      allCourses = [...deptCourses]
     }
-  }, [selectedDepartment])
+    
+    // Add open electives when year is selected (regardless of department)
+    if (selectedYear) {
+      allCourses = [...allCourses, ...mockOpenElectives]
+    }
+    
+    setCourses(allCourses)
+  }, [selectedDepartment, selectedYear])
 
-  // Load sections when department changes (sections depend on department, not course)
+  // Load sections when department OR year changes (sections depend on department, but unlock with year)
   useEffect(() => {
     if (selectedDepartment) {
       const deptSections = mockSectionData[selectedDepartment] || []
       setSections(deptSections)
+    } else if (selectedYear && selectedCourse?.is_open_elective) {
+      // For open electives, create a mixed section
+      setSections([{
+        section_id: 'MIXED',
+        section_name: 'Mixed',
+        department_id: 'OPEN_ELECTIVE',
+        total_students: selectedCourse.total_students,
+        present_today: Math.floor(selectedCourse.total_students * selectedCourse.attendance_percentage / 100),
+        attendance_percentage: selectedCourse.attendance_percentage
+      }])
     } else {
       setSections([])
     }
-  }, [selectedDepartment])
+  }, [selectedDepartment, selectedYear, selectedCourse])
 
   const handleYearSelect = (year: string) => {
     onYearSelect(year)
@@ -438,9 +270,9 @@ export function DropdownNavigation({
               variant={selectedSection ? "default" : "outline"}
               className={`w-full justify-between h-auto p-4 ${
                 selectedSection ? 'bg-emerald-600 hover:bg-emerald-700' : ''
-              } ${!selectedDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => selectedDepartment && setSectionDropdownOpen(!sectionDropdownOpen)}
-              disabled={!selectedDepartment}
+              } ${!selectedYear ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => selectedYear && setSectionDropdownOpen(!sectionDropdownOpen)}
+              disabled={!selectedYear}
             >
               <div className="flex items-center space-x-3">
                 <Users className="w-5 h-5" />
@@ -455,7 +287,7 @@ export function DropdownNavigation({
               }`} />
             </Button>
 
-            {sectionDropdownOpen && selectedDepartment && (
+            {sectionDropdownOpen && selectedYear && (
               <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   {sections.length > 0 ? sections.map((section) => (
@@ -465,10 +297,13 @@ export function DropdownNavigation({
                       onClick={() => handleSectionSelect(section)}
                     >
                       <div className="font-medium text-gray-900">Section {section.section_name}</div>
+                      {section.section_id === 'MIXED' && (
+                        <div className="text-sm text-emerald-600">Open Elective Section</div>
+                      )}
                     </button>
                   )) : (
                     <div className="p-3 text-center text-gray-500 text-sm">
-                      No sections available for this department
+                      {selectedCourse ? 'Select a course first' : 'No sections available'}
                     </div>
                   )}
                 </div>
@@ -482,9 +317,9 @@ export function DropdownNavigation({
               variant={selectedCourse ? "default" : "outline"}
               className={`w-full justify-between h-auto p-4 ${
                 selectedCourse ? 'bg-emerald-600 hover:bg-emerald-700' : ''
-              } ${!selectedDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
-              onClick={() => selectedDepartment && setCourseDropdownOpen(!courseDropdownOpen)}
-              disabled={!selectedDepartment}
+              } ${!selectedYear ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => selectedYear && setCourseDropdownOpen(!courseDropdownOpen)}
+              disabled={!selectedYear}
             >
               <div className="flex items-center space-x-3">
                 <BookOpen className="w-5 h-5" />
@@ -499,18 +334,50 @@ export function DropdownNavigation({
               }`} />
             </Button>
 
-            {courseDropdownOpen && selectedDepartment && (
+            {courseDropdownOpen && selectedYear && (
               <div className="absolute top-full mt-2 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
                 <div className="p-2 max-h-60 overflow-y-auto">
-                  {courses.length > 0 ? courses.map((course) => (
-                    <button
-                      key={course.course_id}
-                      className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors"
-                      onClick={() => handleCourseSelect(course)}
-                    >
-                      <div className="font-medium text-gray-900">{course.course_code}: {course.course_name}</div>
-                    </button>
-                  )) : (
+                  {courses.length > 0 ? (
+                    <>
+                      {/* Regular Department Courses */}
+                      {courses.filter(course => !course.is_open_elective).length > 0 && (
+                        <>
+                          {courses.filter(course => !course.is_open_elective).map((course) => (
+                            <button
+                              key={course.course_id}
+                              className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors"
+                              onClick={() => handleCourseSelect(course)}
+                            >
+                              <div className="font-medium text-gray-900">{course.course_code}: {course.course_name}</div>
+                              <div className="text-sm text-gray-500">{course.department_id}</div>
+                            </button>
+                          ))}
+                          {courses.filter(course => course.is_open_elective).length > 0 && (
+                            <div className="border-t border-gray-200 my-2"></div>
+                          )}
+                        </>
+                      )}
+                      
+                      {/* Open Electives */}
+                      {courses.filter(course => course.is_open_elective).length > 0 && (
+                        <>
+                          <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                            Open Electives
+                          </div>
+                          {courses.filter(course => course.is_open_elective).map((course) => (
+                            <button
+                              key={course.course_id}
+                              className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors"
+                              onClick={() => handleCourseSelect(course)}
+                            >
+                              <div className="font-medium text-gray-900">{course.course_code}: {course.course_name}</div>
+                              <div className="text-sm text-emerald-600">Open Elective • Mixed Sections</div>
+                            </button>
+                          ))}
+                        </>
+                      )}
+                    </>
+                  ) : (
                     <div className="p-3 text-center text-gray-500 text-sm">
                       No courses available
                     </div>
