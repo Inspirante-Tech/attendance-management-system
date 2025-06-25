@@ -351,7 +351,6 @@ export function DropdownNavigation({
                               onClick={() => handleCourseSelect(course)}
                             >
                               <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{course.course_code}: {course.course_name}</div>
-                              <div className="text-xs sm:text-sm text-gray-500">{course.department_id}</div>
                             </button>
                           ))}
                           {courses.filter(course => course.is_open_elective).length > 0 && (
@@ -373,7 +372,6 @@ export function DropdownNavigation({
                               onClick={() => handleCourseSelect(course)}
                             >
                               <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{course.course_code}: {course.course_name}</div>
-                              <div className="text-xs sm:text-sm text-emerald-600">Open Elective • Mixed Sections</div>
                             </button>
                           ))}
                         </>
