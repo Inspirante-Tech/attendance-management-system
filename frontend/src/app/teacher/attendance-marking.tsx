@@ -5,21 +5,18 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { 
   Users, 
-  XCircle, 
   UserCheck, 
   UserX,
   Save
 } from 'lucide-react'
 
+import { Course, Section } from './dropdown-navigation'
+
 interface AttendanceMarkingProps {
-  courseOffering: {
-    offering_id: string
-    course_code: string
-    course_name: string
-    class_section: string
-  }
+  courseOffering: Course
   selectedYear: string
   selectedDepartment: string
+  selectedSection: Section
 }
 
 interface Student {
@@ -85,10 +82,13 @@ const mockStudentData: Student[] = [
 export function AttendanceMarking({
   courseOffering,
   selectedYear,
-  selectedDepartment
+  selectedDepartment,
+  selectedSection
 }: AttendanceMarkingProps) {  const [students, setStudents] = useState<Student[]>(mockStudentData)
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [topicCovered, setTopicCovered] = useState('')
+  const [hoursTaken, setHoursTaken] = useState('')
 
   // Load student data when course offering changes
   const loadStudentData = async () => {
@@ -133,7 +133,7 @@ export function AttendanceMarking({
   useEffect(() => {
     loadStudentData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [courseOffering.offering_id, courseOffering.course_code])
+  }, [courseOffering.course_id, courseOffering.course_code])
 
   const markAttendance = (studentId: string, status: 'present' | 'absent') => {
     setStudents(prev => prev.map(student => 
@@ -150,16 +150,28 @@ export function AttendanceMarking({
   }
 
   const saveAttendance = async () => {
+    // Validate required fields
+    if (!topicCovered.trim()) {
+      alert('Please enter the topic covered for this class.')
+      return
+    }
+    
+    if (!hoursTaken.trim() || parseFloat(hoursTaken) < 1) {
+      alert('Please enter valid hours taken for this class (minimum 1 hour).')
+      return
+    }
+
     setSaving(true)
     try {
       // Replace with actual API call
       // First create attendance record
       // const attendanceRecord = await createAttendance({
-      //   offering_id: courseOffering.offering_id,
+      //   offering_id: courseOffering.course_id,
       //   teacher_id: teacherId,
       //   class_date: currentDate.toISOString().split('T')[0],
       //   period_number: 1, // Get from actual period selection
-      //   syllabus_covered: syllabusCovered,
+      //   syllabus_covered: topicCovered,
+      //   hours_taken: parseFloat(hoursTaken),
       //   status: 'held'
       // })
       
@@ -172,10 +184,16 @@ export function AttendanceMarking({
       //   })
       // ))
       
+      console.log('Saving attendance with:', {
+        topic: topicCovered,
+        hours: hoursTaken,
+        students: students.map(s => ({ id: s.student_id, name: s.name, status: s.attendance_status }))
+      })
+      
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000))
       
-      alert('Attendance saved successfully!')
+      alert(`Attendance saved successfully!\nTopic: ${topicCovered}\nHours: ${hoursTaken}`)
     } catch (error) {
       console.error('Error saving attendance:', error)
       alert('Error saving attendance. Please try again.')
@@ -211,51 +229,48 @@ export function AttendanceMarking({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-base">
+              <CardTitle className="text-xl">
                 {courseOffering.course_code} - {courseOffering.course_name}
               </CardTitle>
-              <CardDescription className="text-xs">
-                Section {courseOffering.class_section} • {selectedDepartment} • {selectedYear}
-              </CardDescription>            </div>
+              <CardDescription className="text-base">
+                Section {selectedSection.section_name} • {selectedDepartment} • {selectedYear}
+              </CardDescription>
+            </div>
+            <div className="flex items-center justify-between space-x-8">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5 text-blue-500" />
+                <div className="text-center">
+                  <p className="font-medium text-lg">{students.length}</p>
+                  <p className="text-sm text-gray-600">Total Students</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <UserCheck className="w-5 h-5 text-green-500" />
+                <div className="text-center">
+                  <p className="font-medium text-green-600 text-lg">{presentCount}</p>
+                  <p className="text-sm text-gray-600">Present</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <UserX className="w-5 h-5 text-red-500" />
+                <div className="text-center">
+                  <p className="font-medium text-red-600 text-lg">{absentCount}</p>
+                  <p className="text-sm text-gray-600">Absent</p>
+                </div>
+              </div>
+              <button
+                onClick={markAllPresent}
+                className="px-4 py-2 bg-green-100 text-green-700 rounded text-base font-medium hover:bg-green-200 transition-colors ml-4"
+              >
+                Reset All to Present
+              </button>
+            </div>
           </div>
         </CardHeader>
         <CardContent className="pt-0 pb-3">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div className="flex items-center space-x-2">
-              <Users className="w-3 h-3 text-blue-500" />
-              <div>
-                <p className="font-medium text-xs">{students.length}</p>
-                <p className="text-xs text-gray-600">Total Students</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <UserCheck className="w-3 h-3 text-green-500" />
-              <div>
-                <p className="font-medium text-green-600 text-xs">{presentCount}</p>
-                <p className="text-xs text-gray-600">Present</p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-2">
-              <UserX className="w-3 h-3 text-red-500" />
-              <div>
-                <p className="font-medium text-red-600 text-xs">{absentCount}</p>
-                <p className="text-xs text-gray-600">Absent</p>
-              </div>
-            </div>          </div>
-
-          {/* Reset Button */}
-          <div className="mt-2 flex justify-end">
-            <button
-              onClick={markAllPresent}
-              className="px-2 py-1 bg-green-100 text-green-700 rounded text-xs font-medium hover:bg-green-200 transition-colors"
-            >
-              Reset All to Present
-            </button>
-          </div>
-        
           {/* Attendance Percentage */}
-          <div className="mt-1">
-            <div className="flex justify-between text-xs text-gray-600 mb-1">
+          <div>
+            <div className="flex justify-between text-base text-gray-600 mb-1">
               <span>Class Attendance</span>
               <span>{attendancePercentage.toFixed(1)}%</span>
             </div>            <div className="w-full bg-gray-200 rounded-full h-1 overflow-hidden">
@@ -275,51 +290,89 @@ export function AttendanceMarking({
         </CardContent>
       </Card>
 
+      {/* Topic and Hours Input */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl">Class Details</CardTitle>
+          <CardDescription className="text-base">Enter the topic covered and hours taken for this class</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="md:col-span-2">
+              <label htmlFor="topicCovered" className="block text-base font-medium text-gray-700 mb-1">
+                Topic Covered
+              </label>
+              <textarea
+                id="topicCovered"
+                value={topicCovered}
+                onChange={(e) => setTopicCovered(e.target.value)}
+                placeholder="Enter the topic(s) covered in this class..."
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+                rows={3}
+              />
+            </div>
+            <div>
+              <label htmlFor="hoursTaken" className="block text-base font-medium text-gray-700 mb-1">
+                Hours Taken
+              </label>
+              <input
+                id="hoursTaken"
+                type="number"
+                value={hoursTaken}
+                onChange={(e) => setHoursTaken(e.target.value)}
+                placeholder="Enter hours"
+                min="1"
+                max="8"
+                step="1"
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-base focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Student List */}
       <Card>
         <CardHeader>
-          <CardTitle>Student Attendance</CardTitle>
-          <CardDescription>Mark attendance for each student</CardDescription>
+          <CardTitle className="text-xl">Student Attendance</CardTitle>
+          <CardDescription className="text-base">Mark attendance for each student</CardDescription>
         </CardHeader>
-        <CardContent>          <div className="space-y-2">
-            {students.map((student) => (
-              <div 
-                key={student.student_id}
-                className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50"
-              >
-                <div className="flex items-center space-x-3">
-                  <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                    {student.photo_url ? (
-                      <img 
-                        src={student.photo_url} 
-                        alt={student.name}
-                        className="w-8 h-8 rounded-full object-cover"
-                      />
-                    ) : (
-                      <Users className="w-5 h-5 text-gray-500" />
-                    )}
-                  </div>
-                  <div>
-                    <p className="font-medium text-gray-900">{student.name}</p>
-                    <p className="text-sm text-gray-600">{student.usn}</p>
-                  </div>
-                </div>
-                  <div className="flex space-x-2">
-                  <button
-                    onClick={() => markAttendance(student.student_id, student.attendance_status === 'present' ? 'absent' : 'present')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                      student.attendance_status === 'absent'
-                        ? 'bg-red-600 text-white'
-                        : 'bg-red-100 text-red-700 hover:bg-red-200'
-                    }`}
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b">
+                  <th className="text-left py-3 px-4 text-lg font-medium">USN</th>
+                  <th className="text-left py-3 px-4 text-lg font-medium">Name</th>
+                  <th className="text-center py-3 px-4 text-lg font-medium">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {students.map((student) => (
+                  <tr 
+                    key={student.student_id}
+                    className="border-b border-gray-100 hover:bg-gray-50"
                   >
-                    <XCircle className="w-4 h-4 inline mr-1" />
-                    Absent
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>        </CardContent>
+                    <td className="py-3 px-4 text-base">{student.usn}</td>
+                    <td className="py-3 px-4 text-base font-medium">{student.name}</td>
+                    <td className="py-3 px-4 text-center">
+                      <button
+                        onClick={() => markAttendance(student.student_id, student.attendance_status === 'present' ? 'absent' : 'present')}
+                        className={`px-4 py-2 rounded text-base font-medium transition-colors ${
+                          student.attendance_status === 'present'
+                            ? 'bg-green-600 text-white hover:bg-green-700'
+                            : 'bg-red-600 text-white hover:bg-red-700'
+                        }`}
+                      >
+                        {student.attendance_status === 'present' ? 'Present' : 'Absent'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
       </Card>
 
       {/* Save Button */}
@@ -327,7 +380,7 @@ export function AttendanceMarking({
         <CardContent className="py-4">
           <button
             onClick={saveAttendance}
-            disabled={saving}
+            disabled={saving || !topicCovered.trim() || !hoursTaken.trim()}
             className="w-full py-3 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center space-x-2"
           >
             <Save className="w-5 h-5" />

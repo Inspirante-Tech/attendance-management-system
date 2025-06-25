@@ -1,18 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { YearSelector } from '@/app/teacher/year-selector'
-import { DepartmentSelector } from '@/app/teacher/department-selector'
-import { CourseSelector } from '@/app/teacher/course-selector'
+import Image from 'next/image'
+import { Card, CardHeader } from '@/components/ui/card'
+import { DropdownNavigation, type Course, type Section } from '@/app/teacher/dropdown-navigation'
 import { CourseManagement } from '@/app/teacher/course-management'
 import { MasterSearch } from '@/app/teacher/master-search'
-import { OpenElectives } from '@/app/teacher/open-electives'
 import { 
   User, 
-  GraduationCap,
-  Phone,
-  ChevronRight
+  GraduationCap
 } from 'lucide-react'
 
 // Mock teacher data - replace with actual API call
@@ -31,12 +27,8 @@ const mockTeacherData = {
 export default function TeacherDashboard() {  const [teacherData] = useState(mockTeacherData)
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
-  const [selectedCourse, setSelectedCourse] = useState<{
-    offering_id: string
-    course_code: string
-    course_name: string
-    class_section: string
-  } | null>(null)
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [selectedSection, setSelectedSection] = useState<Section | null>(null)
 
   // Mock function to load teacher data - replace with actual API call
   useEffect(() => {
@@ -47,16 +39,9 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
     setSelectedYear(null)
     setSelectedDepartment(null)
     setSelectedCourse(null)
+    setSelectedSection(null)
   }
 
-  const resetToYear = () => {
-    setSelectedDepartment(null)
-    setSelectedCourse(null)
-  }
-
-  const resetToDepartment = () => {
-    setSelectedCourse(null)
-  }
   // Handle navigation from master search
   const handleSearchNavigation = (result: {
     id: string
@@ -85,13 +70,14 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
         // Default to 3rd Year if not specified in metadata
         const yearForDept = result.metadata?.year || '3rd Year'
         setSelectedYear(yearForDept)
-        setSelectedDepartment(result.title)
+        // Use department ID instead of full name
+        setSelectedDepartment(result.metadata?.department || 'CSE')
         break
       case 'course':
         resetSelection()
         // Set year and department from metadata
         const yearForCourse = result.metadata?.year || '3rd Year'
-        const deptForCourse = result.metadata?.department || 'Computer Science Engineering'
+        const deptForCourse = result.metadata?.department || 'CSE'
         setSelectedYear(yearForCourse)
         setSelectedDepartment(deptForCourse)
         
@@ -99,11 +85,17 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
         const courseParts = result.title.split(' - ')
         if (courseParts.length >= 2) {
           setSelectedCourse({
-            offering_id: result.id,
+            course_id: result.id,
             course_code: courseParts[0],
             course_name: courseParts[1],
-            class_section: result.metadata?.section || 'A'
+            department_id: deptForCourse,
+            total_students: 60, // Default values - should come from API
+            classes_completed: 25,
+            total_classes: 40,
+            attendance_percentage: 85.0
           })
+          // Reset section when course changes
+          setSelectedSection(null)
         }
         break
       case 'student':
@@ -140,41 +132,33 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
 
         {/* Teacher Profile Card */}
         <Card className="bg-gradient-to-r from-emerald-600 to-green-700 text-white">
-          <CardHeader>
-            <div className="flex items-center space-x-4">
-              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+          <CardHeader className="pb-2">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center">
                 {teacherData.photo_url ? (
-                  <img 
+                  <Image 
                     src={teacherData.photo_url} 
                     alt={teacherData.name}
-                    className="w-14 h-14 rounded-full object-cover"
+                    width={40}
+                    height={40}
+                    className="rounded-full object-cover"
                   />
                 ) : (
-                  <User className="w-8 h-8 text-white" />
+                  <User className="w-6 h-6 text-white" />
                 )}
               </div>
               <div className="flex-1">
-                <CardTitle className="text-white text-2xl">Welcome, {teacherData.name}</CardTitle>
-                <CardDescription className="text-emerald-100">
-                  {teacherData.designation} • {teacherData.employee_id} • {teacherData.department}
-                </CardDescription>
+                <div className="flex items-center justify-between text-white">
+                  <span className="text-lg font-medium">Welcome, {teacherData.name}</span>
+                  <span className="text-sm text-emerald-100">{teacherData.employee_id}</span>
+                  <div className="flex items-center space-x-2 text-sm text-emerald-100">
+                    <GraduationCap className="w-4 h-4" />
+                    <span>{teacherData.college_name}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="flex items-center space-x-2">
-                <GraduationCap className="w-4 h-4" />
-                <span className="text-sm">{teacherData.college_name}</span>
-              </div>              <div className="flex items-center space-x-2">
-                <Phone className="w-4 h-4" />
-                <span className="text-sm">{teacherData.phone}</span>
-              </div>
-              <div className="flex items-center space-x-2">
-                <GraduationCap className="w-4 h-4" />
-                <span className="text-sm">{teacherData.designation}</span>
-              </div>
-            </div>          </CardContent>
         </Card>
 
         {/* Master Search */}
@@ -185,93 +169,26 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
           />
         </div>
 
-        {/* Breadcrumb Navigation */}
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center space-x-2 text-sm">
-              <button 
-                onClick={resetSelection}
-                className="text-emerald-600 hover:text-emerald-800 font-medium"
-              >
-                Home
-              </button>
-              {selectedYear && (
-                <>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                  <button 
-                    onClick={resetToYear}
-                    className="text-emerald-600 hover:text-emerald-800 font-medium"
-                  >
-                    {selectedYear}
-                  </button>
-                </>
-              )}
-              {selectedDepartment && (
-                <>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                  <button 
-                    onClick={resetToDepartment}
-                    className="text-emerald-600 hover:text-emerald-800 font-medium"
-                  >
-                    {selectedDepartment}
-                  </button>
-                </>
-              )}
-              {selectedCourse && (
-                <>
-                  <ChevronRight className="w-4 h-4 text-gray-400" />
-                  <span className="text-gray-600 font-medium">
-                    {selectedCourse.course_code} - {selectedCourse.course_name}
-                  </span>
-                </>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+        {/* Dropdown Navigation */}
+        <DropdownNavigation
+          selectedYear={selectedYear}
+          selectedDepartment={selectedDepartment}
+          selectedCourse={selectedCourse}
+          selectedSection={selectedSection}
+          onYearSelect={setSelectedYear}
+          onDepartmentSelect={setSelectedDepartment}
+          onCourseSelect={setSelectedCourse}
+          onSectionSelect={setSelectedSection}
+        />
 
         {/* Main Content */}
         <div className="space-y-6">
-          {!selectedYear && (
-            <YearSelector
-              teacherId={teacherData.teacher_id}
-              onYearSelect={setSelectedYear}
-            />
-          )}          {selectedYear && !selectedDepartment && !selectedCourse && (
-            <>
-              <DepartmentSelector
-                teacherId={teacherData.teacher_id}
-                selectedYear={selectedYear}
-                onDepartmentSelect={setSelectedDepartment}
-              />
-              <OpenElectives
-                teacherId={teacherData.teacher_id}
-                selectedYear={selectedYear}
-                onElectiveSelect={setSelectedCourse}
-              />
-            </>
-          )}
-
-          {selectedYear && selectedDepartment && !selectedCourse && (
-            <CourseSelector
-              teacherId={teacherData.teacher_id}
-              selectedYear={selectedYear}
-              selectedDepartment={selectedDepartment}
-              onCourseSelect={setSelectedCourse}
-            />
-          )}          {selectedYear && selectedDepartment && selectedCourse && (
+          {selectedYear && selectedDepartment && selectedCourse && selectedSection && (
             <CourseManagement
               courseOffering={selectedCourse}
               selectedYear={selectedYear}
               selectedDepartment={selectedDepartment}
-            />
-          )}
-
-          {/* Open Electives Course Management (when course is selected but no department) */}
-          {selectedYear && !selectedDepartment && selectedCourse && (
-            <CourseManagement
-              courseOffering={selectedCourse}
-              selectedYear={selectedYear}
-              selectedDepartment="Mixed Departments"
+              selectedSection={selectedSection}
             />
           )}
         </div>

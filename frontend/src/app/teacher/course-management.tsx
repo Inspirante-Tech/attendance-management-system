@@ -8,33 +8,32 @@ import {
   BarChart3
 } from 'lucide-react'
 
+import { Course, Section } from './dropdown-navigation'
+
 interface CourseManagementProps {
-  courseOffering: {
-    offering_id: string
-    course_code: string
-    course_name: string
-    class_section: string
-  }
+  courseOffering: Course
   selectedYear: string
   selectedDepartment: string
+  selectedSection: Section
 }
 
 export function CourseManagement({
   courseOffering,
   selectedYear,
-  selectedDepartment
+  selectedDepartment,
+  selectedSection
 }: CourseManagementProps) {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="attendance">
         <TabsList>
           <TabsTrigger value="attendance">
-            <Users className="w-4 h-4 mr-2" />
-            Mark Attendance
+            <Users className="w-5 h-5 mr-2" />
+            <span className="text-base">Mark Attendance</span>
           </TabsTrigger>
           <TabsTrigger value="analytics">
-            <BarChart3 className="w-4 h-4 mr-2" />
-            Analytics
+            <BarChart3 className="w-5 h-5 mr-2" />
+            <span className="text-base">Analytics</span>
           </TabsTrigger>
         </TabsList>
 
@@ -43,12 +42,16 @@ export function CourseManagement({
             courseOffering={courseOffering}
             selectedYear={selectedYear}
             selectedDepartment={selectedDepartment}
+            selectedSection={selectedSection}
           />
-        </TabsContent>        <TabsContent value="analytics">
+        </TabsContent>
+
+        <TabsContent value="analytics">
           <AttendanceAnalytics
             courseOffering={courseOffering}
             selectedYear={selectedYear}
             selectedDepartment={selectedDepartment}
+            selectedSection={selectedSection}
           />
         </TabsContent>
       </Tabs>
