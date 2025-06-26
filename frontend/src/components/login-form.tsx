@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 
 interface LoginFormProps {
-  role: "student" | "teacher" | "admin" | "report_viewers"
+  role: "student" | "teacher" | "admin" | "analytics"
 }
 
 const roleConfig = {
@@ -31,7 +31,7 @@ const roleConfig = {
     subtitle: "System administration panel",
     gradient: "from-red-500 to-red-600"
   },
-  report_viewers: {
+  analytics: {
     title: "Analytics Portal",
     icon: "📊",
     subtitle: "View institutional insights",
@@ -85,7 +85,7 @@ export default function LoginForm({ role }: LoginFormProps) {
         router.push('/teacher/')
       } else if (role === 'admin') {
         router.push('/admin/')
-      } else if (role === 'report_viewers') {
+      } else if (role === 'analytics') {
         router.push('/analytics/')
       }else {
         alert(`Welcome to ${config.title}!`)

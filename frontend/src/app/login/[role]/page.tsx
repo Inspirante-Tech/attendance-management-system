@@ -1,16 +1,16 @@
 import LoginForm from '@/components/login-form'
 
 interface LoginPageProps {
-  params: {
-    role: "student" | "teacher" | "admin" | "report_viewers"
-  }
+  params: Promise<{
+    role: "student" | "teacher" | "admin" | "analytics"
+  }>
 }
 
-export default function LoginPage({ params }: LoginPageProps) {
-  const { role } = params
+export default async function LoginPage({ params }: LoginPageProps) {
+  const { role } = await params
   
   // Validate role
-  const validRoles = ["student", "teacher", "admin", "report_viewers"]
+  const validRoles = ["student", "teacher", "admin", "analytics"]
   if (!validRoles.includes(role)) {
     return (
       <div className="min-h-screen flex items-center justify-center">
