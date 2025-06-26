@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { 
   Plus, 
@@ -130,7 +130,6 @@ const mockDepartments: Department[] = [
 ]
 
 export function DepartmentManagement({ 
-  selectedYear, 
   onNavigateToUsers, 
   onNavigateToCourses 
 }: DepartmentManagementProps) {  const [departments, setDepartments] = useState<Department[]>(mockDepartments)
