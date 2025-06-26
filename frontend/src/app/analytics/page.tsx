@@ -17,34 +17,34 @@ export default function AnalyticsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      <div className="container mx-auto px-2 sm:px-4 py-3 sm:py-6 space-y-3 sm:space-y-6">
       {/* Header */}
-      <div className="flex flex-col space-y-4">
-        <div className="flex items-center justify-between">
+      <div className="flex flex-col space-y-2 sm:space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
-            <p className="text-gray-600 mt-1">Comprehensive attendance and academic performance reports</p>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900">Analytics Dashboard</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Comprehensive attendance and academic performance reports</p>
           </div>
           <div className="flex items-center space-x-2">
-            <Calendar className="h-5 w-5 text-gray-500" />
-            <span className="text-sm text-gray-600">Last updated: {new Date().toLocaleDateString()}</span>
+            <Calendar className="h-4 w-4 sm:h-5 sm:w-5 text-gray-500" />
+            <span className="text-xs sm:text-sm text-gray-600">Last updated: {new Date().toLocaleDateString()}</span>
           </div>
         </div>
 
         {/* Filters and Overview */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Report Filters - Left Side (1/2 width) */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-6">
+          {/* Report Filters - Left Side */}
           <div>
             <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">Report Filters</CardTitle>
-                <CardDescription>Select criteria to generate reports</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Report Filters</CardTitle>
+                <CardDescription className="text-sm">Select criteria to generate reports</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Academic Year</label>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Academic Year</label>
                   <Select value={selectedAcademicYear} onValueChange={setSelectedAcademicYear}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-9 sm:h-10">
                       <SelectValue placeholder="Select year" />
                     </SelectTrigger>
                     <SelectContent>
@@ -55,8 +55,8 @@ export default function AnalyticsPage() {
                   </Select>
                 </div>
                 
-                <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-700">Actions</label>
+                <div className="space-y-1 sm:space-y-2">
+                  <label className="text-xs sm:text-sm font-medium text-gray-700">Actions</label>
                   <ExportReports 
                     filters={{
                       academicYear: selectedAcademicYear
@@ -67,36 +67,36 @@ export default function AnalyticsPage() {
             </Card>
           </div>
 
-          {/* Overview Statistics - Right Side (1/2 width) */}
+          {/* Overview Statistics - Right Side */}
           <div>
             <Card className="h-full">
-              <CardHeader>
-                <CardTitle className="text-lg">Overview Statistics</CardTitle>
-                <CardDescription>Key metrics for Academic Year {selectedAcademicYear}</CardDescription>
+              <CardHeader className="pb-3 sm:pb-6">
+                <CardTitle className="text-base sm:text-lg">Overview Statistics</CardTitle>
+                <CardDescription className="text-sm">Key metrics for Academic Year {selectedAcademicYear}</CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-3 gap-4 text-center">
-                  <div>
-                    <div className="text-xl font-bold text-blue-600">490</div>
-                    <div className="text-sm text-gray-700">Students</div>
+              <CardContent className="space-y-3 sm:space-y-4">
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4 text-center">
+                  <div className="sm:col-span-1">
+                    <div className="text-lg sm:text-xl font-bold text-blue-600">490</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Students</div>
                   </div>
-                  <div>
-                    <div className="text-xl font-bold text-green-600">42</div>
-                    <div className="text-sm text-gray-700">Courses</div>
+                  <div className="sm:col-span-1">
+                    <div className="text-lg sm:text-xl font-bold text-green-600">42</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Courses</div>
                   </div>
-                  <div>
-                    <div className="text-xl font-bold text-indigo-600">87.3%</div>
-                    <div className="text-sm text-gray-700">Attendance</div>
+                  <div className="col-span-2 sm:col-span-1">
+                    <div className="text-lg sm:text-xl font-bold text-indigo-600">87.3%</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Attendance</div>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-2 sm:gap-4 text-center">
                   <div>
-                    <div className="text-xl font-bold text-purple-600">76.8%</div>
-                    <div className="text-sm text-gray-700">Avg Marks</div>
+                    <div className="text-lg sm:text-xl font-bold text-purple-600">76.8%</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Avg Marks</div>
                   </div>
                   <div>
-                    <div className="text-xl font-bold text-emerald-600">92.1%</div>
-                    <div className="text-sm text-gray-700">Pass Rate</div>
+                    <div className="text-lg sm:text-xl font-bold text-emerald-600">92.1%</div>
+                    <div className="text-xs sm:text-sm text-gray-700">Pass Rate</div>
                   </div>
                 </div>
               </CardContent>
@@ -106,25 +106,27 @@ export default function AnalyticsPage() {
       </div>
 
       {/* Analytics Tabs */}
-      <Tabs defaultValue="attendance" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="attendance" className="flex items-center space-x-2">
-            <Users className="h-4 w-4" />
-            <span>Attendance Analytics</span>
+      <Tabs defaultValue="attendance" className="space-y-3 sm:space-y-6">
+        <TabsList className="grid w-full grid-cols-2 h-9 sm:h-10">
+          <TabsTrigger value="attendance" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
+            <Users className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Attendance Analytics</span>
+            <span className="sm:hidden">Attendance</span>
           </TabsTrigger>
-          <TabsTrigger value="marks" className="flex items-center space-x-2">
-            <Award className="h-4 w-4" />
-            <span>Marks & Performance Analytics</span>
+          <TabsTrigger value="marks" className="flex items-center space-x-1 sm:space-x-2 text-xs sm:text-sm">
+            <Award className="h-3 w-3 sm:h-4 sm:w-4" />
+            <span className="hidden sm:inline">Marks & Performance Analytics</span>
+            <span className="sm:hidden">Marks</span>
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="attendance" className="space-y-6">
+        <TabsContent value="attendance" className="space-y-3 sm:space-y-6">
           <AttendanceAnalytics 
             academicYear={selectedAcademicYear}
           />
         </TabsContent>
 
-        <TabsContent value="marks" className="space-y-6">
+        <TabsContent value="marks" className="space-y-3 sm:space-y-6">
           <MarksAnalytics 
             academicYear={selectedAcademicYear}
           />
