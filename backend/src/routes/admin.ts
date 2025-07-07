@@ -1155,6 +1155,21 @@ router.put('/marks/:enrollmentId', async (req, res) => {
       if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
       if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
       
+      // Get current marks to check MSE3 eligibility
+      const currentMarks = await prisma.theoryMarks.findUnique({
+        where: { enrollmentId }
+      });
+      
+      // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
+      const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
+      const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
+      
+      // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
+      if ((mse1 + mse2) >= 20) {
+        // If MSE1 + MSE2 >= 20, MSE3 must be null
+        theoryMarkData.mse3Marks = null;
+      }
+      
       theoryMarkData.lastUpdatedAt = new Date();
 
       await prisma.theoryMarks.upsert({

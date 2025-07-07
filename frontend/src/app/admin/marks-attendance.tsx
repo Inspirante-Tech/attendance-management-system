@@ -9,7 +9,6 @@ import {
   Calendar,
   Users,
   BookOpen,
-  Search,
   CheckCircle,
   XCircle,
   Clock
@@ -79,7 +78,6 @@ export default function MarksAttendanceManagement({
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
   const [selectedCourse, setSelectedCourse] = useState<string>('all')
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
-  const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   
@@ -189,17 +187,11 @@ export default function MarksAttendanceManagement({
     }
   }
 
-  // Filter marks based on search
-  const filteredMarks = marks.filter(mark => 
-    mark.course_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    mark.course_code.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Display all marks without filtering
+  const filteredMarks = marks
 
-  // Filter attendance records based on search
-  const filteredAttendanceRecords = attendanceRecords.filter(record =>
-    record.student_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    record.usn.toLowerCase().includes(searchTerm.toLowerCase())
-  )
+  // Display all attendance records without filtering
+  const filteredAttendanceRecords = attendanceRecords
 
   // Handle marks editing
   const handleMarkEdit = async (enrollmentId: string, field: string, value: string) => {
@@ -211,6 +203,18 @@ export default function MarksAttendanceManagement({
         setMarks(prev => prev.map(mark => {
           if (mark.enrollmentId === enrollmentId) {
             const updatedMark = { ...mark, [field]: numValue }
+            
+            // Handle MSE3 eligibility constraint
+            if (field === 'mse1_marks' || field === 'mse2_marks') {
+              const mse1 = field === 'mse1_marks' ? numValue : updatedMark.mse1_marks;
+              const mse2 = field === 'mse2_marks' ? numValue : updatedMark.mse2_marks;
+              
+              // If MSE1 + MSE2 >= 20, clear MSE3
+              if ((mse1 || 0) + (mse2 || 0) >= 20) {
+                updatedMark.mse3_marks = null;
+              }
+            }
+            
             // Recalculate totals
             const theoryTotal = [
               updatedMark.mse1_marks,
@@ -354,44 +358,33 @@ export default function MarksAttendanceManagement({
         </CardHeader>
       </Card>
 
-      {/* Search and Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-600" />
+      {/* Filters for Attendance */}
+      {activeTab === 'attendance' && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex gap-2">
               <Input
-                placeholder="Search courses..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-40"
               />
+              <select
+                value={selectedCourse}
+                onChange={(e) => setSelectedCourse(e.target.value)}
+                className="rounded-md border border-gray-300 px-3 py-2 text-sm"
+                title="Filter by course"
+              >
+                <option value="all">All Courses</option>
+                <option value="CS301">Data Structures</option>
+                <option value="CS302">DBMS</option>
+                <option value="CS303">Networks</option>
+                <option value="CS304">Software Engineering</option>
+              </select>
             </div>
-            {activeTab === 'attendance' && (
-              <div className="flex gap-2">
-                <Input
-                  type="date"
-                  value={selectedDate}
-                  onChange={(e) => setSelectedDate(e.target.value)}
-                  className="w-40"
-                />
-                <select
-                  value={selectedCourse}
-                  onChange={(e) => setSelectedCourse(e.target.value)}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm"
-                  title="Filter by course"
-                >
-                  <option value="all">All Courses</option>
-                  <option value="CS301">Data Structures</option>
-                  <option value="CS302">DBMS</option>
-                  <option value="CS303">Networks</option>
-                  <option value="CS304">Software Engineering</option>
-                </select>
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
 
       {activeTab === 'marks' && (
         /* Marks Management */
@@ -434,9 +427,15 @@ export default function MarksAttendanceManagement({
                         <div className="text-sm text-gray-600">{mark.course_name}</div>
                       </td>
                       {/* Theory Marks */}
-                      {['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].map((field) => (
+                      {['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].map((field) => {
+                        const isMse3 = field === 'mse3_marks';
+                        const mse1 = mark.mse1_marks || 0;
+                        const mse2 = mark.mse2_marks || 0;
+                        const isMse3Ineligible = isMse3 && (mse1 + mse2) >= 20;
+                        
+                        return (
                         <td key={field} className="border border-gray-300 px-3 py-2">
-                          {editingMarkId === mark.enrollmentId && editingMarkField === field ? (
+                          {editingMarkId === mark.enrollmentId && editingMarkField === field && !isMse3Ineligible ? (
                             <Input
                               type="number"
                               min="0"
@@ -454,16 +453,25 @@ export default function MarksAttendanceManagement({
                           ) : (
                             <button
                               onClick={() => {
-                                setEditingMarkId(mark.enrollmentId)
-                                setEditingMarkField(field)
+                                if (!isMse3Ineligible) {
+                                  setEditingMarkId(mark.enrollmentId)
+                                  setEditingMarkField(field)
+                                }
                               }}
-                              className="w-full text-left hover:bg-blue-50 p-1 rounded"
+                              className={`w-full text-left p-1 rounded ${
+                                isMse3Ineligible 
+                                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                                  : 'hover:bg-blue-50'
+                              }`}
+                              disabled={isMse3Ineligible}
+                              title={isMse3Ineligible ? 'MSE3 not allowed when MSE1 + MSE2 ≥ 20' : ''}
                             >
-                              {mark[field as keyof StudentMark] as string || '-'}
+                              {isMse3Ineligible ? '-' : (mark[field as keyof StudentMark] as string || '-')}
                             </button>
                           )}
                         </td>
-                      ))}
+                        );
+                      })}
                       <td className="border border-gray-300 px-3 py-2 font-bold text-blue-600">{mark.theory_total}</td>
                       
                       {/* Lab Marks */}
