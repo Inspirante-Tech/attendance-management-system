@@ -47,7 +47,7 @@ interface Course {
   type: 'core' | 'department_elective' | 'open_elective'
   hasTheoryComponent: boolean
   hasLabComponent: boolean
-  offerings?: any[]
+  offerings?: unknown[]
   openElectiveRestrictions?: {
     restrictedDepartment: {
       id: string
@@ -432,8 +432,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               name: response.data.department?.name || '',
               code: response.data.department?.code || newCourse.department,
               college: {
-                name: response.data.department?.college?.name || '',
-                code: response.data.department?.college?.code || ''
+                name: response.data.department?.colleges?.name || '',
+                code: response.data.department?.colleges?.code || ''
               }
             },
             type: response.data.type || newCourse.type,
@@ -617,40 +617,47 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-gray-900">Code</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Name</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Year</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Department</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Type</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Components</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Restrictions</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Actions</th>
+            <table className="w-full border-collapse border border-gray-300">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Code</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Year</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Department</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">College</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Type</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Components</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Restrictions</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white">
                 {filteredCourses.map((course) => (
-                  <tr key={course.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="font-medium">{course.code}</div>
+                  <tr key={course.id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-3 py-2">
+                      <div className="font-medium text-gray-900">{course.code}</div>
                     </td>
-                    <td className="p-4">
-                      <div className="font-medium">{course.name}</div>
+                    <td className="border border-gray-300 px-3 py-2">
+                      <div className="font-medium text-gray-900">{course.name}</div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800 font-medium">
                         {getCourseYear(course)}
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         <div>{course.department.name}</div>
                         <div className="text-gray-700">{course.department.code}</div>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
+                      <div className="text-sm text-gray-800">
+                        <div>{course.department.college.name}</div>
+                        <div className="text-gray-700">{course.department.college.code}</div>
+                      </div>
+                    </td>
+                    <td className="border border-gray-300 px-3 py-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                         course.type === 'core' ? 'bg-blue-100 text-blue-800' :
                         course.type === 'department_elective' ? 'bg-green-100 text-green-800' :
@@ -659,14 +666,14 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         {course.type.replace('_', ' ')}
                       </span>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         {course.hasTheoryComponent && <span className="text-blue-600">Theory</span>}
                         {course.hasTheoryComponent && course.hasLabComponent && <span className="text-gray-600"> + </span>}
                         {course.hasLabComponent && <span className="text-green-600">Lab</span>}
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         {course.type === 'open_elective' ? (
                           course.openElectiveRestrictions && course.openElectiveRestrictions.length > 0 ? (
@@ -684,8 +691,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         )}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
+                    <td className="border border-gray-300 px-3 py-2 text-center">
+                      <div className="flex justify-center gap-1">
                         <Button size="sm" variant="outline" onClick={() => openEditForm(course)}>
                           <Edit className="h-4 w-4" />
                         </Button>

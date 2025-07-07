@@ -1,11 +1,10 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
-  Upload, 
   Download, 
   Plus, 
   Search, 
@@ -18,6 +17,7 @@ import {
   AlertCircle
 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
+import { ApiUser, UserRole } from '@/types/admin'
 
 interface UserManagementProps {
   initialFilters?: {
@@ -62,7 +62,6 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
   const [selectedSection, setSelectedSection] = useState<string>(initialFilters?.section || 'all')
   const [selectedCourse, setSelectedCourse] = useState<string>(initialFilters?.course || 'all')
   const [selectedCollege, setSelectedCollege] = useState<string>('all')
-  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Edit functionality state
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -72,8 +71,34 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
     email: '',
     username: '',
     phone: '',
-    role: 'student' as 'student' | 'teacher' | 'admin'
+    role: 'student' as 'student' | 'teacher' | 'admin',
+    // Student-specific fields for editing
+    departmentId: '',
+    year: 1,
+    section: '',
+    usn: ''
   })
+
+  // Add user functionality state
+  const [showAddForm, setShowAddForm] = useState(false)
+  const [addFormData, setAddFormData] = useState({
+    name: '',
+    email: '',
+    username: '',
+    phone: '',
+    role: 'student' as 'student' | 'teacher' | 'admin',
+    password: '',
+    // Student-specific fields
+    departmentId: '',
+    year: 1,
+    section: '',
+    usn: ''
+  })
+
+  // Fetch departments and colleges for form dropdowns
+  const [departments, setDepartments] = useState<{id: string, name: string, code: string, college: {name: string, code: string}}[]>([])
+  const [colleges, setColleges] = useState<{id: string, name: string, code: string}[]>([])
+  const [sections, setSections] = useState<{id: string, section_name: string}[]>([])
 
   // Fetch users from API
   useEffect(() => {
@@ -81,18 +106,24 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
       try {
         setLoading(true)
         setError(null)
-        const response = await adminApi.getAllUsers()
         
-        if (response.status === 'success') {
-          console.log('Raw API response:', response.data.slice(0, 2)); // Debug: log first 2 users
-          console.log('Total users from API:', response.data.length);
-          console.log('User roles distribution:', response.data.map(u => u.userRoles?.map(r => r.role)).flat().reduce((acc, role) => { acc[role] = (acc[role] || 0) + 1; return acc; }, {}));
-          console.log('Student departments:', response.data.filter(u => u.student).map(u => u.student.departments?.code).filter(Boolean).reduce((acc, dept) => { acc[dept] = (acc[dept] || 0) + 1; return acc; }, {}));
-          console.log('Student sections:', response.data.filter(u => u.student).map(u => u.student.sections?.section_name).filter(Boolean).reduce((acc, section) => { acc[section] = (acc[section] || 0) + 1; return acc; }, {}));
+        // Fetch users, departments, and sections in parallel
+        const [usersResponse, departmentsResponse] = await Promise.all([
+          adminApi.getAllUsers(),
+          adminApi.getAllDepartments()
+        ])
+        
+        if (usersResponse.status === 'success') {
+          console.log('Raw API response:', usersResponse.data.slice(0, 2)); // Debug: log first 2 users
+          console.log('Total users from API:', usersResponse.data.length);
+          // Debug logs - temporarily commenting out to fix TypeScript errors
+          // console.log('User roles distribution:', usersResponse.data.map(u => u.userRoles?.map(r => r.role)).flat().reduce((acc, role) => { acc[role] = (acc[role] || 0) + 1; return acc; }, {}));
+          // console.log('Student departments:', usersResponse.data.filter(u => u.student).map(u => u.student.departments?.code).filter(Boolean).reduce((acc, dept) => { acc[dept] = (acc[dept] || 0) + 1; return acc; }, {}));
+          // console.log('Student sections:', usersResponse.data.filter(u => u.student).map(u => u.student.sections?.section_name).filter(Boolean).reduce((acc, section) => { acc[section] = (acc[section] || 0) + 1; return acc; }, {}));
           
           // Transform API data to match our User interface
-          const transformedUsers: User[] = response.data.map((user: any) => {
-            const roles = user.userRoles?.map((ur: any) => ur.role) || []
+          const transformedUsers: User[] = usersResponse.data.map((user: ApiUser) => {
+            const roles = user.userRoles?.map(ur => ur.role) || []
             const primaryRole = roles[0] || 'student'
             
             // Helper function to convert semester to academic year
@@ -129,18 +160,17 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
               transformedUser.collegeCode = user.student.colleges?.code
               
               // Extract courses from enrollments
-              if (user.student.enrollments && user.student.enrollments.length > 0) {
-                transformedUser.courses = user.student.enrollments.map((enrollment: any) => 
-                  enrollment.offering?.course?.name || enrollment.offering?.course?.code
-                ).filter(Boolean)
+              if (user.student.enrollments && user.student.enrollments.length > 0) {                transformedUser.courses = user.student.enrollments.map(enrollment =>
+                  enrollment.course?.course_name || enrollment.course?.course_code || 'Unknown Course'
+                ).filter(Boolean).filter(Boolean)
               }
             }
 
             // Teacher-specific data
             if (user.teacher) {
               transformedUser.employeeId = user.teacher.id
-              transformedUser.department = user.teacher.department?.name
-              transformedUser.departmentCode = user.teacher.department?.code
+              transformedUser.department = user.teacher.departments?.name
+              transformedUser.departmentCode = user.teacher.departments?.code
               transformedUser.college = user.teacher.colleges?.name
               transformedUser.collegeCode = user.teacher.colleges?.code
               
@@ -157,7 +187,20 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
           
           setUsers(transformedUsers)
         } else {
-          setError(response.error || 'Failed to fetch users')
+          setError(usersResponse.error || 'Failed to fetch users')
+        }
+        
+        // Process departments response
+        if (departmentsResponse.status === 'success') {
+          setDepartments(departmentsResponse.data.map((dept: any) => ({
+            id: dept.id,
+            name: dept.name,
+            code: dept.code,
+            college: {
+              name: dept.colleges?.name || '',
+              code: dept.colleges?.code || ''
+            }
+          })))
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An error occurred while fetching users')
@@ -251,43 +294,6 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
     users.map(user => user.college).filter(Boolean)
   )).sort()
 
-  // Handle CSV import
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0]
-    if (!file) return
-    
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      const csv = e.target?.result as string
-      const lines = csv.split('\n')
-      
-      const newUsers: User[] = []
-      for (let i = 1; i < lines.length; i++) {
-        if (lines[i].trim()) {
-          const values = lines[i].split(',').map(v => v.trim())
-          const user: User = {
-            id: Date.now().toString() + i,
-            name: values[0] || '',
-            email: values[1] || '',
-            username: values[1] || '',
-            usn: values[2] || undefined,
-            employeeId: values[3] || undefined,
-            role: (values[4] as 'student' | 'teacher' | 'admin') || 'student',
-            department: values[4] === 'admin' ? undefined : (values[5] || ''), // No department for admin
-            section: values[4] === 'student' ? (values[6] || undefined) : undefined, // Only section for students
-            courses: values[7] ? values[7].split(';').filter(Boolean) : undefined, // Parse courses from semicolon-separated string
-            createdAt: new Date().toISOString().split('T')[0]
-          }
-          newUsers.push(user)
-        }
-      }
-      
-      setUsers(prev => [...prev, ...newUsers])
-      alert(`Successfully imported ${newUsers.length} users`)
-    }
-    reader.readAsText(file)
-  }
-
   // Export to CSV
   const exportToCSV = () => {
     const headers = ['Name', 'Email', 'USN', 'Employee ID', 'Role', 'Department', 'Section', 'Courses']
@@ -369,50 +375,91 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
     }
   }
 
-  // Edit user functionality
-  const startEditUser = (user: User) => {
-    setEditingUser(user)
-    setEditFormData({
-      name: user.name,
-      email: user.email || '',
-      username: user.username,
-      phone: user.phone || '',
-      role: user.role
-    })
-    setShowEditForm(true)
-  }
-
-  const handleEditUser = async (e: React.FormEvent) => {
+  // Add user functionality
+  const handleAddUser = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (!editingUser) return
-    
+    if (!addFormData.name || !addFormData.username || !addFormData.role) {
+      alert('Please fill in all required fields')
+      return
+    }
+
     try {
-      const response = await adminApi.updateUser(editingUser.id, editFormData)
+      const response = await adminApi.createUser(addFormData)
       
       if (response.status === 'success') {
-        setUsers(prev => prev.map(user => 
-          user.id === editingUser.id 
-            ? { ...user, ...editFormData }
-            : user
-        ))
-        setShowEditForm(false)
-        setEditingUser(null)
-        setEditFormData({ name: '', email: '', username: '', phone: '', role: 'student' })
-        alert('User updated successfully')
+        // Transform the new user data to match our interface
+        const roles = (response.data.userRoles || []).map((ur: UserRole) => ur.role)
+        const primaryRole = roles[0] || 'student'
+        
+        const transformedUser: User = {
+          id: response.data.id,
+          name: response.data.name,
+          email: response.data.email,
+          username: response.data.username,
+          phone: response.data.phone,
+          role: primaryRole,
+          roles: roles,
+          createdAt: response.data.createdAt ? new Date(response.data.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+        }
+
+        // Add role-specific data
+        if (response.data.student) {
+          transformedUser.usn = response.data.student.usn
+          transformedUser.semester = response.data.student.semester
+          transformedUser.batchYear = response.data.student.batchYear
+          transformedUser.college = response.data.student.colleges?.name
+          transformedUser.collegeCode = response.data.student.colleges?.code
+          transformedUser.department = response.data.student.departments?.name
+          transformedUser.departmentCode = response.data.student.departments?.code
+          transformedUser.section = response.data.student.sections?.section_name
+        }
+
+        if (response.data.teacher) {
+          transformedUser.college = response.data.teacher.colleges?.name
+          transformedUser.collegeCode = response.data.teacher.colleges?.code
+          transformedUser.department = response.data.teacher.department?.name
+          transformedUser.departmentCode = response.data.teacher.department?.code
+        }
+
+        setUsers(prev => [transformedUser, ...prev])
+        setShowAddForm(false)
+        setAddFormData({ 
+          name: '', 
+          email: '',
+          username: '', 
+          phone: '', 
+          role: 'student', 
+          password: '', 
+          departmentId: '', 
+          year: 1, 
+          section: '',
+          usn: ''
+        })
+        alert('User created successfully')
       } else {
-        alert('Failed to update user: ' + (response.error || 'Unknown error'))
+        alert('Failed to create user: ' + (response.error || 'Unknown error'))
       }
     } catch (error) {
       const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-      alert('Error updating user: ' + errorMsg)
+      alert('Error creating user: ' + errorMsg)
     }
   }
 
-  const cancelEdit = () => {
-    setShowEditForm(false)
-    setEditingUser(null)
-    setEditFormData({ name: '', email: '', username: '', phone: '', role: 'student' })
+  const cancelAdd = () => {
+    setShowAddForm(false)
+    setAddFormData({ 
+      name: '', 
+      email: '',
+      username: '', 
+      phone: '', 
+      role: 'student', 
+      password: '', 
+      departmentId: '', 
+      year: 1, 
+      section: '',
+      usn: ''
+    })
   }
 
   // Get role icon
@@ -483,15 +530,11 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
               </CardDescription>
             </div>
             <div className="flex items-center space-x-2">
-              <Button onClick={() => fileInputRef.current?.click()} variant="outline">
-                <Upload className="w-4 h-4 mr-2" />
-                Import CSV
-              </Button>
               <Button onClick={exportToCSV} variant="outline">
                 <Download className="w-4 h-4 mr-2" />
                 Export CSV
               </Button>
-              <Button>
+              <Button onClick={() => setShowAddForm(true)}>
                 <Plus className="w-4 h-4 mr-2" />
                 Add User
               </Button>
@@ -499,17 +542,6 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
           </div>
         </CardHeader>
       </Card>
-
-      {/* Hidden file input */}
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept=".csv"
-        onChange={handleFileUpload}
-        className="hidden"
-        aria-label="CSV file upload"
-        title="Upload CSV file"
-      />
 
       {/* Filters */}
       <Card>
@@ -607,89 +639,101 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
       <Card>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
+            <table className="w-full border-collapse border border-gray-300">
+              <thead className="bg-gray-100">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     User
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    ID
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    ID/USN
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Role
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Department
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
-                    Year/Batch
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                    Year
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Section
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white">
                 {filteredUsers.map((user) => (
                   <tr key={user.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div>
                         <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                        <div className="text-sm text-gray-700">{user.email}</div>
+                        <div className="text-xs text-gray-500">{user.email}</div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.usn || user.employeeId || '-'}
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900">
+                      {user.role === 'student' ? (user.usn || user.username) : 
+                       user.role === 'teacher' ? user.username : 
+                       (user.employeeId || user.username)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}>
+                    <td className="border border-gray-300 px-3 py-2 text-center">
+                      <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium border ${getRoleBadgeStyle(user.role)}`}>
                         {getRoleIcon(user.role)}
                         <span className="ml-1 capitalize">{user.role}</span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {user.department || '-'}
+                    <td className="border border-gray-300 px-2 py-2 text-sm text-gray-900">
+                      <div className="truncate" title={user.department || '-'}>
+                        {user.department || '-'}
+                      </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900 text-center">
                       {user.role === 'student' ? (
                         <div>
                           <div className="font-medium">{user.year || '-'}</div>
-                          <div className="text-xs text-gray-700">Batch: {user.batchYear || '-'}</div>
+                          <div className="text-xs text-gray-500">Batch: {user.batchYear || '-'}</div>
                         </div>
                       ) : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                    <td className="border border-gray-300 px-3 py-2 text-sm text-gray-900 text-center">
                       {user.role === 'student' ? (user.section || '-') : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => {
-                          setEditingUser(user)
-                          setEditFormData({
-                            name: user.name,
-                            email: user.email || '',
-                            username: user.username,
-                            phone: user.phone || '',
-                            role: user.role as 'student' | 'teacher' | 'admin'
-                          })
-                          setShowEditForm(true)
-                        }}
-                      >
-                        <Edit className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deleteUser(user.id)}
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </Button>
+                    <td className="border border-gray-300 px-3 py-2 text-center">
+                      <div className="flex justify-center space-x-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setEditingUser(user)
+                            setEditFormData({
+                              name: user.name,
+                              email: user.email || '',
+                              username: user.username,
+                              phone: user.phone || '',
+                              role: user.role as 'student' | 'teacher' | 'admin',
+                              // Populate student-specific fields if user is a student
+                              departmentId: user.role === 'student' && user.department ? 
+                                departments.find(d => d.name === user.department)?.id || '' : '',
+                              year: user.year ? parseInt(user.year.replace(/\D/g, '')) || 1 : 1,
+                              section: user.section || '',
+                              usn: user.usn || ''
+                            })
+                            setShowEditForm(true)
+                          }}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => deleteUser(user.id)}
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -699,139 +743,341 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
         </CardContent>
       </Card>
 
-      {/* Edit User Form */}
+      {/* Edit User Form Modal */}
       {showEditForm && editingUser && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Edit User</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Name
-                </label>
-                <Input
-                  value={editFormData.name}
-                  onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Email
-                </label>
-                <Input
-                  type="email"
-                  value={editFormData.email}
-                  onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Username
-                </label>
-                <Input
-                  value={editFormData.username}
-                  onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Phone
-                </label>
-                <Input
-                  value={editFormData.phone}
-                  onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700">
-                  Role
-                </label>
-                <select
-                  value={editFormData.role}
-                  onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as 'student' | 'teacher' | 'admin' })}
-                  className="rounded-md border border-gray-300 px-3 py-2 text-sm mt-1"
-                  aria-label="Edit user role"
-                >
-                  <option value="student">Student</option>
-                  <option value="teacher">Teacher</option>
-                  <option value="admin">Admin</option>
-                </select>
-              </div>
-              <div className="flex justify-end space-x-2">
-                <Button
-                  variant="outline"
-                  onClick={() => setShowEditForm(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={async () => {
-                    try {
-                      const response = await adminApi.updateUser(editingUser.id, editFormData)
-                      if (response.status === 'success') {
-                        setUsers(prev => prev.map(user => user.id === editingUser.id ? { ...user, ...editFormData } : user))
-                        setShowEditForm(false)
-                        alert('User updated successfully')
-                      } else {
-                        alert('Failed to update user: ' + (response.error || 'Unknown error'))
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Edit User</h2>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Name</label>
+                  <Input
+                    value={editFormData.name}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Email</label>
+                  <Input
+                    type="email"
+                    value={editFormData.email}
+                    onChange={(e) => setEditFormData({ ...editFormData, email: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Username</label>
+                  <Input
+                    value={editFormData.username}
+                    onChange={(e) => setEditFormData({ ...editFormData, username: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Phone</label>
+                  <Input
+                    value={editFormData.phone}
+                    onChange={(e) => setEditFormData({ ...editFormData, phone: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Role</label>
+                  <select
+                    value={editFormData.role}
+                    onChange={(e) => setEditFormData({ ...editFormData, role: e.target.value as 'student' | 'teacher' | 'admin' })}
+                    className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                    title="Edit user role"
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                
+                {/* Student-specific fields for editing */}
+                {editFormData.role === 'student' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">USN</label>
+                      <Input
+                        value={editFormData.usn}
+                        onChange={(e) => setEditFormData({ ...editFormData, usn: e.target.value })}
+                        className="text-gray-900"
+                        placeholder="University Seat Number"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
+                      <select
+                        value={editFormData.departmentId}
+                        onChange={(e) => setEditFormData({ ...editFormData, departmentId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Department"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name} ({dept.code}) - {dept.college.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Year</label>
+                      <select
+                        value={editFormData.year}
+                        onChange={(e) => setEditFormData({ ...editFormData, year: parseInt(e.target.value) })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Academic Year"
+                      >
+                        <option value={1}>1st Year</option>
+                        <option value={2}>2nd Year</option>
+                        <option value={3}>3rd Year</option>
+                        <option value={4}>4th Year</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Section</label>
+                      <Input
+                        value={editFormData.section}
+                        onChange={(e) => setEditFormData({ ...editFormData, section: e.target.value })}
+                        className="text-gray-900"
+                        placeholder="e.g., A, B, C"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowEditForm(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    onClick={async () => {
+                      try {
+                        const response = await adminApi.updateUser(editingUser.id, editFormData)
+                        if (response.status === 'success') {
+                          // Refresh the entire user list to get updated data
+                          const usersResponse = await adminApi.getAllUsers()
+                          if (usersResponse.status === 'success') {
+                            const transformedUsers: User[] = usersResponse.data.map((user: ApiUser) => {
+                              const roles = (user.userRoles || []).map((ur: UserRole) => ur.role)
+                              const primaryRole = roles[0] || 'student'
+                              
+                              const transformedUser: User = {
+                                id: user.id,
+                                name: user.name,
+                                email: user.email,
+                                username: user.username,
+                                phone: user.phone,
+                                role: primaryRole,
+                                roles: roles,
+                                createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
+                              }
+
+                              // Student-specific data
+                              if (user.student) {
+                                transformedUser.usn = user.student.usn
+                                transformedUser.semester = user.student.semester
+                                transformedUser.batchYear = user.student.batchYear
+                                const getAcademicYear = (semester: number): string => {
+                                  if (semester <= 2) return '1st year'
+                                  if (semester <= 4) return '2nd year'
+                                  if (semester <= 6) return '3rd year'
+                                  if (semester <= 8) return '4th year'
+                                  return `${Math.ceil(semester / 2)}th year`
+                                }
+                                transformedUser.year = getAcademicYear(user.student.semester || 1)
+                                transformedUser.department = user.student.departments?.name
+                                transformedUser.departmentCode = user.student.departments?.code
+                                transformedUser.section = user.student.sections?.section_name
+                                transformedUser.college = user.student.colleges?.name
+                                transformedUser.collegeCode = user.student.colleges?.code
+                                
+                                // Extract courses from enrollments
+                                if (user.student.enrollments && user.student.enrollments.length > 0) {
+                                  transformedUser.courses = user.student.enrollments.map(enrollment =>
+                                    enrollment.course?.course_name || enrollment.course?.course_code || 'Unknown Course'
+                                  ).filter(Boolean)
+                                }
+                              }
+
+                              // Teacher-specific data
+                              if (user.teacher) {
+                                transformedUser.employeeId = user.teacher.id
+                                transformedUser.department = user.teacher.departments?.name
+                                transformedUser.departmentCode = user.teacher.departments?.code
+                                transformedUser.college = user.teacher.colleges?.name
+                                transformedUser.collegeCode = user.teacher.colleges?.code
+                              }
+
+                              return transformedUser
+                            })
+                            
+                            setUsers(transformedUsers)
+                            setShowEditForm(false)
+                          }
+                        } else {
+                          setError(response.error || 'Failed to update user')
+                        }
+                      } catch {
+                        setError('Failed to update user')
                       }
-                    } catch (error) {
-                      const errorMsg = error instanceof Error ? error.message : 'Unknown error'
-                      alert('Error updating user: ' + errorMsg)
-                    }
-                  }}
-                >
-                  Save
-                </Button>
+                    }}
+                  >
+                    Save Changes
+                  </Button>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
-      {/* CSV Import Instructions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg">CSV Import Format</CardTitle>
-          <CardDescription className="text-gray-800">
-            Use the following format for CSV imports
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="bg-gray-100 p-4 rounded-lg">
-            <code className="text-sm">
-              <strong>Students CSV Format:</strong><br />
-              username,college_code,department_code,section_name,usn,semester,batch_year<br />
-              student_nit_cse_a_3rd_1,NIT,CSE,A,&quot;NIT2022CSE001&quot;,6,2022<br />
-              student_nit_ise_a_2nd_1,NIT,ISE,A,&quot;NIT2023ISE001&quot;,4,2023<br />
-              <br />
-              <strong>Teachers CSV Format:</strong><br />
-              username,college_code,department_code<br />
-              prof_cse_nit,NIT,CSE<br />
-              prof_ise_nit,NIT,ISE
-            </code>
+      {/* Add User Form Modal */}
+      {showAddForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Add New User</h2>
+              <form onSubmit={handleAddUser} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Name *</label>
+                  <Input
+                    value={addFormData.name}
+                    onChange={(e) => setAddFormData({ ...addFormData, name: e.target.value })}
+                    className="text-gray-900"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Username *</label>
+                  <Input
+                    value={addFormData.username}
+                    onChange={(e) => setAddFormData({ ...addFormData, username: e.target.value })}
+                    className="text-gray-900"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Email</label>
+                  <Input
+                    type="email"
+                    value={addFormData.email}
+                    onChange={(e) => setAddFormData({ ...addFormData, email: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Phone</label>
+                  <Input
+                    value={addFormData.phone}
+                    onChange={(e) => setAddFormData({ ...addFormData, phone: e.target.value })}
+                    className="text-gray-900"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Role *</label>
+                  <select
+                    value={addFormData.role}
+                    onChange={(e) => setAddFormData({ ...addFormData, role: e.target.value as 'student' | 'teacher' | 'admin' })}
+                    className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                    title="User role"
+                    required
+                  >
+                    <option value="student">Student</option>
+                    <option value="teacher">Teacher</option>
+                    <option value="admin">Admin</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Password</label>
+                  <Input
+                    type="password"
+                    value={addFormData.password}
+                    onChange={(e) => setAddFormData({ ...addFormData, password: e.target.value })}
+                    className="text-gray-900"
+                    placeholder="Leave empty for default password"
+                  />
+                </div>
+                
+                {/* Student-specific fields */}
+                {addFormData.role === 'student' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
+                      <select
+                        value={addFormData.departmentId}
+                        onChange={(e) => setAddFormData({ ...addFormData, departmentId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Department"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name} ({dept.code}) - {dept.college.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Year</label>
+                      <select
+                        value={addFormData.year}
+                        onChange={(e) => setAddFormData({ ...addFormData, year: parseInt(e.target.value) })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Academic Year"
+                      >
+                        <option value={1}>1st Year</option>
+                        <option value={2}>2nd Year</option>
+                        <option value={3}>3rd Year</option>
+                        <option value={4}>4th Year</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Section</label>
+                      <Input
+                        value={addFormData.section}
+                        onChange={(e) => setAddFormData({ ...addFormData, section: e.target.value })}
+                        className="text-gray-900"
+                        placeholder="e.g., A, B, C"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">USN</label>
+                      <Input
+                        value={addFormData.usn}
+                        onChange={(e) => setAddFormData({ ...addFormData, usn: e.target.value })}
+                        className="text-gray-900"
+                        placeholder="e.g., 1NH21CS001"
+                      />
+                    </div>
+                  </>
+                )}
+                
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={cancelAdd}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    Create User
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
-          <div className="mt-4 text-sm text-gray-700">
-            <p><strong>Student Year System Notes:</strong></p>
-            <ul className="list-disc list-inside space-y-1">
-              <li><strong>Semester</strong>: Current semester (1-8) determines academic year display</li>
-              <li><strong>Batch Year</strong>: Year of joining (e.g. 2021, 2022, 2023, 2024)</li>
-              <li><strong>Academic Year</strong>: Auto-calculated (sem 1-2 = 1st year, 3-4 = 2nd year, etc.)</li>
-              <li>Students are organized by academic year but retain batch year for identification</li>
-              <li>USN format should include batch year for proper identification</li>
-              <li>Section is only applicable for students (A, B, etc.)</li>
-              <li>Courses should be separated by semicolons</li>
-              <li>Leave empty fields blank, don&apos;t remove columns</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   )
 }

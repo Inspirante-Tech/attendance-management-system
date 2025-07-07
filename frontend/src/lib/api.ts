@@ -125,9 +125,36 @@ export const adminApi = {
     })
   },
 
-  async updateUser(userId: string, data: { name: string; email: string; username: string; phone: string; role: string }): Promise<any> {
+  async updateUser(userId: string, data: { 
+    name: string; 
+    email?: string; 
+    username: string; 
+    phone: string; 
+    role: string;
+    // Student-specific fields
+    departmentId?: string;
+    year?: number;
+    section?: string;
+    usn?: string;
+  }): Promise<any> {
     return apiRequest<any>(`/api/users/${userId}`, {
       method: 'PUT',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async createUser(data: { 
+    name: string; 
+    username: string; 
+    phone?: string; 
+    role: string; 
+    password?: string;
+    departmentId?: string;
+    year?: number;
+    section?: string;
+  }): Promise<any> {
+    return apiRequest<any>('/api/users', {
+      method: 'POST',
       body: JSON.stringify(data)
     })
   },
@@ -182,7 +209,7 @@ export const adminApi = {
     name: string; 
     department: string; 
     year: string;
-    type: 'core' | 'elective'; 
+    type: 'core' | 'department_elective' | 'open_elective'; 
     hasTheoryComponent: boolean; 
     hasLabComponent: boolean;
     restrictedDepartments?: string[]; // Add restricted departments for open electives

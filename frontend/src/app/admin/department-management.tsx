@@ -58,6 +58,7 @@ export default function DepartmentManagement({
   initialFilters 
 }: DepartmentManagementProps) {
   const [departments, setDepartments] = useState<Department[]>([])
+  const [colleges, setColleges] = useState<{code: string, name: string}[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -99,48 +100,60 @@ export default function DepartmentManagement({
     return suffix
   }
 
-  // Fetch departments from API
+  // Fetch departments and colleges from API
   useEffect(() => {
-    const fetchDepartments = async () => {
+    const fetchData = async () => {
       try {
         setLoading(true)
         setError(null)
-        const response = await adminApi.getAllDepartments()
         
-        if (response.status === 'success') {
+        // Fetch both departments and colleges
+        const [departmentsResponse, collegesResponse] = await Promise.all([
+          adminApi.getAllDepartments(),
+          adminApi.getAllColleges()
+        ])
+        
+        if (departmentsResponse.status === 'success') {
           // Transform API data to match our Department interface
-          const transformedDepartments: Department[] = response.data.map((dept: any) => ({
-            id: dept.id,
-            name: dept.name,
-            code: dept.code,
+          const transformedDepartments: Department[] = departmentsResponse.data.map((dept: unknown) => ({
+            id: (dept as any).id,
+            name: (dept as any).name,
+            code: (dept as any).code,
             college: {
-              name: dept.colleges?.name || '',
-              code: dept.colleges?.code || ''
+              name: (dept as any).colleges?.name || '',
+              code: (dept as any).colleges?.code || ''
             },
-            courses: dept.courses || [],
-            sections: dept.sections || [],
-            students: dept.students || [],
-            teachers: dept.teachers || [],
-            _count: dept._count || {
-              students: dept.students?.length || 0,
-              teachers: dept.teachers?.length || 0,
-              courses: dept.courses?.length || 0,
-              sections: dept.sections?.length || 0
+            courses: (dept as any).courses || [],
+            sections: (dept as any).sections || [],
+            students: (dept as any).students || [],
+            teachers: (dept as any).teachers || [],
+            _count: (dept as any)._count || {
+              students: (dept as any).students?.length || 0,
+              teachers: (dept as any).teachers?.length || 0,
+              courses: (dept as any).courses?.length || 0,
+              sections: (dept as any).sections?.length || 0
             }
           }))
           
           setDepartments(transformedDepartments)
         } else {
-          setError(response.error || 'Failed to fetch departments')
+          setError(departmentsResponse.error || 'Failed to fetch departments')
+        }
+
+        if (collegesResponse.status === 'success') {
+          // Set colleges for the dropdown
+          const collegeList = collegesResponse.data.map((college: any) => ({
+            code: college.code,
+            name: college.name
+          }))
+          setColleges(collegeList)
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred while fetching departments')
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching data')
       } finally {
         setLoading(false)
-      }
-    }
-
-    fetchDepartments()
+      }    }
+    fetchData()
   }, [])
 
   // Apply filters based on initialFilters
@@ -164,9 +177,6 @@ export default function DepartmentManagement({
 
     return true
   })
-
-  // Get unique colleges for filter
-  const allColleges = Array.from(new Set(departments.map(dept => dept.college.code).filter(Boolean))).sort()
 
   // Refresh data
   const refreshData = () => {
@@ -484,8 +494,10 @@ export default function DepartmentManagement({
             title="Filter by college"
           >
             <option value="all">All Colleges</option>
-            {allColleges.map(college => (
-              <option key={college} value={college}>{college}</option>
+            {colleges.map(college => (
+              <option key={college.code} value={college.code}>
+                {college.name} ({college.code})
+              </option>
             ))}
           </select>
         </div>
@@ -558,35 +570,35 @@ export default function DepartmentManagement({
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
-              <thead>
-                <tr className="border-b">
-                  <th className="text-left p-4 font-medium text-gray-900">Name</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Code</th>
-                  <th className="text-left p-4 font-medium text-gray-900">College</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Students</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Teachers</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Courses</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Sections</th>
-                  <th className="text-left p-4 font-medium text-gray-900">Actions</th>
+            <table className="w-full border-collapse border border-gray-300">
+              <thead className="bg-gray-100">
+                <tr>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Name</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Code</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">College</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Students</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Teachers</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Courses</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Sections</th>
+                  <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody className="bg-white">
                 {filteredDepartments.map((dept) => (
-                  <tr key={dept.id} className="border-b hover:bg-gray-50">
-                    <td className="p-4">
-                      <div className="font-medium">{dept.name}</div>
+                  <tr key={dept.id} className="hover:bg-gray-50">
+                    <td className="border border-gray-300 px-3 py-2">
+                      <div className="font-medium text-gray-900">{dept.name}</div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="font-mono text-sm text-gray-800">{dept.code}</div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         <div>{dept.college.name}</div>
                         <div className="text-gray-700">{dept.college.code}</div>
                       </div>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <button 
                         onClick={() => onNavigateToUsers?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
@@ -594,7 +606,7 @@ export default function DepartmentManagement({
                         {dept._count?.students || 0}
                       </button>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <button 
                         onClick={() => onNavigateToUsers?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
@@ -602,7 +614,7 @@ export default function DepartmentManagement({
                         {dept._count?.teachers || 0}
                       </button>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <button 
                         onClick={() => onNavigateToCourses?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
@@ -610,7 +622,7 @@ export default function DepartmentManagement({
                         {dept._count?.courses || 0}
                       </button>
                     </td>
-                    <td className="p-4">
+                    <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         {(() => {
                           // Group sections by year and show breakdown
@@ -634,8 +646,8 @@ export default function DepartmentManagement({
                         })()}
                       </div>
                     </td>
-                    <td className="p-4">
-                      <div className="flex gap-2">
+                    <td className="border border-gray-300 px-3 py-2 text-center">
+                      <div className="flex justify-center gap-1">
                         <Button size="sm" variant="outline" onClick={() => openEditForm(dept)}>
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -689,8 +701,10 @@ export default function DepartmentManagement({
                     required
                   >
                     <option value="">Select College</option>
-                    {allColleges.map(college => (
-                      <option key={college} value={college}>{college}</option>
+                    {colleges.map(college => (
+                      <option key={college.code} value={college.code}>
+                        {college.name} ({college.code})
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -748,8 +762,10 @@ export default function DepartmentManagement({
                     required
                   >
                     <option value="">Select College</option>
-                    {allColleges.map(college => (
-                      <option key={college} value={college}>{college}</option>
+                    {colleges.map(college => (
+                      <option key={college.code} value={college.code}>
+                        {college.name} ({college.code})
+                      </option>
                     ))}
                   </select>
                 </div>

@@ -193,6 +193,472 @@ router.get('/:id', async (req, res) => {
   }
 });
 
+// Create new user
+router.post('/', async (req, res) => {
+  try {
+    const { name, username, phone, role, password, departmentId, year, section, email, usn } = req.body;
+    
+    if (!name || !username || !role) {
+      return res.status(400).json({
+        status: 'error',
+        error: 'Missing required fields: name, username, role',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Validate role
+    const validRoles = ['student', 'teacher', 'admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        status: 'error',
+        error: 'Invalid role. Must be one of: student, teacher, admin',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const prisma = Database.getInstance();
+
+    // Check if user already exists
+    const existingUser = await prisma.user.findFirst({
+      where: { username: username }
+    });
+
+    if (existingUser) {
+      return res.status(409).json({
+        status: 'error',
+        error: 'User with this username already exists',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Create user
+    const user = await prisma.user.create({
+      data: {
+        name: name.trim(),
+        username: username.trim(),
+        email: email?.trim() || null,
+        phone: phone?.trim() || null,
+        passwordHash: password || 'default123' // Default password if not provided
+      },
+      include: {
+        userRoles: true,
+        student: {
+          include: {
+            colleges: true,
+            departments: true,
+            sections: true
+          }
+        },
+        teacher: {
+          include: {
+            colleges: true,
+            department: true
+          }
+        }
+      }
+    });
+
+    // Create user role assignment
+    await prisma.userRoleAssignment.create({
+      data: {
+        userId: user.id,
+        role: role as any
+      }
+    });
+
+    // Create role-specific records
+    if (role === 'student') {
+      // Use provided department or fallback to first college
+      let collegeId = null;
+      let departmentIdToUse = null;
+      
+      if (departmentId) {
+        // Get the department and its college
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId },
+          include: { colleges: true }
+        });
+        
+        if (department) {
+          collegeId = department.college_id;
+          departmentIdToUse = departmentId;
+        }
+      }
+      
+      // Fallback to first college if no department provided
+      if (!collegeId) {
+        const firstCollege = await prisma.college.findFirst();
+        if (!firstCollege) {
+          return res.status(500).json({
+            status: 'error',
+            error: 'No college found in the system',
+            timestamp: new Date().toISOString()
+          });
+        }
+        collegeId = firstCollege.id;
+      }
+      
+      // Calculate semester from year (1st year = semesters 1-2, 2nd year = semesters 3-4, etc.)
+      const semester = year ? (year * 2 - 1) : 1; // Default to semester 1 if no year provided
+      
+      // Create section if provided
+      let sectionId = null;
+      if (section && section.trim()) {
+        // Try to find existing section or create new one
+        const existingSection = await prisma.sections.findFirst({
+          where: { section_name: section.trim() }
+        });
+        
+        if (existingSection) {
+          sectionId = existingSection.section_id;
+        } else if (departmentIdToUse) {
+          // Create new section only if we have a department
+          const newSection = await prisma.sections.create({
+            data: {
+              section_name: section.trim(),
+              department_id: departmentIdToUse
+            }
+          });
+          sectionId = newSection.section_id;
+        }
+      }
+      
+      await prisma.student.create({
+        data: {
+          userId: user.id,
+          college_id: collegeId,
+          department_id: departmentIdToUse,
+          section_id: sectionId,
+          usn: usn || `USN${Date.now()}`, // Use provided USN or generate temporary one
+          semester: semester,
+          batchYear: new Date().getFullYear()
+        }
+      });
+    } else if (role === 'teacher') {
+      // Get the first college for teacher records (temporary approach)
+      const firstCollege = await prisma.college.findFirst();
+      if (!firstCollege) {
+        return res.status(500).json({
+          status: 'error',
+          error: 'No college found in the system',
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      await prisma.teacher.create({
+        data: {
+          userId: user.id,
+          college_id: firstCollege.id
+        }
+      });
+    } else if (role === 'admin') {
+      await prisma.admin.create({
+        data: {
+          userId: user.id
+        }
+      });
+    }
+
+    // Fetch the complete user with all relations
+    const completeUser = await prisma.user.findUnique({
+      where: { id: user.id },
+      include: {
+        userRoles: true,
+        student: {
+          include: {
+            colleges: true,
+            departments: true,
+            sections: true,
+            enrollments: {
+              include: {
+                offering: {
+                  include: {
+                    course: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        teacher: {
+          include: {
+            colleges: true,
+            department: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json({
+      status: 'success',
+      data: completeUser,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error creating user:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({
+      status: 'error',
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Update user
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { name, username, phone, role, departmentId, year, section, usn, email } = req.body;
+    
+    if (!name || !username || !role) {
+      return res.status(400).json({
+        status: 'error',
+        error: 'Missing required fields: name, username, role',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Validate role
+    const validRoles = ['student', 'teacher', 'admin'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({
+        status: 'error',
+        error: 'Invalid role. Must be one of: student, teacher, admin',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const prisma = Database.getInstance();
+
+    // Check if user exists
+    const existingUser = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        userRoles: true,
+        student: true,
+        teacher: true,
+        admin: true
+      }
+    });
+
+    if (!existingUser) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'User not found',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Check if username conflicts with other users
+    const conflictUser = await prisma.user.findFirst({
+      where: { 
+        AND: [
+          { id: { not: id } },
+          { username: username }
+        ]
+      }
+    });
+
+    if (conflictUser) {
+      return res.status(409).json({
+        status: 'error',
+        error: 'Username already exists for another user',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // Update user basic info
+    const updatedUser = await prisma.user.update({
+      where: { id },
+      data: {
+        name: name.trim(),
+        username: username.trim(),
+        email: email?.trim() || null,
+        phone: phone?.trim() || null
+      }
+    });
+
+    // Handle role changes
+    const currentRole = existingUser.userRoles?.[0]?.role;
+    if (currentRole !== role) {
+      // Delete existing role assignments
+      await prisma.userRoleAssignment.deleteMany({
+        where: { userId: id }
+      });
+
+      // Create new role assignment
+      await prisma.userRoleAssignment.create({
+        data: {
+          userId: id,
+          role: role as any
+        }
+      });
+
+      // Get the first college for role-specific records (temporary approach)
+      const firstCollege = await prisma.college.findFirst();
+      if (!firstCollege) {
+        return res.status(500).json({
+          status: 'error',
+          error: 'No college found in the system',
+          timestamp: new Date().toISOString()
+        });
+      }
+
+      // Handle role-specific record changes
+      if (currentRole === 'student' && existingUser.student) {
+        await prisma.student.delete({
+          where: { id: existingUser.student.id }
+        });
+      } else if (currentRole === 'teacher' && existingUser.teacher) {
+        await prisma.teacher.delete({
+          where: { id: existingUser.teacher.id }
+        });
+      } else if (currentRole === 'admin' && existingUser.admin) {
+        await prisma.admin.delete({
+          where: { userId: id }
+        });
+      }
+
+      // Create new role-specific records
+      if (role === 'student') {
+        await prisma.student.create({
+          data: {
+            userId: id,
+            college_id: firstCollege.id,
+            usn: `USN${Date.now()}`,
+            semester: 1,
+            batchYear: new Date().getFullYear()
+          }
+        });
+      } else if (role === 'teacher') {
+        await prisma.teacher.create({
+          data: {
+            userId: id,
+            college_id: firstCollege.id
+          }
+        });
+      } else if (role === 'admin') {
+        await prisma.admin.create({
+          data: {
+            userId: id
+          }
+        });
+      }
+    }
+
+    // Update student-specific fields if user is a student
+    if (role === 'student' && existingUser.student) {
+      let collegeId = existingUser.student.college_id;
+      let departmentIdToUse = existingUser.student.department_id;
+      
+      // Update department if provided
+      if (departmentId) {
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId },
+          include: { colleges: true }
+        });
+        
+        if (department) {
+          collegeId = department.college_id;
+          departmentIdToUse = departmentId;
+        }
+      }
+      
+      // Calculate semester from year if provided
+      let semester = existingUser.student.semester;
+      if (year) {
+        semester = year * 2 - 1; // 1st year = semester 1, 2nd year = semester 3, etc.
+      }
+      
+      // Handle section update
+      let sectionId = existingUser.student.section_id;
+      if (section !== undefined) {
+        if (section && section.trim()) {
+          // Try to find existing section or create new one
+          const existingSection = await prisma.sections.findFirst({
+            where: { section_name: section.trim() }
+          });
+          
+          if (existingSection) {
+            sectionId = existingSection.section_id;
+          } else if (departmentIdToUse) {
+            // Create new section only if we have a department
+            const newSection = await prisma.sections.create({
+              data: {
+                section_name: section.trim(),
+                department_id: departmentIdToUse
+              }
+            });
+            sectionId = newSection.section_id;
+          }
+        } else {
+          sectionId = null; // Clear section if empty string provided
+        }
+      }
+      
+      // Update student record
+      await prisma.student.update({
+        where: { id: existingUser.student.id },
+        data: {
+          college_id: collegeId,
+          department_id: departmentIdToUse,
+          section_id: sectionId,
+          usn: usn || existingUser.student.usn,
+          semester: semester,
+          batchYear: existingUser.student.batchYear // Keep existing batch year
+        }
+      });
+    }
+
+    // Fetch the complete updated user
+    const completeUser = await prisma.user.findUnique({
+      where: { id },
+      include: {
+        userRoles: true,
+        student: {
+          include: {
+            colleges: true,
+            departments: true,
+            sections: true,
+            enrollments: {
+              include: {
+                offering: {
+                  include: {
+                    course: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        teacher: {
+          include: {
+            colleges: true,
+            department: true
+          }
+        }
+      }
+    });
+
+    res.json({
+      status: 'success',
+      data: completeUser,
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('Error updating user:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    res.status(500).json({
+      status: 'error',
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
 // Delete user
 router.delete('/:id', async (req, res) => {
   try {

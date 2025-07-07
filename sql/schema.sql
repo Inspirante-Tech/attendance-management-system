@@ -29,6 +29,7 @@ CREATE TABLE colleges (
 CREATE TABLE users (
   user_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   username VARCHAR(100) UNIQUE NOT NULL,
+  email VARCHAR(150),
   password_hash TEXT NOT NULL,
   name VARCHAR(100) NOT NULL,
   phone VARCHAR(15),
