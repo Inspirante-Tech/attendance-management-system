@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -121,6 +121,34 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     hasLabComponent: false,
     restrictedDepartments: [] as string[]
   })
+
+  // Enrollment management state
+  const [showEnrollmentModal, setShowEnrollmentModal] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
+  const [enrollmentData, setEnrollmentData] = useState<any>(null)
+  const [eligibleStudents, setEligibleStudents] = useState<any[]>([])
+  const [selectedStudents, setSelectedStudents] = useState<string[]>([])
+  const [enrollmentYear, setEnrollmentYear] = useState('2024')
+  const [enrollmentSemester, setEnrollmentSemester] = useState('1')
+  const [selectedTeacher, setSelectedTeacher] = useState('')
+  const [teachers, setTeachers] = useState<any[]>([])
+  const [enrollmentLoading, setEnrollmentLoading] = useState(false)
+
+  // Handle enrollment filter changes
+  const handleEnrollmentFilterChange = useCallback(async () => {
+    if (selectedCourse) {
+      setEnrollmentLoading(true)
+      await fetchEligibleStudents(selectedCourse.id, enrollmentYear, enrollmentSemester)
+      setEnrollmentLoading(false)
+      setSelectedStudents([]) // Clear selections when filters change
+    }
+  }, [selectedCourse, enrollmentYear, enrollmentSemester])
+
+  useEffect(() => {
+    if (selectedCourse && showEnrollmentModal) {
+      handleEnrollmentFilterChange()
+    }
+  }, [handleEnrollmentFilterChange, selectedCourse, showEnrollmentModal])
 
   // Fetch courses from API
   useEffect(() => {
@@ -467,6 +495,118 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     }
   }
 
+  // Open enrollment modal
+  const openEnrollmentModal = async (course: Course) => {
+    setSelectedCourse(course)
+    setShowEnrollmentModal(true)
+    setSelectedStudents([]) // Clear previous selections
+    
+    try {
+      setEnrollmentLoading(true)
+      
+      // Fetch teachers first
+      const teachersResponse = await adminApi.getUsersByRole('teacher')
+      if (teachersResponse.status === 'success') {
+        setTeachers(teachersResponse.data)
+      }
+      
+      // Fetch eligible students
+      await fetchEligibleStudents(course.id, enrollmentYear, enrollmentSemester)
+      
+    } catch (error) {
+      console.error('Error fetching enrollment data:', error)
+      setError('Failed to load enrollment data')
+    } finally {
+      setEnrollmentLoading(false)
+    }
+  }
+
+  // Fetch eligible students based on course type and restrictions
+  const fetchEligibleStudents = async (courseId: string, year: string, semester: string) => {
+    try {
+      const response = await adminApi.getEligibleStudents(courseId, year, semester)
+      if (response.status === 'success') {
+        setEligibleStudents(response.data.eligibleStudents)
+        setEnrollmentData(response.data)
+      } else {
+        setEligibleStudents([])
+        setEnrollmentData(null)
+      }
+    } catch (error) {
+      console.error('Error fetching eligible students:', error)
+      setEligibleStudents([])
+      setEnrollmentData(null)
+    }
+  }
+
+  // Handle enrollment filter changes
+  useEffect(() => {
+    if (selectedCourse && showEnrollmentModal) {
+      handleEnrollmentFilterChange()
+    }
+  }, [handleEnrollmentFilterChange, selectedCourse, showEnrollmentModal])
+
+  // Handle student enrollment
+  const handleEnrollStudents = async () => {
+    if (!selectedCourse) {
+      alert('No course selected')
+      return
+    }
+
+    // For core courses, automatically enroll all eligible students
+    const studentsToEnroll = selectedCourse.type === 'core' 
+      ? eligibleStudents.map(s => s.id)
+      : selectedStudents
+
+    if (studentsToEnroll.length === 0) {
+      alert('Please select at least one student')
+      return
+    }
+
+    try {
+      setEnrollmentLoading(true)
+      const response = await adminApi.enrollStudents(
+        selectedCourse.id, 
+        studentsToEnroll, 
+        enrollmentYear, 
+        enrollmentSemester, 
+        selectedTeacher || undefined
+      )
+      
+      if (response.status === 'success') {
+        const enrolledCount = response.data.enrollmentsCreated
+        const courseTypeText = selectedCourse.type === 'core' ? 'automatically enrolled' : 'enrolled'
+        alert(`Successfully ${courseTypeText} ${enrolledCount} students`)
+        
+        // For core courses, clear the students list since they're all enrolled
+        // For electives, clear selections and refresh
+        if (selectedCourse.type === 'core') {
+          setEligibleStudents([])
+        } else {
+          setSelectedStudents([])
+          // Refresh eligible students
+          const refreshResponse = await adminApi.getEligibleStudents(selectedCourse.id, enrollmentYear, enrollmentSemester)
+          if (refreshResponse.status === 'success') {
+            setEligibleStudents(refreshResponse.data.eligibleStudents)
+          }
+        }
+      } else {
+        alert('Enrollment failed: ' + (response.data?.errors?.join(', ') || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error enrolling students:', error)
+      alert('Error enrolling students')
+    } finally {
+      setEnrollmentLoading(false)
+    }
+  }
+
+  // Handle enrollment form submission
+  const handleEnrollmentSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    handleEnrollStudents()
+  }
+
   if (loading) {
     return (
       <div className="p-6">
@@ -695,6 +835,15 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       <div className="flex justify-center gap-1">
                         <Button size="sm" variant="outline" onClick={() => openEditForm(course)}>
                           <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          onClick={() => openEnrollmentModal(course)}
+                          className="bg-blue-50 hover:bg-blue-100"
+                          title="Manage Enrollments"
+                        >
+                          <Users className="h-4 w-4" />
                         </Button>
                         <Button size="sm" variant="outline" onClick={() => deleteCourse(course.id)}>
                           <Trash2 className="h-4 w-4" />
@@ -1006,6 +1155,217 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     Update Course
                   </Button>
                   <Button type="button" variant="outline" onClick={() => setShowEditForm(false)}>
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Enrollment Management Modal */}
+      {showEnrollmentModal && selectedCourse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">
+                Manage Enrollments for {selectedCourse.name}
+              </h2>
+              
+              {/* Course Type Information */}
+              <div className="mb-4 p-3 bg-blue-50 rounded-lg">
+                <h3 className="font-semibold text-blue-900 mb-2">Course Information</h3>
+                <div className="text-sm text-blue-800">
+                  <p><strong>Course Code:</strong> {selectedCourse.code}</p>
+                  <p><strong>Course Type:</strong> {selectedCourse.type.replace('_', ' ').toUpperCase()}</p>
+                  {selectedCourse.department && (
+                    <p><strong>Department:</strong> {selectedCourse.department.name}</p>
+                  )}
+                  {enrollmentData && enrollmentData.course && (
+                    <div className="mt-2">
+                      <p><strong>Enrollment Rules:</strong></p>
+                      {enrollmentData.course.type === 'open_elective' && (
+                        <ul className="list-disc list-inside ml-2">
+                          <li>Open to all students of the selected batch year</li>
+                          {enrollmentData.course.restrictions.length > 0 && (
+                            <li>
+                              Restricted departments: {enrollmentData.course.restrictions.map((r: {departmentCode: string}) => r.departmentCode).join(', ')}
+                            </li>
+                          )}
+                        </ul>
+                      )}
+                      {enrollmentData.course.type === 'department_elective' && (
+                        <ul className="list-disc list-inside ml-2">
+                          <li>Only students from {enrollmentData.course.department?.name} department</li>
+                          <li>Students of the selected batch year</li>
+                        </ul>
+                      )}
+                      {enrollmentData.course.type === 'core' && (
+                        <ul className="list-disc list-inside ml-2">
+                          <li><strong>Mandatory enrollment:</strong> All students from {enrollmentData.course.department?.name} department</li>
+                          <li>Students of the selected batch year will be automatically enrolled</li>
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Enrollment Form */}
+              <form onSubmit={handleEnrollmentSubmit} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={enrollmentYear}
+                    onChange={(e) => setEnrollmentYear(e.target.value)}
+                    title="Select Batch Year"
+                  >
+                    <option value="2024">2024</option>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Semester</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={enrollmentSemester}
+                    onChange={(e) => setEnrollmentSemester(e.target.value)}
+                    title="Select Semester"
+                  >
+                    <option value="1">1st Semester</option>
+                    <option value="2">2nd Semester</option>
+                  </select>
+                </div>
+                
+                {/* Student Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">
+                    {selectedCourse.type === 'core' ? 'Students to be enrolled' : 'Select Students'} {eligibleStudents.length > 0 && `(${eligibleStudents.length} eligible)`}
+                  </label>
+                  <div className="border rounded-md p-3 bg-gray-50 max-h-48 overflow-y-auto">
+                    {enrollmentLoading ? (
+                      <div className="text-center py-4">
+                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                        <p className="text-sm text-gray-500 mt-2">Loading eligible students...</p>
+                      </div>
+                    ) : eligibleStudents.length === 0 ? (
+                      <p className="text-gray-500 text-sm py-4 text-center">
+                        No eligible students found for this course and batch year/semester combination.
+                      </p>
+                    ) : selectedCourse.type === 'core' ? (
+                      /* For core courses, show all students as automatically selected */
+                      <div className="space-y-2">
+                        <div className="mb-3 pb-2 border-b">
+                          <span className="text-sm font-medium text-green-900">
+                            ✓ All students will be automatically enrolled ({eligibleStudents.length} students)
+                          </span>
+                          <p className="text-xs text-gray-600 mt-1">
+                            Core courses are mandatory for all students in the department
+                          </p>
+                        </div>
+                        {eligibleStudents.map(student => (
+                          <div key={student.id} className="flex items-center text-gray-900 bg-green-50 p-1 rounded">
+                            <div className="mr-2 text-green-600">✓</div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{student.name}</div>
+                              <div className="text-xs text-gray-500">
+                                USN: {student.usn} | 
+                                {student.department && ` ${student.department.code} |`}
+                                {student.section && ` Section: ${student.section.name}`}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      /* For electives, allow manual selection */
+                      <div className="space-y-2">
+                        <div className="flex items-center mb-3 pb-2 border-b">
+                          <input
+                            type="checkbox"
+                            className="mr-2"
+                            checked={selectedStudents.length === eligibleStudents.length}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedStudents(eligibleStudents.map(s => s.id))
+                              } else {
+                                setSelectedStudents([])
+                              }
+                            }}
+                            aria-label="Select all students"
+                          />
+                          <span className="text-sm font-medium text-gray-900">
+                            Select All ({eligibleStudents.length} students)
+                          </span>
+                        </div>
+                        {eligibleStudents.map(student => (
+                          <label key={student.id} className="flex items-center text-gray-900 hover:bg-gray-100 p-1 rounded">
+                            <input
+                              type="checkbox"
+                              className="mr-2"
+                              checked={selectedStudents.includes(student.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedStudents(prev => [...prev, student.id])
+                                } else {
+                                  setSelectedStudents(prev => prev.filter(id => id !== student.id))
+                                }
+                              }}
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{student.name}</div>
+                              <div className="text-xs text-gray-500">
+                                USN: {student.usn} | 
+                                {student.department && ` ${student.department.code} |`}
+                                {student.section && ` Section: ${student.section.name}`}
+                              </div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Teacher Selection */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Assign Teacher (Optional)</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    value={selectedTeacher}
+                    onChange={(e) => setSelectedTeacher(e.target.value)}
+                    title="Select Teacher"
+                  >
+                    <option value="">Select Teacher</option>
+                    {teachers.map(teacher => (
+                      <option key={teacher.id} value={teacher.id}>
+                        {teacher.name} ({teacher.username})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button 
+                    type="submit" 
+                    className="flex-1" 
+                    disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0) || (selectedCourse.type === 'core' && eligibleStudents.length === 0)}
+                  >
+                    {enrollmentLoading ? 'Enrolling...' : 
+                     selectedCourse.type === 'core' 
+                       ? `Auto-Enroll All ${eligibleStudents.length} Students`
+                       : `Enroll ${selectedStudents.length} Students`}
+                  </Button>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowEnrollmentModal(false)}
+                  >
                     Cancel
                   </Button>
                 </div>

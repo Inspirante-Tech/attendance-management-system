@@ -1,0 +1,134 @@
+username,password_hash,name,phone,email
+admin1,admin123hash,System Administrator,9876543210,admin@nmamit.in
+teacher_cse1_nmamit,teacher123hash,Dr. Rajesh Kumar,9876543212,rajesh.kumar@nmamit.in
+teacher_cse2_nmamit,teacher123hash,Prof. Priya Sharma,9876543213,priya.sharma@nmamit.in
+teacher_cv1_nmamit,teacher123hash,Dr. Suresh Patel,9876543214,suresh.patel@nmamit.in
+teacher_cv2_nmamit,teacher123hash,Prof. Meena Singh,9876543215,meena.singh@nmamit.in
+teacher_mech1_nmamit,teacher123hash,Dr. Arun Gupta,9876543216,arun.gupta@nmamit.in
+teacher_mech2_nmamit,teacher123hash,Prof. Sunita Rao,9876543217,sunita.rao@nmamit.in
+teacher_cse1_nitte,teacher123hash,Dr. Vikram Reddy,9876543218,vikram.reddy@nitte.edu.in
+teacher_cse2_nitte,teacher123hash,Prof. Kavya Nair,9876543219,kavya.nair@nitte.edu.in
+teacher_cv1_nitte,teacher123hash,Dr. Mohan Das,9876543220,mohan.das@nitte.edu.in
+teacher_cv2_nitte,teacher123hash,Prof. Ritu Joshi,9876543221,ritu.joshi@nitte.edu.in
+teacher_mech1_nitte,teacher123hash,Dr. Santosh Kumar,9876543222,santosh.kumar@nitte.edu.in
+teacher_mech2_nitte,teacher123hash,Prof. Anita Verma,9876543223,anita.verma@nitte.edu.in
+4nm23cs001,student123hash,Aarav Sharma,9876543301,aarav.sharma@student.nmamit.in
+4nm23cs002,student123hash,Vivaan Singh,9876543302,vivaan.singh@student.nmamit.in
+4nm23cs003,student123hash,Aditya Patel,9876543303,aditya.patel@student.nmamit.in
+4nm23cs004,student123hash,Vihaan Kumar,9876543304,vihaan.kumar@student.nmamit.in
+4nm23cs005,student123hash,Arjun Gupta,9876543305,arjun.gupta@student.nmamit.in
+4nm23cs006,student123hash,Reyansh Yadav,9876543306,reyansh.yadav@student.nmamit.in
+4nm23cs007,student123hash,Ayaan Jain,9876543307,ayaan.jain@student.nmamit.in
+4nm23cs008,student123hash,Krishna Mishra,9876543308,krishna.mishra@student.nmamit.in
+4nm23cs009,student123hash,Ishaan Agarwal,9876543309,ishaan.agarwal@student.nmamit.in
+4nm23cs010,student123hash,Atharv Shah,9876543310,atharv.shah@student.nmamit.in
+4nm23cv001,student123hash,Anaya Sharma,9876543311,anaya.sharma@student.nmamit.in
+4nm23cv002,student123hash,Diya Singh,9876543312,diya.singh@student.nmamit.in
+4nm23cv003,student123hash,Aadhya Patel,9876543313,aadhya.patel@student.nmamit.in
+4nm23cv004,student123hash,Avni Kumar,9876543314,avni.kumar@student.nmamit.in
+4nm23cv005,student123hash,Kavya Gupta,9876543315,kavya.gupta@student.nmamit.in
+4nm23cv006,student123hash,Saanvi Yadav,9876543316,saanvi.yadav@student.nmamit.in
+4nm23cv007,student123hash,Arya Jain,9876543317,arya.jain@student.nmamit.in
+4nm23cv008,student123hash,Kiara Mishra,9876543318,kiara.mishra@student.nmamit.in
+4nm23cv009,student123hash,Myra Agarwal,9876543319,myra.agarwal@student.nmamit.in
+4nm23cv010,student123hash,Aditi Shah,9876543320,aditi.shah@student.nmamit.in
+4nm23me001,student123hash,Raj Sharma,9876543321,raj.sharma@student.nmamit.in
+4nm23me002,student123hash,Dev Singh,9876543322,dev.singh@student.nmamit.in
+4nm23me003,student123hash,Aryan Patel,9876543323,aryan.patel@student.nmamit.in
+4nm23me004,student123hash,Karan Kumar,9876543324,karan.kumar@student.nmamit.in
+4nm23me005,student123hash,Harsh Gupta,9876543325,harsh.gupta@student.nmamit.in
+4nm23me006,student123hash,Ravi Yadav,9876543326,ravi.yadav@student.nmamit.in
+4nm23me007,student123hash,Rohit Jain,9876543327,rohit.jain@student.nmamit.in
+4nm23me008,student123hash,Vikram Mishra,9876543328,vikram.mishra@student.nmamit.in
+4nm23me009,student123hash,Ankit Agarwal,9876543329,ankit.agarwal@student.nmamit.in
+4nm23me010,student123hash,Siddharth Shah,9876543330,siddharth.shah@student.nmamit.in
+4nt23cs001,student123hash,Aarav Reddy,9876543331,aarav.reddy@student.nitte.edu.in
+4nt23cs002,student123hash,Vivaan Nair,9876543332,vivaan.nair@student.nitte.edu.in
+4nt23cs003,student123hash,Aditya Das,9876543333,aditya.das@student.nitte.edu.in
+4nt23cs004,student123hash,Vihaan Joshi,9876543334,vihaan.joshi@student.nitte.edu.in
+4nt23cs005,student123hash,Arjun Kumar,9876543335,arjun.kumar@student.nitte.edu.in
+4nt23cs006,student123hash,Reyansh Verma,9876543336,reyansh.verma@student.nitte.edu.in
+4nt23cs007,student123hash,Ayaan Reddy,9876543337,ayaan.reddy@student.nitte.edu.in
+4nt23cs008,student123hash,Krishna Nair,9876543338,krishna.nair@student.nitte.edu.in
+4nt23cs009,student123hash,Ishaan Das,9876543339,ishaan.das@student.nitte.edu.in
+4nt23cs010,student123hash,Atharv Joshi,9876543340,atharv.joshi@student.nitte.edu.in
+4nt23cv001,student123hash,Anaya Reddy,9876543341,anaya.reddy@student.nitte.edu.in
+4nt23cv002,student123hash,Diya Nair,9876543342,diya.nair@student.nitte.edu.in
+4nt23cv003,student123hash,Aadhya Das,9876543343,aadhya.das@student.nitte.edu.in
+4nt23cv004,student123hash,Avni Joshi,9876543344,avni.joshi@student.nitte.edu.in
+4nt23cv005,student123hash,Kavya Kumar,9876543345,kavya.kumar@student.nitte.edu.in
+4nt23cv006,student123hash,Saanvi Verma,9876543346,saanvi.verma@student.nitte.edu.in
+4nt23cv007,student123hash,Arya Reddy,9876543347,arya.reddy@student.nitte.edu.in
+4nt23cv008,student123hash,Kiara Nair,9876543348,kiara.nair@student.nitte.edu.in
+4nt23cv009,student123hash,Myra Das,9876543349,myra.das@student.nitte.edu.in
+4nt23cv010,student123hash,Aditi Joshi,9876543350,aditi.joshi@student.nitte.edu.in
+4nt23me001,student123hash,Raj Reddy,9876543351,raj.reddy@student.nitte.edu.in
+4nt23me002,student123hash,Dev Nair,9876543352,dev.nair@student.nitte.edu.in
+4nt23me003,student123hash,Aryan Das,9876543353,aryan.das@student.nitte.edu.in
+4nt23me004,student123hash,Karan Joshi,9876543354,karan.joshi@student.nitte.edu.in
+4nt23me005,student123hash,Harsh Kumar,9876543355,harsh.kumar@student.nitte.edu.in
+4nt23me006,student123hash,Ravi Verma,9876543356,ravi.verma@student.nitte.edu.in
+4nt23me007,student123hash,Rohit Reddy,9876543357,rohit.reddy@student.nitte.edu.in
+4nt23me008,student123hash,Vikram Nair,9876543358,vikram.nair@student.nitte.edu.in
+4nt23me009,student123hash,Ankit Das,9876543359,ankit.das@student.nitte.edu.in
+4nt23me010,student123hash,Siddharth Joshi,9876543360,siddharth.joshi@student.nitte.edu.in
+4nm21cs001,student123hash,Rahul Sharma,9876543361,rahul.sharma@student.nmamit.in
+4nm21cs002,student123hash,Amit Singh,9876543362,amit.singh@student.nmamit.in
+4nm21cs003,student123hash,Pradeep Patel,9876543363,pradeep.patel@student.nmamit.in
+4nm21cs004,student123hash,Suresh Kumar,9876543364,suresh.kumar@student.nmamit.in
+4nm21cs005,student123hash,Ravi Gupta,9876543365,ravi.gupta@student.nmamit.in
+4nm21cs006,student123hash,Akash Yadav,9876543366,akash.yadav@student.nmamit.in
+4nm21cs007,student123hash,Deepak Jain,9876543367,deepak.jain@student.nmamit.in
+4nm21cs008,student123hash,Manoj Mishra,9876543368,manoj.mishra@student.nmamit.in
+4nm21cs009,student123hash,Sachin Agarwal,9876543369,sachin.agarwal@student.nmamit.in
+4nm21cs010,student123hash,Rajesh Shah,9876543370,rajesh.shah@student.nmamit.in
+4nm21cv001,student123hash,Priya Sharma,9876543371,priya.sharma@student.nmamit.in
+4nm21cv002,student123hash,Neha Singh,9876543372,neha.singh@student.nmamit.in
+4nm21cv003,student123hash,Pooja Patel,9876543373,pooja.patel@student.nmamit.in
+4nm21cv004,student123hash,Sneha Kumar,9876543374,sneha.kumar@student.nmamit.in
+4nm21cv005,student123hash,Meera Gupta,9876543375,meera.gupta@student.nmamit.in
+4nm21cv006,student123hash,Ritu Yadav,9876543376,ritu.yadav@student.nmamit.in
+4nm21cv007,student123hash,Sunita Jain,9876543377,sunita.jain@student.nmamit.in
+4nm21cv008,student123hash,Kavita Mishra,9876543378,kavita.mishra@student.nmamit.in
+4nm21cv009,student123hash,Geeta Agarwal,9876543379,geeta.agarwal@student.nmamit.in
+4nm21cv010,student123hash,Shweta Shah,9876543380,shweta.shah@student.nmamit.in
+4nm21me001,student123hash,Vikas Sharma,9876543381,vikas.sharma@student.nmamit.in
+4nm21me002,student123hash,Sandeep Singh,9876543382,sandeep.singh@student.nmamit.in
+4nm21me003,student123hash,Vinod Patel,9876543383,vinod.patel@student.nmamit.in
+4nm21me004,student123hash,Ajay Kumar,9876543384,ajay.kumar@student.nmamit.in
+4nm21me005,student123hash,Ashok Gupta,9876543385,ashok.gupta@student.nmamit.in
+4nm21me006,student123hash,Sanjay Yadav,9876543386,sanjay.yadav@student.nmamit.in
+4nm21me007,student123hash,Dinesh Jain,9876543387,dinesh.jain@student.nmamit.in
+4nm21me008,student123hash,Mahesh Mishra,9876543388,mahesh.mishra@student.nmamit.in
+4nm21me009,student123hash,Ramesh Agarwal,9876543389,ramesh.agarwal@student.nmamit.in
+4nm21me010,student123hash,Naresh Shah,9876543390,naresh.shah@student.nmamit.in
+4nt21cs001,student123hash,Rahul Reddy,9876543391,rahul.reddy@student.nitte.edu.in
+4nt21cs002,student123hash,Amit Nair,9876543392,amit.nair@student.nitte.edu.in
+4nt21cs003,student123hash,Pradeep Das,9876543393,pradeep.das@student.nitte.edu.in
+4nt21cs004,student123hash,Suresh Joshi,9876543394,suresh.joshi@student.nitte.edu.in
+4nt21cs005,student123hash,Ravi Kumar,9876543395,ravi.kumar@student.nitte.edu.in
+4nt21cs006,student123hash,Akash Verma,9876543396,akash.verma@student.nitte.edu.in
+4nt21cs007,student123hash,Deepak Reddy,9876543397,deepak.reddy@student.nitte.edu.in
+4nt21cs008,student123hash,Manoj Nair,9876543398,manoj.nair@student.nitte.edu.in
+4nt21cs009,student123hash,Sachin Das,9876543399,sachin.das@student.nitte.edu.in
+4nt21cs010,student123hash,Rajesh Joshi,9876543400,rajesh.joshi@student.nitte.edu.in
+4nt21cv001,student123hash,Priya Reddy,9876543401,priya.reddy@student.nitte.edu.in
+4nt21cv002,student123hash,Neha Nair,9876543402,neha.nair@student.nitte.edu.in
+4nt21cv003,student123hash,Pooja Das,9876543403,pooja.das@student.nitte.edu.in
+4nt21cv004,student123hash,Sneha Joshi,9876543404,sneha.joshi@student.nitte.edu.in
+4nt21cv005,student123hash,Meera Kumar,9876543405,meera.kumar@student.nitte.edu.in
+4nt21cv006,student123hash,Ritu Verma,9876543406,ritu.verma@student.nitte.edu.in
+4nt21cv007,student123hash,Sunita Reddy,9876543407,sunita.reddy@student.nitte.edu.in
+4nt21cv008,student123hash,Kavita Nair,9876543408,kavita.nair@student.nitte.edu.in
+4nt21cv009,student123hash,Geeta Das,9876543409,geeta.das@student.nitte.edu.in
+4nt21cv010,student123hash,Shweta Joshi,9876543410,shweta.joshi@student.nitte.edu.in
+4nt21me001,student123hash,Vikas Reddy,9876543411,vikas.reddy@student.nitte.edu.in
+4nt21me002,student123hash,Sandeep Nair,9876543412,sandeep.nair@student.nitte.edu.in
+4nt21me003,student123hash,Vinod Das,9876543413,vinod.das@student.nitte.edu.in
+4nt21me004,student123hash,Ajay Joshi,9876543414,ajay.joshi@student.nitte.edu.in
+4nt21me005,student123hash,Ashok Kumar,9876543415,ashok.kumar@student.nitte.edu.in
+4nt21me006,student123hash,Sanjay Verma,9876543416,sanjay.verma@student.nitte.edu.in
+4nt21me007,student123hash,Dinesh Reddy,9876543417,dinesh.reddy@student.nitte.edu.in
+4nt21me008,student123hash,Mahesh Nair,9876543418,mahesh.nair@student.nitte.edu.in
+4nt21me009,student123hash,Ramesh Das,9876543419,ramesh.das@student.nitte.edu.in
+4nt21me010,student123hash,Naresh Joshi,9876543420,naresh.joshi@student.nitte.edu.in

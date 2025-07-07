@@ -915,4 +915,685 @@ async function importLabMarks(records: any[], prisma: any, errors: string[]): Pr
   return count;
 }
 
+// Get all marks (theory and lab) for students
+router.get('/marks', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, departmentId, year, studentId, studentUsn } = req.query;
+    
+    let whereClause: any = {};
+    
+    // Handle student filtering by either UUID or USN
+    if (studentId || studentUsn) {
+      if (studentUsn) {
+        // Filter by USN
+        whereClause.student = {
+          usn: studentUsn as string
+        };
+      } else if (studentId) {
+        // Filter by UUID
+        whereClause.studentId = studentId as string;
+      }
+    }
+    
+    if (courseId) {
+      whereClause.offering = {
+        courseId: courseId as string
+      };
+    }
+    
+    if (departmentId || year) {
+      if (!whereClause.student) {
+        whereClause.student = {};
+      }
+      if (departmentId) {
+        whereClause.student.departmentId = departmentId as string;
+      }
+      if (year) {
+        whereClause.student.batchYear = parseInt(year as string);
+      }
+    }
+
+    const enrollments = await prisma.studentEnrollment.findMany({
+      where: whereClause,
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        offering: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                code: true,
+                name: true
+              }
+            }
+          }
+        },
+        theoryMarks: true,
+        labMarks: true
+      }
+    }) as any[];
+
+    const marksData = enrollments.map(enrollment => ({
+      id: enrollment.id,
+      enrollmentId: enrollment.id,
+      student: enrollment.student ? {
+        id: enrollment.student.id,
+        usn: enrollment.student.usn,
+        user: {
+          name: enrollment.student.user.name
+        }
+      } : null,
+      course: enrollment.offering?.course ? {
+        id: enrollment.offering.course.id,
+        code: enrollment.offering.course.code,
+        name: enrollment.offering.course.name
+      } : null,
+      theoryMarks: enrollment.theoryMarks ? {
+        id: enrollment.theoryMarks.id,
+        mse1_marks: enrollment.theoryMarks.mse1Marks,
+        mse2_marks: enrollment.theoryMarks.mse2Marks,
+        mse3_marks: enrollment.theoryMarks.mse3Marks,
+        task1_marks: enrollment.theoryMarks.task1Marks,
+        task2_marks: enrollment.theoryMarks.task2Marks,
+        task3_marks: enrollment.theoryMarks.task3Marks,
+        last_updated_at: enrollment.theoryMarks.lastUpdatedAt
+      } : null,
+      labMarks: enrollment.labMarks ? {
+        id: enrollment.labMarks.id,
+        record_marks: enrollment.labMarks.recordMarks,
+        continuous_evaluation_marks: enrollment.labMarks.continuousEvaluationMarks,
+        lab_mse_marks: enrollment.labMarks.labMseMarks,
+        last_updated_at: enrollment.labMarks.lastUpdatedAt
+      } : null,
+      updatedAt: enrollment.theoryMarks?.lastUpdatedAt || enrollment.labMarks?.lastUpdatedAt || new Date()
+    }));
+
+    res.json({
+      status: 'success',
+      data: marksData
+    });
+  } catch (error) {
+    console.error('Error fetching marks:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get marks for a specific enrollment
+router.get('/marks/:enrollmentId', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { enrollmentId } = req.params;
+
+    const enrollment = await prisma.studentEnrollment.findUnique({
+      where: { id: enrollmentId },
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                name: true
+              }
+            }
+          }
+        },
+        offering: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                code: true,
+                name: true
+              }
+            }
+          }
+        },
+        theoryMarks: true,
+        labMarks: true
+      }
+    }) as any;
+
+    if (!enrollment) {
+      res.status(404).json({
+        status: 'error',
+        error: 'Enrollment not found'
+      });
+      return;
+    }
+
+    const marksData = {
+      id: enrollment.id,
+      enrollmentId: enrollment.id,
+      student: enrollment.student ? {
+        id: enrollment.student.id,
+        usn: enrollment.student.usn,
+        user: {
+          name: enrollment.student.user.name
+        }
+      } : null,
+      course: enrollment.offering?.course ? {
+        id: enrollment.offering.course.id,
+        code: enrollment.offering.course.code,
+        name: enrollment.offering.course.name
+      } : null,
+      theoryMarks: enrollment.theoryMarks ? {
+        id: enrollment.theoryMarks.id,
+        mse1_marks: enrollment.theoryMarks.mse1Marks,
+        mse2_marks: enrollment.theoryMarks.mse2Marks,
+        mse3_marks: enrollment.theoryMarks.mse3Marks,
+        task1_marks: enrollment.theoryMarks.task1Marks,
+        task2_marks: enrollment.theoryMarks.task2Marks,
+        task3_marks: enrollment.theoryMarks.task3Marks,
+        last_updated_at: enrollment.theoryMarks.lastUpdatedAt
+      } : null,
+      labMarks: enrollment.labMarks ? {
+        id: enrollment.labMarks.id,
+        record_marks: enrollment.labMarks.recordMarks,
+        continuous_evaluation_marks: enrollment.labMarks.continuousEvaluationMarks,
+        lab_mse_marks: enrollment.labMarks.labMseMarks,
+        last_updated_at: enrollment.labMarks.lastUpdatedAt
+      } : null,
+      updatedAt: enrollment.theoryMarks?.lastUpdatedAt || enrollment.labMarks?.lastUpdatedAt || new Date()
+    };
+
+    res.json({
+      status: 'success',
+      data: marksData
+    });
+  } catch (error) {
+    console.error('Error fetching enrollment marks:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Update marks for a specific enrollment
+router.put('/marks/:enrollmentId', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { enrollmentId } = req.params;
+    const markData = req.body;
+
+    // Check if enrollment exists
+    const enrollment = await prisma.studentEnrollment.findUnique({
+      where: { id: enrollmentId }
+    });
+
+    if (!enrollment) {
+      res.status(404).json({
+        status: 'error',
+        error: 'Enrollment not found'
+      });
+      return;
+    }
+
+    // Determine if this is theory or lab marks update
+    const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
+    const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
+
+    if (isTheoryUpdate) {
+      // Update theory marks
+      const theoryMarkData: any = {};
+      if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
+      if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
+      if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
+      if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
+      if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
+      if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
+      
+      theoryMarkData.lastUpdatedAt = new Date();
+
+      await prisma.theoryMarks.upsert({
+        where: { enrollmentId },
+        update: theoryMarkData,
+        create: {
+          enrollmentId,
+          ...theoryMarkData
+        }
+      });
+    }
+
+    if (isLabUpdate) {
+      // Update lab marks
+      const labMarkData: any = {};
+      if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
+      if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
+      if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
+      
+      labMarkData.lastUpdatedAt = new Date();
+
+      await prisma.labMarks.upsert({
+        where: { enrollmentId },
+        update: labMarkData,
+        create: {
+          enrollmentId,
+          ...labMarkData
+        }
+      });
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Marks updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating marks:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get eligible students for course enrollment
+router.get('/courses/:courseId/eligible-students', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId } = req.params;
+    const { year, semester } = req.query;
+
+    if (!year || !semester) {
+      res.status(400).json({
+        status: 'error',
+        error: 'Year and semester are required'
+      });
+      return;
+    }
+
+    // Get course details
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        department: true,
+        colleges: true,
+        openElectiveRestrictions: {
+          include: {
+            restrictedDepartment: true
+          }
+        }
+      }
+    });
+
+    if (!course) {
+      res.status(404).json({
+        status: 'error',
+        error: 'Course not found'
+      });
+      return;
+    }
+
+    let whereClause: any = {
+      batchYear: parseInt(year as string),
+      college_id: course.college_id
+    };
+
+    if (course.type === 'open_elective') {
+      // For open electives, include all students except those from restricted departments
+      const restrictedDepartmentIds = course.openElectiveRestrictions.map(r => r.restrictedDepartmentId);
+      if (restrictedDepartmentIds.length > 0) {
+        whereClause.departmentId = {
+          notIn: restrictedDepartmentIds
+        };
+      }
+    } else if (course.type === 'department_elective' || course.type === 'core') {
+      // For department electives and core courses, only include students from the same department
+      if (course.departmentId) {
+        whereClause.departmentId = course.departmentId;
+      }
+    }
+
+    // Get students who are NOT already enrolled in this course
+    const eligibleStudents = await prisma.student.findMany({
+      where: {
+        ...whereClause,
+        enrollments: {
+          none: {
+            offering: {
+              courseId: courseId,
+              semester: parseInt(semester as string)
+            }
+          }
+        }
+      },
+      include: {
+        user: {
+          select: {
+            name: true
+          }
+        },
+        departments: {
+          select: {
+            id: true,
+            name: true,
+            code: true
+          }
+        },
+        sections: {
+          select: {
+            section_id: true,
+            section_name: true
+          }
+        }
+      }
+    });
+
+    const studentsData = eligibleStudents.map(student => ({
+      id: student.id,
+      usn: student.usn,
+      name: student.user.name,
+      semester: student.semester,
+      batchYear: student.batchYear,
+      department: student.departments ? {
+        id: student.departments.id,
+        name: student.departments.name,
+        code: student.departments.code
+      } : null,
+      section: student.sections ? {
+        id: student.sections.section_id,
+        name: student.sections.section_name
+      } : null
+    }));
+
+    res.json({
+      status: 'success',
+      data: {
+        course: {
+          id: course.id,
+          code: course.code,
+          name: course.name,
+          type: course.type,
+          department: course.department ? {
+            id: course.department.id,
+            name: course.department.name,
+            code: course.department.code
+          } : null,
+          restrictions: course.openElectiveRestrictions.map(r => ({
+            departmentId: r.restrictedDepartmentId,
+            departmentName: r.restrictedDepartment.name,
+            departmentCode: r.restrictedDepartment.code
+          }))
+        },
+        eligibleStudents: studentsData,
+        count: studentsData.length
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching eligible students:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Enroll students in a course
+router.post('/courses/:courseId/enroll-students', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId } = req.params;
+    const { studentIds, year, semester, teacherId } = req.body;
+
+    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+      res.status(400).json({
+        status: 'error',
+        error: 'Student IDs are required and must be an array'
+      });
+      return;
+    }
+
+    if (!year || !semester) {
+      res.status(400).json({
+        status: 'error',
+        error: 'Year and semester are required'
+      });
+      return;
+    }
+
+    // Get course details
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        colleges: true
+      }
+    });
+
+    if (!course) {
+      res.status(404).json({
+        status: 'error',
+        error: 'Course not found'
+      });
+      return;
+    }
+
+    // Get or create academic year
+    const academicYear = await prisma.academic_years.findFirst({
+      where: {
+        year_name: year as string,
+        college_id: course.college_id
+      }
+    });
+
+    if (!academicYear) {
+      res.status(404).json({
+        status: 'error',
+        error: `Academic year ${year} not found for this college`
+      });
+      return;
+    }
+
+    // Get or create course offering
+    let courseOffering = await prisma.courseOffering.findFirst({
+      where: {
+        courseId: courseId,
+        year_id: academicYear.year_id,
+        semester: parseInt(semester as string)
+      }
+    });
+
+    if (!courseOffering) {
+      // Create new course offering
+      courseOffering = await prisma.courseOffering.create({
+        data: {
+          courseId: courseId,
+          year_id: academicYear.year_id,
+          semester: parseInt(semester as string),
+          teacherId: teacherId || null
+        }
+      });
+    } else if (teacherId && courseOffering.teacherId !== teacherId) {
+      // Update teacher if provided and different
+      courseOffering = await prisma.courseOffering.update({
+        where: { id: courseOffering.id },
+        data: { teacherId: teacherId }
+      });
+    }
+
+    // Enroll students
+    const enrollments = [];
+    const errors = [];
+
+    for (const studentId of studentIds) {
+      try {
+        // Check if student is already enrolled
+        const existingEnrollment = await prisma.studentEnrollment.findFirst({
+          where: {
+            studentId: studentId,
+            offeringId: courseOffering.id
+          }
+        });
+
+        if (existingEnrollment) {
+          errors.push(`Student ${studentId} is already enrolled in this course`);
+          continue;
+        }
+
+        // Create enrollment
+        const enrollment = await prisma.studentEnrollment.create({
+          data: {
+            studentId: studentId,
+            offeringId: courseOffering.id,
+            year_id: academicYear.year_id,
+            attemptNumber: 1
+          }
+        });
+
+        enrollments.push(enrollment);
+      } catch (error) {
+        errors.push(`Error enrolling student ${studentId}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      }
+    }
+
+    res.json({
+      status: enrollments.length > 0 ? 'success' : 'error',
+      data: {
+        courseOffering: {
+          id: courseOffering.id,
+          courseId: courseOffering.courseId,
+          year: year,
+          semester: semester,
+          teacherId: courseOffering.teacherId
+        },
+        enrollmentsCreated: enrollments.length,
+        totalRequested: studentIds.length,
+        errors: errors
+      },
+      message: `Successfully enrolled ${enrollments.length} out of ${studentIds.length} students`
+    });
+  } catch (error) {
+    console.error('Error enrolling students:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+// Get course enrollments
+router.get('/courses/:courseId/enrollments', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId } = req.params;
+    const { year, semester } = req.query;
+
+    let whereClause: any = {
+      offering: {
+        courseId: courseId
+      }
+    };
+
+    if (year) {
+      whereClause.academic_years = {
+        year_name: year as string
+      };
+    }
+
+    if (semester) {
+      whereClause.offering.semester = parseInt(semester as string);
+    }
+
+    const enrollments = await prisma.studentEnrollment.findMany({
+      where: whereClause,
+      include: {
+        student: {
+          include: {
+            user: {
+              select: {
+                name: true
+              }
+            },
+            departments: {
+              select: {
+                name: true,
+                code: true
+              }
+            },
+            sections: {
+              select: {
+                section_name: true
+              }
+            }
+          }
+        },
+        offering: {
+          include: {
+            course: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                type: true
+              }
+            },
+            teacher: {
+              include: {
+                user: {
+                  select: {
+                    name: true
+                  }
+                }
+              }
+            }
+          }
+        },
+        academic_years: {
+          select: {
+            year_name: true
+          }
+        }
+      }
+    });
+
+    const enrollmentData = enrollments.map(enrollment => ({
+      id: enrollment.id,
+      attemptNumber: enrollment.attemptNumber,
+      student: enrollment.student ? {
+        id: enrollment.student.id,
+        usn: enrollment.student.usn,
+        name: enrollment.student.user.name,
+        semester: enrollment.student.semester,
+        batchYear: enrollment.student.batchYear,
+        department: enrollment.student.departments ? {
+          name: enrollment.student.departments.name,
+          code: enrollment.student.departments.code
+        } : null,
+        section: enrollment.student.sections ? {
+          name: enrollment.student.sections.section_name
+        } : null
+      } : null,
+      course: enrollment.offering?.course || null,
+      teacher: enrollment.offering?.teacher ? {
+        id: enrollment.offering.teacher.id,
+        name: enrollment.offering.teacher.user.name
+      } : null,
+      academicYear: enrollment.academic_years?.year_name || null,
+      semester: enrollment.offering?.semester || null
+    }));
+
+    res.json({
+      status: 'success',
+      data: enrollmentData,
+      count: enrollmentData.length
+    });
+  } catch (error) {
+    console.error('Error fetching course enrollments:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;

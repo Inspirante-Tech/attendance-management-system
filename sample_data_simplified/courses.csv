@@ -1,0 +1,61 @@
+college_code,department_code,course_code,course_name,course_type,has_theory_component,has_lab_component,year
+NMAMIT,CSE,CS301,Data Structures,core,TRUE,TRUE,2
+NMAMIT,CSE,CS302,Database Systems,core,TRUE,TRUE,2
+NMAMIT,CSE,CS303,Computer Architecture,core,TRUE,FALSE,2
+NMAMIT,CSE,CS304,Web Development,core,FALSE,TRUE,2
+NMAMIT,CSE,CS305,Programming Lab,core,FALSE,TRUE,2
+NMAMIT,CV,CV301,Structural Analysis,core,TRUE,FALSE,2
+NMAMIT,CV,CV302,Construction Materials,core,TRUE,FALSE,2
+NMAMIT,CV,CV303,Surveying,core,TRUE,TRUE,2
+NMAMIT,CV,CV304,AutoCAD Lab,core,FALSE,TRUE,2
+NMAMIT,CV,CV305,Surveying Lab,core,FALSE,TRUE,2
+NMAMIT,MECH,ME301,Machine Design,core,TRUE,FALSE,2
+NMAMIT,MECH,ME302,Thermodynamics,core,TRUE,FALSE,2
+NMAMIT,MECH,ME303,Manufacturing Processes,core,TRUE,FALSE,2
+NMAMIT,MECH,ME304,CAD Lab,core,FALSE,TRUE,2
+NMAMIT,MECH,ME305,Manufacturing Lab,core,FALSE,TRUE,2
+NMAMIT,CSE,CS701,Software Engineering,core,TRUE,FALSE,4
+NMAMIT,CSE,CS702,Machine Learning,core,TRUE,TRUE,4
+NMAMIT,CSE,CS703,Computer Networks,core,TRUE,FALSE,4
+NMAMIT,CSE,CS704,Project Work,core,FALSE,TRUE,4
+NMAMIT,CSE,CS705,Capstone Lab,core,FALSE,TRUE,4
+NMAMIT,CV,CV701,Advanced Concrete,core,TRUE,FALSE,4
+NMAMIT,CV,CV702,Bridge Engineering,core,TRUE,FALSE,4
+NMAMIT,CV,CV703,Project Management,core,TRUE,FALSE,4
+NMAMIT,CV,CV704,Design Lab,core,FALSE,TRUE,4
+NMAMIT,CV,CV705,Project Work,core,FALSE,TRUE,4
+NMAMIT,MECH,ME701,Advanced Manufacturing,core,TRUE,FALSE,4
+NMAMIT,MECH,ME702,Heat Transfer,core,TRUE,FALSE,4
+NMAMIT,MECH,ME703,Industrial Engineering,core,TRUE,FALSE,4
+NMAMIT,MECH,ME704,Project Work,core,FALSE,TRUE,4
+NMAMIT,MECH,ME705,Advanced Lab,core,FALSE,TRUE,4
+NITTE,CSE,CS301,Data Structures,core,TRUE,TRUE,2
+NITTE,CSE,CS302,Database Systems,core,TRUE,TRUE,2
+NITTE,CSE,CS303,Computer Architecture,core,TRUE,FALSE,2
+NITTE,CSE,CS304,Web Development,core,FALSE,TRUE,2
+NITTE,CSE,CS305,Programming Lab,core,FALSE,TRUE,2
+NITTE,CV,CV301,Structural Analysis,core,TRUE,FALSE,2
+NITTE,CV,CV302,Construction Materials,core,TRUE,FALSE,2
+NITTE,CV,CV303,Surveying,core,TRUE,TRUE,2
+NITTE,CV,CV304,AutoCAD Lab,core,FALSE,TRUE,2
+NITTE,CV,CV305,Surveying Lab,core,FALSE,TRUE,2
+NITTE,MECH,ME301,Machine Design,core,TRUE,FALSE,2
+NITTE,MECH,ME302,Thermodynamics,core,TRUE,FALSE,2
+NITTE,MECH,ME303,Manufacturing Processes,core,TRUE,FALSE,2
+NITTE,MECH,ME304,CAD Lab,core,FALSE,TRUE,2
+NITTE,MECH,ME305,Manufacturing Lab,core,FALSE,TRUE,2
+NITTE,CSE,CS701,Software Engineering,core,TRUE,FALSE,4
+NITTE,CSE,CS702,Machine Learning,core,TRUE,TRUE,4
+NITTE,CSE,CS703,Computer Networks,core,TRUE,FALSE,4
+NITTE,CSE,CS704,Project Work,core,FALSE,TRUE,4
+NITTE,CSE,CS705,Capstone Lab,core,FALSE,TRUE,4
+NITTE,CV,CV701,Advanced Concrete,core,TRUE,FALSE,4
+NITTE,CV,CV702,Bridge Engineering,core,TRUE,FALSE,4
+NITTE,CV,CV703,Project Management,core,TRUE,FALSE,4
+NITTE,CV,CV704,Design Lab,core,FALSE,TRUE,4
+NITTE,CV,CV705,Project Work,core,FALSE,TRUE,4
+NITTE,MECH,ME701,Advanced Manufacturing,core,TRUE,FALSE,4
+NITTE,MECH,ME702,Heat Transfer,core,TRUE,FALSE,4
+NITTE,MECH,ME703,Industrial Engineering,core,TRUE,FALSE,4
+NITTE,MECH,ME704,Project Work,core,FALSE,TRUE,4
+NITTE,MECH,ME705,Advanced Lab,core,FALSE,TRUE,4

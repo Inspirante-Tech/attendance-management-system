@@ -1,0 +1,35 @@
+course_code,section_name,section_dept_code,teacher_username,class_date,period_number,syllabus_covered
+CS301,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-01,1,Introduction to Data Structures
+CS301,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-03,1,Arrays and Linked Lists
+CS301,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-05,1,Stacks and Queues
+CS301,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-01,2,Introduction to Data Structures
+CS301,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-03,2,Arrays and Linked Lists
+CS301,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-05,2,Stacks and Queues
+CS302,NM_CSE_A2,CSE,teacher_cse2_nmamit,2024-02-02,1,Database Fundamentals
+CS302,NM_CSE_A2,CSE,teacher_cse2_nmamit,2024-02-04,1,SQL Basics
+CS302,NM_CSE_A2,CSE,teacher_cse2_nmamit,2024-02-06,1,Normalization
+CS302,NM_CSE_B2,CSE,teacher_cse2_nmamit,2024-02-02,2,Database Fundamentals
+CS302,NM_CSE_B2,CSE,teacher_cse2_nmamit,2024-02-04,2,SQL Basics
+CS302,NM_CSE_B2,CSE,teacher_cse2_nmamit,2024-02-06,2,Normalization
+CS303,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-07,1,Computer Architecture Basics
+CS303,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-09,1,Processor Design
+CS303,NM_CSE_A2,CSE,teacher_cse1_nmamit,2024-02-11,1,Memory Systems
+CS303,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-07,2,Computer Architecture Basics
+CS303,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-09,2,Processor Design
+CS303,NM_CSE_B2,CSE,teacher_cse1_nmamit,2024-02-11,2,Memory Systems
+CV301,NM_CV_A2,CV,teacher_cv1_nmamit,2024-02-01,1,Structural Analysis Fundamentals
+CV301,NM_CV_A2,CV,teacher_cv1_nmamit,2024-02-03,1,Load Analysis
+CV301,NM_CV_B2,CV,teacher_cv1_nmamit,2024-02-01,2,Structural Analysis Fundamentals
+CV301,NM_CV_B2,CV,teacher_cv1_nmamit,2024-02-03,2,Load Analysis
+ME301,NM_MECH_A2,MECH,teacher_mech1_nmamit,2024-02-01,1,Machine Design Principles
+ME301,NM_MECH_A2,MECH,teacher_mech1_nmamit,2024-02-03,1,Design Calculations
+ME301,NM_MECH_B2,MECH,teacher_mech1_nmamit,2024-02-01,2,Machine Design Principles
+ME301,NM_MECH_B2,MECH,teacher_mech1_nmamit,2024-02-03,2,Design Calculations
+CS701,NM_CSE_A4,CSE,teacher_cse1_nmamit,2024-07-01,1,Software Engineering Introduction
+CS701,NM_CSE_A4,CSE,teacher_cse1_nmamit,2024-07-03,1,SDLC Models
+CS701,NM_CSE_B4,CSE,teacher_cse1_nmamit,2024-07-01,2,Software Engineering Introduction
+CS701,NM_CSE_B4,CSE,teacher_cse1_nmamit,2024-07-03,2,SDLC Models
+CS702,NM_CSE_A4,CSE,teacher_cse2_nmamit,2024-07-02,1,Machine Learning Basics
+CS702,NM_CSE_A4,CSE,teacher_cse2_nmamit,2024-07-04,1,Supervised Learning
+CS702,NM_CSE_B4,CSE,teacher_cse2_nmamit,2024-07-02,2,Machine Learning Basics
+CS702,NM_CSE_B4,CSE,teacher_cse2_nmamit,2024-07-04,2,Supervised Learning

@@ -14,10 +14,13 @@ import {
   GraduationCap,
   Shield,
   RefreshCw,
-  AlertCircle
+  AlertCircle,
+  BookOpen,
+  Calendar
 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import { ApiUser, UserRole } from '@/types/admin'
+import MarksAttendanceManagement from './marks-attendance'
 
 interface UserManagementProps {
   initialFilters?: {
@@ -99,6 +102,11 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
   const [departments, setDepartments] = useState<{id: string, name: string, code: string, college: {name: string, code: string}}[]>([])
   const [colleges, setColleges] = useState<{id: string, name: string, code: string}[]>([])
   const [sections, setSections] = useState<{id: string, section_name: string}[]>([])
+  
+  // Marks and attendance management state
+  const [showMarksAttendance, setShowMarksAttendance] = useState(false)
+  const [marksAttendanceUser, setMarksAttendanceUser] = useState<User | null>(null)
+  const [marksAttendanceMode, setMarksAttendanceMode] = useState<'marks' | 'attendance'>('marks')
 
   // Fetch users from API
   useEffect(() => {
@@ -703,6 +711,7 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                     </td>
                     <td className="border border-gray-300 px-3 py-2 text-center">
                       <div className="flex justify-center space-x-1">
+                        {/* Edit Button */}
                         <Button
                           variant="outline"
                           size="sm"
@@ -723,13 +732,49 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                             })
                             setShowEditForm(true)
                           }}
+                          title="Edit User"
                         >
                           <Edit className="w-4 h-4" />
                         </Button>
+                        
+                        {/* Student-specific buttons */}
+                        {user.role === 'student' && (
+                          <>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setMarksAttendanceUser(user)
+                                setMarksAttendanceMode('marks')
+                                setShowMarksAttendance(true)
+                              }}
+                              title="View/Edit Marks"
+                              className="bg-blue-50 hover:bg-blue-100"
+                            >
+                              <BookOpen className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setMarksAttendanceUser(user)
+                                setMarksAttendanceMode('attendance')
+                                setShowMarksAttendance(true)
+                              }}
+                              title="View/Edit Attendance"
+                              className="bg-green-50 hover:bg-green-100"
+                            >
+                              <Calendar className="w-4 h-4" />
+                            </Button>
+                          </>
+                        )}
+                        
+                        {/* Delete Button */}
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => deleteUser(user.id)}
+                          title="Delete User"
                         >
                           <Trash2 className="w-4 h-4" />
                         </Button>
@@ -1074,6 +1119,36 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                   </Button>
                 </div>
               </form>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Marks and Attendance Management Modal */}
+      {showMarksAttendance && marksAttendanceUser && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-bold text-gray-900">
+                  {marksAttendanceMode === 'marks' ? 'Marks Management' : 'Attendance Management'} - {marksAttendanceUser.name}
+                </h2>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setShowMarksAttendance(false)
+                    setMarksAttendanceUser(null)
+                  }}
+                >
+                  Close
+                </Button>
+              </div>
+              
+              <MarksAttendanceManagement
+                selectedStudentId={marksAttendanceUser.usn || marksAttendanceUser.username}
+                selectedStudentName={marksAttendanceUser.name}
+                initialMode={marksAttendanceMode}
+              />
             </div>
           </div>
         </div>

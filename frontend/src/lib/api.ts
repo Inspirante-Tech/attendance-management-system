@@ -6,6 +6,11 @@ import {
   OverallAttendanceStats, 
   MonthlyAttendanceData 
 } from './types'
+import { 
+  CourseEnrollmentData, 
+  EnrollmentResult, 
+  CourseEnrollment 
+} from '@/types/admin'
 
 // Base API URL - should be configured from environment
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
@@ -309,6 +314,95 @@ export const adminApi = {
 
   async getDatabaseSummary(): Promise<any> {
     return apiRequest<any>('/api/db/summary')
+  },
+
+  // Marks Management
+  async getStudentMarks(courseId?: string, departmentId?: string, year?: number, studentId?: string, studentUsn?: string): Promise<{ status: string; data: any[] }> {
+    const params = new URLSearchParams()
+    if (courseId) params.append('courseId', courseId)
+    if (departmentId) params.append('departmentId', departmentId)
+    if (year) params.append('year', year.toString())
+    if (studentId) params.append('studentId', studentId)
+    if (studentUsn) params.append('studentUsn', studentUsn)
+    
+    return apiRequest<{ status: string; data: any[] }>(`/api/admin/marks?${params.toString()}`)
+  },
+
+  async updateStudentMark(enrollmentId: string, markType: string, value: number | null): Promise<{ status: string; data: any }> {
+    return apiRequest<{ status: string; data: any }>(`/api/admin/marks/${enrollmentId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ [markType]: value })
+    })
+  },
+
+  async getStudentMarksByEnrollment(enrollmentId: string): Promise<{ status: string; data: any }> {
+    return apiRequest<{ status: string; data: any }>(`/api/admin/marks/${enrollmentId}`)
+  },
+
+  // Attendance Management
+  async getAttendanceByDate(date: string, courseId?: string, departmentId?: string): Promise<{ status: string; data: any[] }> {
+    const params = new URLSearchParams()
+    params.append('date', date)
+    if (courseId) params.append('courseId', courseId)
+    if (departmentId) params.append('departmentId', departmentId)
+    
+    return apiRequest<{ status: string; data: any[] }>(`/api/admin/attendance?${params.toString()}`)
+  },
+
+  async updateAttendance(attendanceId: string, status: 'present' | 'absent'): Promise<{ status: string; data: any }> {
+    return apiRequest<{ status: string; data: any }>(`/api/admin/attendance/${attendanceId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ status })
+    })
+  },
+
+  async createAttendanceRecord(data: {
+    courseOfferingId: string
+    date: string
+    students: Array<{ studentId: string; status: 'present' | 'absent' }>
+  }): Promise<{ status: string; data: any }> {
+    return apiRequest<{ status: string; data: any }>('/api/admin/attendance', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    })
+  },
+
+  async getAttendanceCalendar(month: number, year: number, departmentId?: string): Promise<{ status: string; data: any[] }> {
+    const params = new URLSearchParams()
+    params.append('month', month.toString())
+    params.append('year', year.toString())
+    if (departmentId) params.append('departmentId', departmentId)
+    
+    return apiRequest<{ status: string; data: any[] }>(`/api/admin/attendance/calendar?${params.toString()}`)
+  },
+
+  // Course Enrollment Management
+  async getEligibleStudents(courseId: string, year: string, semester: string): Promise<{ status: string; data: CourseEnrollmentData }> {
+    const params = new URLSearchParams()
+    params.append('year', year)
+    params.append('semester', semester)
+    
+    return apiRequest<{ status: string; data: CourseEnrollmentData }>(`/api/admin/courses/${courseId}/eligible-students?${params.toString()}`)
+  },
+
+  async enrollStudents(courseId: string, studentIds: string[], year: string, semester: string, teacherId?: string): Promise<{ status: string; data: EnrollmentResult }> {
+    return apiRequest<{ status: string; data: EnrollmentResult }>(`/api/admin/courses/${courseId}/enroll-students`, {
+      method: 'POST',
+      body: JSON.stringify({ 
+        studentIds, 
+        year, 
+        semester, 
+        teacherId 
+      })
+    })
+  },
+
+  async getCourseEnrollments(courseId: string, year?: string, semester?: string): Promise<{ status: string; data: CourseEnrollment[] }> {
+    const params = new URLSearchParams()
+    if (year) params.append('year', year)
+    if (semester) params.append('semester', semester)
+    
+    return apiRequest<{ status: string; data: CourseEnrollment[] }>(`/api/admin/courses/${courseId}/enrollments?${params.toString()}`)
   }
 }
 
