@@ -388,9 +388,10 @@ export const adminApi = {
   },
 
   async createAttendanceRecord(data: {
-    courseOfferingId: string
+    studentId: string
     date: string
-    students: Array<{ studentId: string; status: 'present' | 'absent' }>
+    status: 'present' | 'absent'
+    courseId?: string
   }): Promise<{ status: string; data: any }> {
     return apiRequest<{ status: string; data: any }>('/api/admin/attendance', {
       method: 'POST',

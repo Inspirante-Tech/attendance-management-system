@@ -47,7 +47,7 @@ interface AttendanceRecord {
   studentId: string
   usn: string
   student_name: string
-  status: 'present' | 'absent'
+  status: 'present' | 'absent' | 'not_marked'
   courseId?: string
   courseName?: string
 }
@@ -75,6 +75,7 @@ export default function MarksAttendanceManagement({
   const [activeTab, setActiveTab] = useState<'marks' | 'attendance'>(initialMode)
   const [marks, setMarks] = useState<StudentMark[]>([])
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([])
+  const [availableCourses, setAvailableCourses] = useState<{id: string, name: string}[]>([])
   const [editingMarkId, setEditingMarkId] = useState<string | null>(null)
   const [editingMarkField, setEditingMarkField] = useState<string | null>(null)
   const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0])
@@ -167,12 +168,24 @@ export default function MarksAttendanceManagement({
           id: item.id,
           date: item.date,
           studentId: item.studentId,
-          usn: item.student?.usn || '',
-          student_name: item.student?.user?.name || '',
+          usn: item.usn || '',
+          student_name: item.student_name || '',
           status: item.status,
-          courseId: item.courseOffering?.course?.id,
-          courseName: item.courseOffering?.course?.name
+          courseId: item.courseId,
+          courseName: item.courseName
         }))
+        
+        // Extract unique courses for the filter dropdown
+        const courses = transformedAttendance
+          .filter(record => record.courseId && record.courseName)
+          .reduce((acc, record) => {
+            if (!acc.find(c => c.id === record.courseId)) {
+              acc.push({ id: record.courseId!, name: record.courseName! })
+            }
+            return acc
+          }, [] as {id: string, name: string}[])
+        
+        setAvailableCourses(courses)
         
         // Filter for specific student if provided
         const filteredAttendance = selectedStudentId 
@@ -194,8 +207,11 @@ export default function MarksAttendanceManagement({
   // Display all marks without filtering
   const filteredMarks = marks
 
-  // Display all attendance records without filtering
-  const filteredAttendanceRecords = attendanceRecords
+  // Filter attendance records by selected course
+  const filteredAttendanceRecords = attendanceRecords.filter(record => {
+    if (selectedCourse === 'all') return true
+    return record.courseId === selectedCourse
+  })
 
   // Handle marks editing
   const handleMarkEdit = async (enrollmentId: string, field: string, value: string) => {
@@ -260,13 +276,36 @@ export default function MarksAttendanceManagement({
     const record = attendanceRecords.find(r => r.id === recordId)
     if (!record) return
 
-    const newStatus = record.status === 'present' ? 'absent' : 'present'
     try {
-      const response = await adminApi.updateAttendance(recordId, newStatus)
-      if (response.status === 'success') {
-        setAttendanceRecords(prev => prev.map(r => 
-          r.id === recordId ? { ...r, status: newStatus } : r
-        ))
+      // Check if this is a placeholder record (starts with "pending-") or status is not_marked
+      if (recordId.startsWith('pending-') || record.status === 'not_marked') {
+        // For placeholder or not_marked students, create a new attendance record
+        const response = await adminApi.createAttendanceRecord({
+          studentId: record.studentId,
+          date: record.date,
+          status: 'present',
+          courseId: record.courseId
+        })
+        
+        if (response.status === 'success') {
+          setAttendanceRecords(prev => prev.map(r => 
+            r.id === recordId ? { 
+              ...r, 
+              status: 'present', 
+              id: response.data.id // Update with real attendance record ID
+            } : r
+          ))
+        }
+      } else {
+        // Toggle existing attendance record
+        const newStatus = record.status === 'present' ? 'absent' : 'present'
+        const response = await adminApi.updateAttendance(recordId, newStatus)
+        
+        if (response.status === 'success') {
+          setAttendanceRecords(prev => prev.map(r => 
+            r.id === recordId ? { ...r, status: newStatus } : r
+          ))
+        }
       }
     } catch (err) {
       console.error('Error updating attendance:', err)
@@ -397,10 +436,11 @@ export default function MarksAttendanceManagement({
                 title="Filter by course"
               >
                 <option value="all">All Courses</option>
-                <option value="CS301">Data Structures</option>
-                <option value="CS302">DBMS</option>
-                <option value="CS303">Networks</option>
-                <option value="CS304">Software Engineering</option>
+                {availableCourses.map((course) => (
+                  <option key={course.id} value={course.id}>
+                    {course.name}
+                  </option>
+                ))}
               </select>
               <div className="text-sm text-gray-600 flex items-center">
                 Selected Date: <span className="font-medium ml-1">{new Date(selectedDate).toLocaleDateString()}</span>
@@ -626,8 +666,8 @@ export default function MarksAttendanceManagement({
                     <tr>
                       <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">USN</th>
                       <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Student Name</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status</th>
-                      <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Action</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Course</th>
+                      <th className="border border-gray-300 px-3 py-2 text-left text-xs font-medium text-gray-700 uppercase tracking-wider">Status (Click to Toggle)</th>
                     </tr>
                   </thead>
                   <tbody className="bg-white">
@@ -636,28 +676,37 @@ export default function MarksAttendanceManagement({
                         <td className="border border-gray-300 px-3 py-2 font-mono text-sm">{record.usn}</td>
                         <td className="border border-gray-300 px-3 py-2 font-medium">{record.student_name}</td>
                         <td className="border border-gray-300 px-3 py-2">
-                          <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            record.status === 'present' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {record.status === 'present' ? (
-                              <CheckCircle className="w-3 h-3 mr-1" />
-                            ) : (
-                              <XCircle className="w-3 h-3 mr-1" />
-                            )}
-                            {record.status}
+                          <div className="text-sm">
+                            <div className="font-medium">{record.courseName || 'No Course'}</div>
                           </div>
                         </td>
                         <td className="border border-gray-300 px-3 py-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
+                          <button
                             onClick={() => toggleAttendance(record.id)}
+                            className={`inline-flex items-center px-3 py-2 rounded-full text-xs font-medium transition-colors duration-200 ${
+                              record.status === 'present' 
+                                ? 'bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer' 
+                                : record.status === 'absent'
+                                ? 'bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer'
+                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer'
+                            } hover:scale-105`}
+                            title={
+                              record.status === 'not_marked' 
+                                ? 'Click to mark as Present' 
+                                : record.status === 'present'
+                                ? 'Click to mark as Absent'
+                                : 'Click to mark as Present'
+                            }
                           >
-                            <Clock className="w-4 h-4 mr-1" />
-                            Toggle
-                          </Button>
+                            {record.status === 'present' ? (
+                              <CheckCircle className="w-3 h-3 mr-1" />
+                            ) : record.status === 'absent' ? (
+                              <XCircle className="w-3 h-3 mr-1" />
+                            ) : (
+                              <Clock className="w-3 h-3 mr-1" />
+                            )}
+                            {record.status === 'not_marked' ? 'Not Marked' : record.status === 'present' ? 'Present' : 'Absent'}
+                          </button>
                         </td>
                       </tr>
                     ))}

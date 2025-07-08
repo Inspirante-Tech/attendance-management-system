@@ -181,4 +181,185 @@ router.put('/attendance/:attendanceId', async (req, res) => {
   }
 });
 
+// Create attendance record for a specific student
+router.post('/attendance', async (req, res) => {
+  try {
+    const { studentId, date, status, courseId } = req.body;
+
+    if (!studentId || !date || !status) {
+      res.status(400).json({
+        status: 'error',
+        error: 'studentId, date, and status are required'
+      });
+      return;
+    }
+
+    if (!['present', 'absent'].includes(status)) {
+      res.status(400).json({
+        status: 'error',
+        error: 'Status must be either present or absent'
+      });
+      return;
+    }
+
+    const prisma = DatabaseService.getInstance();
+    const targetDate = new Date(date);
+
+    // Find a suitable course offering for this student and date
+    let courseOfferingId = null;
+    
+    if (courseId) {
+      // Try to find a specific course offering for the given course
+      const courseOffering = await prisma.courseOffering.findFirst({
+        where: {
+          courseId: courseId
+        }
+      });
+      courseOfferingId = courseOffering?.id;
+    }
+    
+    if (!courseOfferingId) {
+      // Fall back to any course offering the student is enrolled in
+      const student = await prisma.student.findUnique({
+        where: { id: studentId },
+        include: {
+          enrollments: {
+            include: {
+              offering: true
+            },
+            take: 1
+          }
+        }
+      });
+      
+      if (student?.enrollments?.[0]?.offering) {
+        courseOfferingId = student.enrollments[0].offering.id;
+      }
+    }
+
+    if (!courseOfferingId) {
+      res.status(400).json({
+        status: 'error',
+        error: 'No suitable course offering found for this student'
+      });
+      return;
+    }
+
+    // Check if attendance record already exists for this date and offering
+    const existingAttendance = await prisma.attendance.findFirst({
+      where: {
+        classDate: targetDate,
+        offeringId: courseOfferingId
+      }
+    });
+
+    let attendanceId;
+    if (existingAttendance) {
+      attendanceId = existingAttendance.id;
+    } else {
+      // Create new attendance session
+      const newAttendance = await prisma.attendance.create({
+        data: {
+          classDate: targetDate,
+          offeringId: courseOfferingId,
+          periodNumber: 1
+        }
+      });
+      attendanceId = newAttendance.id;
+    }
+
+    // Check if student already has an attendance record for this session
+    const existingRecord = await prisma.attendanceRecord.findFirst({
+      where: {
+        studentId: studentId,
+        attendanceId: attendanceId
+      }
+    });
+
+    if (existingRecord) {
+      // Update existing record
+      const updatedRecord = await prisma.attendanceRecord.update({
+        where: { id: existingRecord.id },
+        data: { status },
+        include: {
+          student: {
+            include: {
+              user: true
+            }
+          },
+          attendance: {
+            include: {
+              offering: {
+                include: {
+                  course: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      res.json({
+        status: 'success',
+        data: {
+          id: updatedRecord.id,
+          date: updatedRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
+          studentId: updatedRecord.studentId,
+          usn: updatedRecord.student?.usn || '',
+          student_name: updatedRecord.student?.user?.name || '',
+          status: updatedRecord.status,
+          courseId: updatedRecord.attendance?.offering?.course?.id,
+          courseName: updatedRecord.attendance?.offering?.course?.name
+        }
+      });
+    } else {
+      // Create new record
+      const newRecord = await prisma.attendanceRecord.create({
+        data: {
+          studentId: studentId,
+          attendanceId: attendanceId,
+          status: status
+        },
+        include: {
+          student: {
+            include: {
+              user: true
+            }
+          },
+          attendance: {
+            include: {
+              offering: {
+                include: {
+                  course: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      res.json({
+        status: 'success',
+        data: {
+          id: newRecord.id,
+          date: newRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
+          studentId: newRecord.studentId,
+          usn: newRecord.student?.usn || '',
+          student_name: newRecord.student?.user?.name || '',
+          status: newRecord.status,
+          courseId: newRecord.attendance?.offering?.course?.id,
+          courseName: newRecord.attendance?.offering?.course?.name
+        }
+      });
+    }
+
+  } catch (error) {
+    console.error('Error creating/updating attendance record:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
