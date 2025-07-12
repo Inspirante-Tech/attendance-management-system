@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
@@ -10,11 +10,7 @@ import {
   BookOpen,
   Users
 } from 'lucide-react'
-import mockYearDataImport from '@/data/mockYearData.json'
-import mockDepartmentDataImport from '@/data/mockDepartmentData.json'
-import mockCourseDataImport from '@/data/mockCourseData.json'
-import mockOpenElectivesImport from '@/data/mockOpenElectives.json'
-import mockSectionDataImport from '@/data/mockSectionData.json'
+import { adminApi } from '@/lib/api'
 
 // Types for the navigation data
 interface Year {
@@ -69,13 +65,6 @@ interface DropdownNavigationProps {
   onSectionSelect: (section: Section) => void
 }
 
-// Type the imported data  
-const mockYearData: Year[] = mockYearDataImport as Year[]
-const mockDepartmentData: Department[] = mockDepartmentDataImport as Department[]
-const mockCourseData: Record<string, Course[]> = mockCourseDataImport as Record<string, Course[]>
-const mockOpenElectives: Course[] = mockOpenElectivesImport as Course[]
-const mockSectionData: Record<string, Section[]> = mockSectionDataImport as Record<string, Section[]>
-
 export function DropdownNavigation({
   selectedYear,
   selectedDepartment,
@@ -91,10 +80,16 @@ export function DropdownNavigation({
   const [courseDropdownOpen, setCourseDropdownOpen] = useState(false)
   const [sectionDropdownOpen, setSectionDropdownOpen] = useState(false)
   
-  const [years] = useState<Year[]>(mockYearData)
-  const [departments] = useState<Department[]>(mockDepartmentData)
+  const [years, setYears] = useState<Year[]>([])
+  const [departments, setDepartments] = useState<Department[]>([])
   const [courses, setCourses] = useState<Course[]>([])
   const [sections, setSections] = useState<Section[]>([])
+  const [loading, setLoading] = useState({
+    years: false,
+    departments: false,
+    courses: false,
+    sections: false
+  })
 
   const yearRef = useRef<HTMLDivElement>(null)
   const deptRef = useRef<HTMLDivElement>(null)
@@ -122,29 +117,132 @@ export function DropdownNavigation({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  // Load initial data
+  useEffect(() => {
+    loadYears()
+    loadDepartments()
+  }, [])
+
+  const loadYears = async () => {
+    setLoading(prev => ({ ...prev, years: true }))
+    try {
+      // Mock years data for now - backend doesn't have this endpoint yet
+      const mockYears = [
+        { year: '1st Year', academic_year: '2024-25', semester: 1, total_students: 240, total_courses: 8 },
+        { year: '2nd Year', academic_year: '2024-25', semester: 3, total_students: 235, total_courses: 7 },
+        { year: '3rd Year', academic_year: '2024-25', semester: 5, total_students: 230, total_courses: 6 },
+        { year: '4th Year', academic_year: '2024-25', semester: 7, total_students: 225, total_courses: 5 }
+      ]
+      setYears(mockYears)
+    } catch (error) {
+      console.error('Error loading years:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, years: false }))
+    }
+  }
+
+  const loadDepartments = async () => {
+    setLoading(prev => ({ ...prev, departments: true }))
+    try {
+      const departmentData = await adminApi.getAllDepartments()
+      // Transform department data to match expected format
+      const transformedDepts = departmentData.map((dept: any) => ({
+        department_id: dept.code,
+        department_name: dept.name,
+        short_name: dept.code,
+        total_students: dept.total_students || 0,
+        total_courses: dept.total_courses || 0,
+        active_classes_today: dept.active_classes_today || 0
+      }))
+      setDepartments(transformedDepts)
+    } catch (error) {
+      console.error('Error loading departments:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, departments: false }))
+    }
+  }
+
+  const loadCourses = useCallback(async () => {
+    if (!selectedDepartment) return
+    
+    setLoading(prev => ({ ...prev, courses: true }))
+    try {
+      const allCoursesData = await adminApi.getAllCourses()
+      
+      // Filter courses by department
+      const departmentCourses = allCoursesData.filter((course: any) => 
+        course.department.code === selectedDepartment
+      )
+      
+      // Transform course data to match expected format
+      const transformedCourses = departmentCourses.map((course: any) => ({
+        course_id: course.id,
+        course_code: course.code,
+        course_name: course.name,
+        department_id: course.department.code,
+        total_students: course.courseOfferings?.[0]?.total_students || 0,
+        classes_completed: course.courseOfferings?.[0]?.classes_completed || 0,
+        total_classes: course.courseOfferings?.[0]?.total_classes || 0,
+        attendance_percentage: course.courseOfferings?.[0]?.attendance_percentage || 0,
+        course_type: course.type,
+        is_open_elective: course.type === 'open_elective',
+        has_theory_component: course.has_theory_component,
+        has_lab_component: course.has_lab_component
+      }))
+      
+      setCourses(transformedCourses)
+    } catch (error) {
+      console.error('Error loading courses:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, courses: false }))
+    }
+  }, [selectedDepartment])
+
+  const loadSections = useCallback(async () => {
+    if (!selectedDepartment) return
+    
+    setLoading(prev => ({ ...prev, sections: true }))
+    try {
+      // Mock sections for now - backend doesn't have sections endpoint yet
+      const mockSections = [
+        {
+          section_id: 'A',
+          section_name: 'Section A',
+          department_id: selectedDepartment,
+          total_students: 60,
+          present_today: 52,
+          attendance_percentage: 86.7
+        },
+        {
+          section_id: 'B', 
+          section_name: 'Section B',
+          department_id: selectedDepartment,
+          total_students: 58,
+          present_today: 50,
+          attendance_percentage: 86.2
+        }
+      ]
+      setSections(mockSections)
+    } catch (error) {
+      console.error('Error loading sections:', error)
+    } finally {
+      setLoading(prev => ({ ...prev, sections: false }))
+    }
+  }, [selectedDepartment])
+
   // Load courses when department changes or when year is selected (for open electives)
   useEffect(() => {
-    let allCourses: Course[] = []
-    
     if (selectedDepartment) {
-      // Load department-specific courses
-      const deptCourses = mockCourseData[selectedDepartment] || []
-      allCourses = [...deptCourses]
+      loadCourses()
+    } else {
+      setCourses([])
     }
-    
-    // Add open electives when year is selected (regardless of department)
-    if (selectedYear) {
-      allCourses = [...allCourses, ...mockOpenElectives]
-    }
-    
-    setCourses(allCourses)
-  }, [selectedDepartment, selectedYear])
+  }, [selectedDepartment, selectedYear, loadCourses])
 
   // Load sections when department OR year changes (sections depend on department, but unlock with year)
   useEffect(() => {
     if (selectedDepartment) {
-      const deptSections = mockSectionData[selectedDepartment] || []
-      setSections(deptSections)
+      loadSections()
     } else if (selectedYear && selectedCourse?.is_open_elective) {
       // For open electives, create a mixed section
       setSections([{
@@ -158,7 +256,7 @@ export function DropdownNavigation({
     } else {
       setSections([])
     }
-  }, [selectedDepartment, selectedYear, selectedCourse])
+  }, [selectedDepartment, selectedYear, selectedCourse, loadSections])
 
   const handleYearSelect = (year: string) => {
     onYearSelect(year)

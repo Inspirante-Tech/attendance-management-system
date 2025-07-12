@@ -75,8 +75,9 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
     username: '',
     phone: '',
     role: 'student' as 'student' | 'teacher' | 'admin',
-    // Student-specific fields for editing
+    // Student/Teacher-specific fields for editing
     departmentId: '',
+    collegeId: '',
     year: 1,
     section: '',
     usn: ''
@@ -91,8 +92,9 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
     phone: '',
     role: 'student' as 'student' | 'teacher' | 'admin',
     password: '',
-    // Student-specific fields
+    // Student/Teacher-specific fields
     departmentId: '',
+    collegeId: '',
     year: 1,
     section: '',
     usn: ''
@@ -108,43 +110,30 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
   const [marksAttendanceUser, setMarksAttendanceUser] = useState<User | null>(null)
   const [marksAttendanceMode, setMarksAttendanceMode] = useState<'marks' | 'attendance'>('marks')
 
-  // Fetch users from API
+  // Fetch users, departments, and colleges from API
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchData = async () => {
       try {
-        setLoading(true)
-        setError(null)
-        
-        // Fetch users, departments, and sections in parallel
-        const [usersResponse, departmentsResponse] = await Promise.all([
+        setLoading(true);
+        setError(null);
+        // Fetch users, departments, and colleges in parallel
+        const [usersResponse, departmentsResponse, collegesResponse] = await Promise.all([
           adminApi.getAllUsers(),
-          adminApi.getAllDepartments()
-        ])
-        
+          adminApi.getAllDepartments(),
+          adminApi.getAllColleges()
+        ]);
         if (usersResponse.status === 'success') {
-          console.log('Raw API response:', usersResponse.data.slice(0, 2)); // Debug: log first 2 users
-          console.log('Total users from API:', usersResponse.data.length);
-          console.log('API Response FULL STATUS:', usersResponse);
-          // Debug logs - temporarily commenting out to fix TypeScript errors
-          // console.log('User roles distribution:', usersResponse.data.map(u => u.userRoles?.map(r => r.role)).flat().reduce((acc, role) => { acc[role] = (acc[role] || 0) + 1; return acc; }, {}));
-          // console.log('Student departments:', usersResponse.data.filter(u => u.student).map(u => u.student.departments?.code).filter(Boolean).reduce((acc, dept) => { acc[dept] = (acc[dept] || 0) + 1; return acc; }, {}));
-          // console.log('Student sections:', usersResponse.data.filter(u => u.student).map(u => u.student.sections?.section_name).filter(Boolean).reduce((acc, section) => { acc[section] = (acc[section] || 0) + 1; return acc; }, {}));
-          
-          // Transform API data to match our User interface
+          // ...existing user transformation code...
           const transformedUsers: User[] = usersResponse.data.map((user: ApiUser) => {
-            const roles = user.userRoles?.map(ur => ur.role) || []
-            const primaryRole = roles[0] || 'student'
-            
-            // Helper function to convert semester to academic year
+            const roles = user.userRoles?.map(ur => ur.role) || [];
+            const primaryRole = roles[0] || 'student';
             const getAcademicYear = (semester: number): string => {
-              if (semester <= 2) return '1st year'
-              if (semester <= 4) return '2nd year'
-              if (semester <= 6) return '3rd year'
-              if (semester <= 8) return '4th year'
-              return `${Math.ceil(semester / 2)}th year`
-            }
-            
-            // Extract data based on role
+              if (semester <= 2) return '1st year';
+              if (semester <= 4) return '2nd year';
+              if (semester <= 6) return '3rd year';
+              if (semester <= 8) return '4th year';
+              return `${Math.ceil(semester / 2)}th year`;
+            };
             const transformedUser: User = {
               id: user.id,
               name: user.name,
@@ -154,53 +143,36 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
               role: primaryRole,
               roles: roles,
               createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-            }
-
-            // Student-specific data
+            };
             if (user.student) {
-              transformedUser.usn = user.student.usn
-              transformedUser.semester = user.student.semester
-              transformedUser.batchYear = user.student.batchYear
-              transformedUser.year = getAcademicYear(user.student.semester || 1)
-              transformedUser.department = user.student.departments?.name
-              transformedUser.departmentCode = user.student.departments?.code
-              transformedUser.section = user.student.sections?.section_name
-              transformedUser.college = user.student.colleges?.name
-              transformedUser.collegeCode = user.student.colleges?.code
-              
-              // Extract courses from enrollments
-              if (user.student.enrollments && user.student.enrollments.length > 0) {                transformedUser.courses = user.student.enrollments.map(enrollment =>
+              transformedUser.usn = user.student.usn;
+              transformedUser.semester = user.student.semester;
+              transformedUser.batchYear = user.student.batchYear;
+              transformedUser.year = getAcademicYear(user.student.semester || 1);
+              transformedUser.department = user.student.departments?.name;
+              transformedUser.departmentCode = user.student.departments?.code;
+              transformedUser.section = user.student.sections?.section_name;
+              transformedUser.college = user.student.colleges?.name;
+              transformedUser.collegeCode = user.student.colleges?.code;
+              if (user.student.enrollments && user.student.enrollments.length > 0) {
+                transformedUser.courses = user.student.enrollments.map(enrollment =>
                   enrollment.course?.course_name || enrollment.course?.course_code || 'Unknown Course'
-                ).filter(Boolean).filter(Boolean)
+                ).filter(Boolean).filter(Boolean);
               }
             }
-
-            // Teacher-specific data
             if (user.teacher) {
-              transformedUser.employeeId = user.teacher.id
-              transformedUser.department = user.teacher.departments?.name
-              transformedUser.departmentCode = user.teacher.departments?.code
-              transformedUser.college = user.teacher.colleges?.name
-              transformedUser.collegeCode = user.teacher.colleges?.code
-              
-              // For teachers, we could also extract courses they teach
-              // This would require course offerings data in the API
+              transformedUser.employeeId = user.teacher.id;
+              transformedUser.department = user.teacher.department?.name;
+              transformedUser.departmentCode = user.teacher.department?.code;
+              transformedUser.college = user.teacher.colleges?.name;
+              transformedUser.collegeCode = user.teacher.colleges?.code;
             }
-
-            return transformedUser
-          })
-          
-          console.log('Transformed users:', transformedUsers.slice(0, 2)); // Debug: log first 2 transformed users
-          console.log('ALL TRANSFORMED USERS LENGTH:', transformedUsers.length);
-          console.log('All departments:', Array.from(new Set(transformedUsers.map(u => u.department).filter(Boolean))));
-          console.log('All years:', Array.from(new Set(transformedUsers.map(u => u.year).filter(Boolean))));
-          
-          setUsers(transformedUsers)
+            return transformedUser;
+          });
+          setUsers(transformedUsers);
         } else {
-          setError(usersResponse.error || 'Failed to fetch users')
+          setError(usersResponse.error || 'Failed to fetch users');
         }
-        
-        // Process departments response
         if (departmentsResponse.status === 'success') {
           setDepartments(departmentsResponse.data.map((dept: any) => ({
             id: dept.id,
@@ -210,17 +182,23 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
               name: dept.colleges?.name || '',
               code: dept.colleges?.code || ''
             }
-          })))
+          })));
+        }
+        if (collegesResponse.status === 'success') {
+          setColleges(collegesResponse.data.map((college: any) => ({
+            id: college.id,
+            name: college.name,
+            code: college.code
+          })));
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An error occurred while fetching users')
+        setError(err instanceof Error ? err.message : 'An error occurred while fetching users');
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-
-    fetchUsers()
-  }, [])
+    };
+    fetchData();
+  }, []);
 
   // Apply filters based on initialFilters
   useEffect(() => {
@@ -459,6 +437,7 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
           role: 'student', 
           password: '', 
           departmentId: '', 
+          collegeId: '',
           year: 1, 
           section: '',
           usn: ''
@@ -483,6 +462,7 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
       role: 'student', 
       password: '', 
       departmentId: '', 
+      collegeId: '',
       year: 1, 
       section: '',
       usn: ''
@@ -742,9 +722,11 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                               username: user.username,
                               phone: user.phone || '',
                               role: user.role as 'student' | 'teacher' | 'admin',
-                              // Populate student-specific fields if user is a student
-                              departmentId: user.role === 'student' && user.department ? 
+                              // Populate departmentId for both students and teachers
+                              departmentId: (user.role === 'student' || user.role === 'teacher') && user.department ? 
                                 departments.find(d => d.name === user.department)?.id || '' : '',
+                              collegeId: (user.role === 'student' || user.role === 'teacher') && user.college ? 
+                                colleges.find(c => c.name === user.college)?.id || '' : '',
                               year: user.year ? parseInt(user.year.replace(/\D/g, '')) || 1 : 1,
                               section: user.section || '',
                               usn: user.usn || ''
@@ -885,7 +867,8 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                     <option value="admin">Admin</option>
                   </select>
                 </div>
-                
+
+
                 {/* Student-specific fields for editing */}
                 {editFormData.role === 'student' && (
                   <>
@@ -897,6 +880,20 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                         className="text-gray-900"
                         placeholder="University Seat Number"
                       />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
+                      <select
+                        value={editFormData.collegeId || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, collegeId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="College"
+                      >
+                        <option value="">Select College</option>
+                        {colleges.map(college => (
+                          <option key={college.id} value={college.id}>{college.name} ({college.code})</option>
+                        ))}
+                      </select>
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
@@ -939,7 +936,43 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                     </div>
                   </>
                 )}
-                
+
+                {/* Teacher-specific fields for editing */}
+                {editFormData.role === 'teacher' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
+                      <select
+                        value={editFormData.collegeId || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, collegeId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="College"
+                      >
+                        <option value="">Select College</option>
+                        {colleges.map(college => (
+                          <option key={college.id} value={college.id}>{college.name} ({college.code})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
+                      <select
+                        value={editFormData.departmentId}
+                        onChange={(e) => setEditFormData({ ...editFormData, departmentId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Department"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name} ({dept.code}) - {dept.college.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </>
+                )}
+
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button
                     variant="outline"
@@ -950,15 +983,24 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                   <Button
                     onClick={async () => {
                       try {
-                        const response = await adminApi.updateUser(editingUser.id, editFormData)
+                        // Always send departmentId and collegeId for student or teacher
+                        const payload: any = { ...editFormData };
+                        if (editFormData.role === 'student' || editFormData.role === 'teacher') {
+                          payload.departmentId = editFormData.departmentId ? String(editFormData.departmentId) : '';
+                          payload.collegeId = editFormData.collegeId ? String(editFormData.collegeId) : '';
+                        } else {
+                          // Only remove departmentId/collegeId for admin
+                          delete payload.departmentId;
+                          delete payload.collegeId;
+                        }
+                        const response = await adminApi.updateUser(editingUser.id, payload);
                         if (response.status === 'success') {
                           // Refresh the entire user list to get updated data
-                          const usersResponse = await adminApi.getAllUsers()
+                          const usersResponse = await adminApi.getAllUsers();
                           if (usersResponse.status === 'success') {
                             const transformedUsers: User[] = usersResponse.data.map((user: ApiUser) => {
-                              const roles = (user.userRoles || []).map((ur: UserRole) => ur.role)
-                              const primaryRole = roles[0] || 'student'
-                              
+                              const roles = (user.userRoles || []).map((ur: UserRole) => ur.role);
+                              const primaryRole = roles[0] || 'student';
                               const transformedUser: User = {
                                 id: user.id,
                                 name: user.name,
@@ -968,55 +1010,50 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                                 role: primaryRole,
                                 roles: roles,
                                 createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]
-                              }
-
+                              };
                               // Student-specific data
                               if (user.student) {
-                                transformedUser.usn = user.student.usn
-                                transformedUser.semester = user.student.semester
-                                transformedUser.batchYear = user.student.batchYear
+                                transformedUser.usn = user.student.usn;
+                                transformedUser.semester = user.student.semester;
+                                transformedUser.batchYear = user.student.batchYear;
                                 const getAcademicYear = (semester: number): string => {
-                                  if (semester <= 2) return '1st year'
-                                  if (semester <= 4) return '2nd year'
-                                  if (semester <= 6) return '3rd year'
-                                  if (semester <= 8) return '4th year'
-                                  return `${Math.ceil(semester / 2)}th year`
-                                }
-                                transformedUser.year = getAcademicYear(user.student.semester || 1)
-                                transformedUser.department = user.student.departments?.name
-                                transformedUser.departmentCode = user.student.departments?.code
-                                transformedUser.section = user.student.sections?.section_name
-                                transformedUser.college = user.student.colleges?.name
-                                transformedUser.collegeCode = user.student.colleges?.code
-                                
+                                  if (semester <= 2) return '1st year';
+                                  if (semester <= 4) return '2nd year';
+                                  if (semester <= 6) return '3rd year';
+                                  if (semester <= 8) return '4th year';
+                                  return `${Math.ceil(semester / 2)}th year`;
+                                };
+                                transformedUser.year = getAcademicYear(user.student.semester || 1);
+                                transformedUser.department = user.student.departments?.name;
+                                transformedUser.departmentCode = user.student.departments?.code;
+                                transformedUser.section = user.student.sections?.section_name;
+                                transformedUser.college = user.student.colleges?.name;
+                                transformedUser.collegeCode = user.student.colleges?.code;
                                 // Extract courses from enrollments
                                 if (user.student.enrollments && user.student.enrollments.length > 0) {
                                   transformedUser.courses = user.student.enrollments.map(enrollment =>
                                     enrollment.course?.course_name || enrollment.course?.course_code || 'Unknown Course'
-                                  ).filter(Boolean)
+                                  ).filter(Boolean);
                                 }
                               }
-
                               // Teacher-specific data
                               if (user.teacher) {
-                                transformedUser.employeeId = user.teacher.id
-                                transformedUser.department = user.teacher.departments?.name
-                                transformedUser.departmentCode = user.teacher.departments?.code
-                                transformedUser.college = user.teacher.colleges?.name
-                                transformedUser.collegeCode = user.teacher.colleges?.code
+                                transformedUser.employeeId = user.teacher.id;
+                                transformedUser.department = user.teacher.department?.name;
+                                transformedUser.departmentCode = user.teacher.department?.code;
+                                transformedUser.college = user.teacher.colleges?.name;
+                                transformedUser.collegeCode = user.teacher.colleges?.code;
                               }
-
-                              return transformedUser
-                            })
-                            
-                            setUsers(transformedUsers)
-                            setShowEditForm(false)
+                              return transformedUser;
+                            });
+                            setUsers(transformedUsers);
+                            setShowEditForm(false);
                           }
                         } else {
-                          setError(response.error || 'Failed to update user')
+                          setError(response.error || 'Failed to update user');
                         }
                       } catch {
-                        setError('Failed to update user')
+                        setError('Failed to update user');
                       }
                     }}
                   >
@@ -1100,6 +1137,20 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                 {addFormData.role === 'student' && (
                   <>
                     <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
+                      <select
+                        value={addFormData.collegeId || ''}
+                        onChange={(e) => setAddFormData({ ...addFormData, collegeId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="College"
+                      >
+                        <option value="">Select College</option>
+                        {colleges.map(college => (
+                          <option key={college.id} value={college.id}>{college.name} ({college.code})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
                       <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
                       <select
                         value={addFormData.departmentId}
@@ -1146,6 +1197,42 @@ export default function UserManagement({ initialFilters }: UserManagementProps) 
                         className="text-gray-900"
                         placeholder="e.g., 1NH21CS001"
                       />
+                    </div>
+                  </>
+                )}
+
+                {/* Teacher-specific fields */}
+                {addFormData.role === 'teacher' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
+                      <select
+                        value={addFormData.collegeId || ''}
+                        onChange={(e) => setAddFormData({ ...addFormData, collegeId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="College"
+                      >
+                        <option value="">Select College</option>
+                        {colleges.map(college => (
+                          <option key={college.id} value={college.id}>{college.name} ({college.code})</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
+                      <select
+                        value={addFormData.departmentId}
+                        onChange={(e) => setAddFormData({ ...addFormData, departmentId: e.target.value })}
+                        className="rounded-md border border-gray-300 px-3 py-2 text-sm w-full text-gray-900"
+                        title="Department"
+                      >
+                        <option value="">Select Department</option>
+                        {departments.map(dept => (
+                          <option key={dept.id} value={dept.id}>
+                            {dept.name} ({dept.code}) - {dept.college.name}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </>
                 )}

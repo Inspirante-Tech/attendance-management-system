@@ -194,7 +194,7 @@ router.get('/:id', async (req, res) => {
 // Create new user
 router.post('/', async (req, res) => {
   try {
-    const { name, username, phone, role, password, departmentId, year, section, email, usn } = req.body;
+    const { name, username, phone, role, password, departmentId, year, section, email, usn, collegeId } = req.body;
     
     if (!name || !username || !role) {
       return res.status(400).json({
@@ -266,25 +266,22 @@ router.post('/', async (req, res) => {
 
     // Create role-specific records
     if (role === 'student') {
-      // Use provided department or fallback to first college
-      let collegeId = null;
+      // Use provided collegeId if present, otherwise fallback to department or first college
+      let collegeIdToUse = collegeId || null;
       let departmentIdToUse = null;
-      
       if (departmentId) {
         // Get the department and its college
         const department = await prisma.department.findUnique({
           where: { id: departmentId },
           include: { colleges: true }
         });
-        
         if (department) {
-          collegeId = department.college_id;
+          if (!collegeIdToUse) collegeIdToUse = department.college_id;
           departmentIdToUse = departmentId;
         }
       }
-      
-      // Fallback to first college if no department provided
-      if (!collegeId) {
+      // Fallback to first college if not provided
+      if (!collegeIdToUse) {
         const firstCollege = await prisma.college.findFirst();
         if (!firstCollege) {
           return res.status(500).json({
@@ -293,12 +290,10 @@ router.post('/', async (req, res) => {
             timestamp: new Date().toISOString()
           });
         }
-        collegeId = firstCollege.id;
+        collegeIdToUse = firstCollege.id;
       }
-      
       // Calculate semester from year (1st year = semesters 1-2, 2nd year = semesters 3-4, etc.)
       const semester = year ? (year * 2 - 1) : 1; // Default to semester 1 if no year provided
-      
       // Create section if provided
       let sectionId = null;
       if (section && section.trim()) {
@@ -306,7 +301,6 @@ router.post('/', async (req, res) => {
         const existingSection = await prisma.sections.findFirst({
           where: { section_name: section.trim() }
         });
-        
         if (existingSection) {
           sectionId = existingSection.section_id;
         } else if (departmentIdToUse) {
@@ -320,33 +314,44 @@ router.post('/', async (req, res) => {
           sectionId = newSection.section_id;
         }
       }
-      
       await prisma.student.create({
         data: {
           userId: user.id,
-          college_id: collegeId,
+          college_id: collegeIdToUse,
           department_id: departmentIdToUse,
           section_id: sectionId,
-          usn: usn || `USN${Date.now()}`, // Use provided USN or generate temporary one
+          usn: usn || `USN${Date.now()}`,
           semester: semester,
           batchYear: new Date().getFullYear()
         }
       });
     } else if (role === 'teacher') {
-      // Get the first college for teacher records (temporary approach)
-      const firstCollege = await prisma.college.findFirst();
-      if (!firstCollege) {
-        return res.status(500).json({
-          status: 'error',
-          error: 'No college found in the system',
-          timestamp: new Date().toISOString()
+      // Use provided collegeId if present, otherwise fallback to department or first college
+      let collegeIdToUse = collegeId || null;
+      if (!collegeIdToUse && departmentId) {
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId },
+          include: { colleges: true }
         });
+        if (department) {
+          collegeIdToUse = department.college_id;
+        }
       }
-      
+      if (!collegeIdToUse) {
+        const firstCollege = await prisma.college.findFirst();
+        if (!firstCollege) {
+          return res.status(500).json({
+            status: 'error',
+            error: 'No college found in the system',
+            timestamp: new Date().toISOString()
+          });
+        }
+        collegeIdToUse = firstCollege.id;
+      }
       await prisma.teacher.create({
         data: {
           userId: user.id,
-          college_id: firstCollege.id
+          college_id: collegeIdToUse
         }
       });
     } else if (role === 'admin') {
@@ -409,6 +414,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, username, phone, role, departmentId, year, section, usn, email } = req.body;
+    const { collegeId } = req.body;
     
     if (!name || !username || !role) {
       return res.status(400).json({
@@ -550,26 +556,22 @@ router.put('/:id', async (req, res) => {
     if (role === 'student' && existingUser.student) {
       let collegeId = existingUser.student.college_id;
       let departmentIdToUse = existingUser.student.department_id;
-      
       // Update department if provided
       if (departmentId) {
         const department = await prisma.department.findUnique({
           where: { id: departmentId },
           include: { colleges: true }
         });
-        
         if (department) {
           collegeId = department.college_id;
           departmentIdToUse = departmentId;
         }
       }
-      
       // Calculate semester from year if provided
       let semester = existingUser.student.semester;
       if (year) {
         semester = year * 2 - 1; // 1st year = semester 1, 2nd year = semester 3, etc.
       }
-      
       // Handle section update
       let sectionId = existingUser.student.section_id;
       if (section !== undefined) {
@@ -578,7 +580,6 @@ router.put('/:id', async (req, res) => {
           const existingSection = await prisma.sections.findFirst({
             where: { section_name: section.trim() }
           });
-          
           if (existingSection) {
             sectionId = existingSection.section_id;
           } else if (departmentIdToUse) {
@@ -595,7 +596,6 @@ router.put('/:id', async (req, res) => {
           sectionId = null; // Clear section if empty string provided
         }
       }
-      
       // Update student record
       await prisma.student.update({
         where: { id: existingUser.student.id },
@@ -606,6 +606,31 @@ router.put('/:id', async (req, res) => {
           usn: usn || existingUser.student.usn,
           semester: semester,
           batchYear: existingUser.student.batchYear // Keep existing batch year
+        }
+      });
+    }
+
+    // Update teacher-specific fields if user is a teacher
+    if (role === 'teacher' && existingUser.teacher) {
+      let collegeId = existingUser.teacher.college_id;
+      let departmentIdToUse = existingUser.teacher.departmentId;
+      // Update department if provided
+      if (departmentId) {
+        const department = await prisma.department.findUnique({
+          where: { id: departmentId },
+          include: { colleges: true }
+        });
+        if (department) {
+          collegeId = department.college_id;
+          departmentIdToUse = departmentId;
+        }
+      }
+      // Update teacher record
+      await prisma.teacher.update({
+        where: { id: existingUser.teacher.id },
+        data: {
+          college_id: collegeId,
+          departmentId: departmentIdToUse
         }
       });
     }

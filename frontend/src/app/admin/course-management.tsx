@@ -582,8 +582,9 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       ? eligibleStudents.map(s => s.id)
       : selectedStudents
 
-    if (studentsToEnroll.length === 0) {
-      alert('Please select at least one student')
+    // Only require students for electives if no teacher is selected
+    if (studentsToEnroll.length === 0 && !selectedTeacher) {
+      alert('Please select at least one student or assign a teacher')
       return
     }
 
@@ -1394,12 +1395,9 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   <Button 
                     type="submit" 
                     className="flex-1" 
-                    disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0) || (selectedCourse.type === 'core' && eligibleStudents.length === 0)}
+                    disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0)}
                   >
-                    {enrollmentLoading ? 'Enrolling...' : 
-                     selectedCourse.type === 'core' 
-                       ? `Auto-Enroll All ${eligibleStudents.length} Students`
-                       : `Enroll ${selectedStudents.length} Students`}
+                    {enrollmentLoading ? 'Saving...' : 'Save'}
                   </Button>
                   <Button 
                     type="button" 

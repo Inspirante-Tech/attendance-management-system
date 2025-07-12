@@ -159,10 +159,12 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
     const { courseId } = req.params;
     const { studentIds, year, semester, teacherId } = req.body;
 
-    if (!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) {
+
+    // Only error if both studentIds is empty and no teacherId is provided
+    if ((!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) && !teacherId) {
       res.status(400).json({
         status: 'error',
-        error: 'Student IDs array is required'
+        error: 'At least one student or a teacher assignment is required'
       });
       return;
     }
@@ -240,47 +242,55 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
       });
     }
 
-    // Create enrollments
-    const enrollmentPromises = studentIds.map(async (studentId: string) => {
-      try {
-        // Check if enrollment already exists
-        const existingEnrollment = await prisma.studentEnrollment.findFirst({
-          where: {
-            studentId: studentId,
-            offeringId: courseOffering!.id
-          }
-        });
 
-        if (existingEnrollment) {
-          return { studentId, status: 'already_enrolled' };
+    let results: any[] = [];
+    let enrolledCount = 0;
+    let alreadyEnrolledCount = 0;
+    let errorCount = 0;
+
+    if (studentIds && Array.isArray(studentIds) && studentIds.length > 0) {
+      // Create enrollments if students are provided
+      const enrollmentPromises = studentIds.map(async (studentId: string) => {
+        try {
+          // Check if enrollment already exists
+          const existingEnrollment = await prisma.studentEnrollment.findFirst({
+            where: {
+              studentId: studentId,
+              offeringId: courseOffering!.id
+            }
+          });
+
+          if (existingEnrollment) {
+            return { studentId, status: 'already_enrolled' };
+          }
+
+          // Create new enrollment
+          await prisma.studentEnrollment.create({
+            data: {
+              studentId: studentId,
+              offeringId: courseOffering!.id,
+              year_id: academicYear!.year_id,
+              attemptNumber: 1
+            }
+          });
+
+          return { studentId, status: 'enrolled' };
+        } catch (error) {
+          return { 
+            studentId, 
+            status: 'error', 
+            error: error instanceof Error ? error.message : 'Unknown error' 
+          };
         }
+      });
 
-        // Create new enrollment
-        await prisma.studentEnrollment.create({
-          data: {
-            studentId: studentId,
-            offeringId: courseOffering!.id,
-            year_id: academicYear!.year_id,
-            attemptNumber: 1
-          }
-        });
+      results = await Promise.all(enrollmentPromises);
+      enrolledCount = results.filter(r => r.status === 'enrolled').length;
+      alreadyEnrolledCount = results.filter(r => r.status === 'already_enrolled').length;
+      errorCount = results.filter(r => r.status === 'error').length;
+    }
 
-        return { studentId, status: 'enrolled' };
-      } catch (error) {
-        return { 
-          studentId, 
-          status: 'error', 
-          error: error instanceof Error ? error.message : 'Unknown error' 
-        };
-      }
-    });
-
-    const results = await Promise.all(enrollmentPromises);
-    
-    const enrolledCount = results.filter(r => r.status === 'enrolled').length;
-    const alreadyEnrolledCount = results.filter(r => r.status === 'already_enrolled').length;
-    const errorCount = results.filter(r => r.status === 'error').length;
-
+    // If only teacher assignment (no students), just return success
     res.json({
       status: 'success',
       data: {

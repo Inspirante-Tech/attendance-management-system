@@ -59,7 +59,7 @@ export interface ApiUser {
     collegeId: string
     departmentId?: string
     colleges?: College
-    departments?: Department
+    department?: Department
   }
   admin?: {
     id: string
