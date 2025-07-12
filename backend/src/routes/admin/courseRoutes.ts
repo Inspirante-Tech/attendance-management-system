@@ -159,7 +159,6 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
     const { courseId } = req.params;
     const { studentIds, year, semester, teacherId } = req.body;
 
-
     // Only error if both studentIds is empty and no teacherId is provided
     if ((!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) && !teacherId) {
       res.status(400).json({
@@ -193,6 +192,19 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
         error: 'Course not found'
       });
       return;
+    }
+
+    // Resolve teacherId to teachers.id if provided
+    let resolvedTeacherId = null;
+    if (teacherId) {
+      const teacherRecord = await prisma.teacher.findUnique({ where: { userId: teacherId } });
+      if (!teacherRecord) {
+        return res.status(400).json({
+          status: 'error',
+          error: 'Teacher not found for the given user id'
+        });
+      }
+      resolvedTeacherId = teacherRecord.id;
     }
 
     // Get or create academic year
@@ -231,14 +243,14 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
           courseId: courseId,
           semester: parseInt(semester),
           year_id: academicYear.year_id,
-          teacherId: teacherId || null
+          teacherId: resolvedTeacherId || null
         }
       });
-    } else if (teacherId && courseOffering.teacherId !== teacherId) {
+    } else if (resolvedTeacherId && courseOffering.teacherId !== resolvedTeacherId) {
       // Update teacher if provided and different
       courseOffering = await prisma.courseOffering.update({
         where: { id: courseOffering.id },
-        data: { teacherId }
+        data: { teacherId: resolvedTeacherId }
       });
     }
 
