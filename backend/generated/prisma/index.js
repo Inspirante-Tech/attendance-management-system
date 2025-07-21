@@ -317,7 +317,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "E:\\GitHub\\Inspirante\\backend\\generated\\prisma",
+      "value": "D:\\Projects\\attendance-management-system\\backend\\generated\\prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -331,7 +331,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "E:\\GitHub\\Inspirante\\backend\\prisma\\schema.prisma",
+    "sourceFilePath": "D:\\Projects\\attendance-management-system\\backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
