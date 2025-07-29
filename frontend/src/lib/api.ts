@@ -411,6 +411,7 @@ export const adminApi = {
   // Course Enrollment Management
   async getEligibleStudents(courseId: string, year: string, semester: string): Promise<{ status: string; data: CourseEnrollmentData }> {
     const params = new URLSearchParams()
+    params.append('courseId',courseId)
     params.append('year', year)
     params.append('semester', semester)
     

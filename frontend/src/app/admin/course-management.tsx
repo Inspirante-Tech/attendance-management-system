@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { 
   Plus, 
+  UserCog,
   Search, 
   Edit, 
   Trash2,
@@ -14,7 +15,7 @@ import {
   Users,
   RefreshCw,
   AlertCircle,
-  MessageSquarePlusIcon,
+  
   UserPlus
   
 } from 'lucide-react'
@@ -125,7 +126,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     hasLabComponent: false,
     restrictedDepartments: [] as string[] // Add restricted departments for open electives
   })
-  
+
   // Edit functionality state
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -236,6 +237,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   }, [initialFilters])
 
   // Get filtered courses
+  console.log("before filter:"+courses);
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -267,6 +269,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
 
     return true
   })
+  console.log("after fileterin:"+filteredCourses)
+   const [showTeachers, setShowTeachers] = useState<string | null>(null)
+
+
 
   // Get unique departments for filter
   const allDepartments = Array.from(new Set(courses.map(course => course.department.code).filter(Boolean))).sort()
@@ -663,7 +669,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       </div>
     )
   }
-
+ 
   return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
@@ -801,7 +807,19 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {filteredCourses.map((course) => (
+                {filteredCourses.map((course) => {
+                      const uniqueTeachers = course.offerings
+                        ?.filter(o => o.teacher)
+                        .reduce((acc, o) => {
+                          if (!acc.find(t => t.id === o.teacher!.id)) {
+                            acc.push(o.teacher!)
+                          }
+                          return acc
+                        }, [] as { id: string; name: string }[]) ?? []
+
+
+                return(
+                 
                   <tr key={course.id} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="font-medium text-gray-900">{course.code}</div>
@@ -811,7 +829,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800 font-medium">
-                        {getCourseYear(course)}
+                        {getCourseYear(course) }
                       </div>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -835,7 +853,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         {course.type.replace('_', ' ')}
                       </span>
                     </td> 
-                    <td className="border border-gray-300 px-3 py-2">
+                    {/* <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         {course.teacherAssigned && course.teacher ? (
                           <div>
@@ -849,7 +867,87 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                           </div>
                         )}
                       </div>
-                    </td>
+                    </td> */}
+                    {/* <td className="border border-gray-300 px-3 py-2">
+  <div className="text-sm text-gray-800">
+    {course.offerings && course.offerings.length > 0 ? (() => {
+      const uniqueTeacherIds = new Set(
+        course.offerings
+          .filter(o => o.teacher && o.teacher.id)
+          .map(o => o.teacher!.id)
+      );
+      const count = uniqueTeacherIds.size;
+
+      return count > 0 ? (
+        <div className="font-medium text-green-700">
+          {count} {count === 1 ? 'teacher' : 'teachers'} assigned
+        </div>
+      ) : (
+        <div className="font-medium text-red-600">No teacher assigned</div>
+      );
+    })() : (
+      <div className="font-medium text-red-600">No offerings</div>
+    )}
+  </div>
+</td> */}
+<td className="border border-gray-300 px-3 py-2 relative">
+      <div className="text-sm text-gray-800">
+        {uniqueTeachers.length > 0 ? (
+          <>
+            <span className="font-medium text-green-700">
+              {uniqueTeachers.length} {uniqueTeachers.length === 1 ? 'teacher' : 'teachers'} assigned
+            </span>
+            {/* <button
+              className="ml-2 text-blue-600 hover:underline"
+              onClick={() => setShowTeachers(!showTeachers)}
+            >
+              ...
+            </button> */}
+            {/* <button
+  className="ml-2 text-blue-600 hover:underline"
+  onClick={() =>
+    setShowTeachers(prev => (prev === course.id ? null : course.id))
+  }
+><br />
+  <UserCog size={20} />
+</button> */}
+<br />
+<button
+  onClick={() =>
+    setShowTeachers(prev => (prev === course.id ? null : course.id))
+  }
+  className=" mt-2 text-[10px] w-full text-blue-500 font-semibold hover:underline"
+
+>
+  View Teachers
+</button>
+
+            {showTeachers === course.id && (
+    <div className="absolute z-20 bg-white border shadow-md rounded-md p-3 mt-2 w-56">
+      <p className="text-sm font-semibold mb-2">Assigned Teachers:</p>
+      <ul className="text-sm text-gray-700 list-disc list-inside space-y-1">
+        {uniqueTeachers.map(t => (
+          <li key={t.id}>{t.name}</li>
+        ))}
+      </ul>
+    </div>
+  )}
+            {/* {showTeachers === course.id && (
+  <div className="absolute z-10 bg-white border border-gray-300 shadow-md p-2 rounded mt-1">
+    <ul className="text-sm text-gray-800">
+      {uniqueTeachers.map(t => (
+        <li key={t.id}>• {t.name}</li>
+      ))}
+    </ul>
+  </div>
+)} */}
+          </>
+        ) : (
+          <div className="font-medium text-red-600">No teacher assigned</div>
+        )}
+      </div>
+    </td>
+
                     {/* testing for number of teachers */}
 {/* <td className="border border-gray-300 px-3 py-2">
       <div className="text-sm text-gray-800">
@@ -932,7 +1030,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       </div>
                     </td>
                   </tr>
-                ))}
+)})}
               </tbody>
             </table>
           </div>
@@ -1303,10 +1401,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     onChange={(e) => setEnrollmentYear(e.target.value)}
                     title="Select Batch Year"
                   >
+                    <option value="2021">2021</option>
+                    <option value="2022">2022</option>
+                    <option value="2023">2023</option>
                     <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
                   </select>
                 </div>
                 <div>
@@ -1319,6 +1417,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   >
                     <option value="1">1st Semester</option>
                     <option value="2">2nd Semester</option>
+                    <option value="3">3rd Semester</option>
+                    <option value="4">4th Semester</option>
+                    <option value="5">5th Semester</option>
+                    <option value="6">6th Semester</option>
+                    <option value="7">7th Semester</option>
+                    <option value="8">8th Semester</option>
                   </select>
                 </div>
                 
@@ -1348,9 +1452,11 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                             Core courses are mandatory for all students in the department
                           </p>
                         </div>
-                        {eligibleStudents.map(student => (
+                        {eligibleStudents.map(student => {
+                          console.log(student)git checkout 
+                          return <> 
                           <div key={student.id} className="flex items-center text-gray-900 bg-green-50 p-1 rounded">
-                            <div className="mr-2 text-green-600">✓</div>
+                            <div className="mr-2 text-gregit checkout en-600">✓</div>
                             <div className="flex-1">
                               <div className="text-sm font-medium">{student.name}</div>
                               <div className="text-xs text-gray-500">
@@ -1360,7 +1466,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                               </div>
                             </div>
                           </div>
-                        ))}
+                          </>
+})}
                       </div>
                     ) : (
                       /* For electives, allow manual selection */
