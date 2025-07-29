@@ -330,7 +330,7 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "C:\\Users\\himan\\Documents\\GitHub\\attendance-management-system\\backend\\prisma\\schema.prisma",
+    "sourceFilePath": "E:\\GitHub\\Inspirante\\backend\\prisma\\schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
