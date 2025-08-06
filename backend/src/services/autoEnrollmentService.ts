@@ -456,4 +456,3 @@ export async function promoteStudentToNextSemester(studentId: string): Promise<A
 
   return result;
 }
-cmdvxjcbh0013qr0pav28sz0b
