@@ -54,6 +54,8 @@ The project development involved a series of meetings with the following partici
     \item \textbf{Dr. Puneeth KP} - Project Co-supervisor
     \item \textbf{Krishna Prasad} - Team Member
     \item \textbf{Krishna N Acharya} - Developer/Reporter
+    \item \textbf{Parimi Saketh Kumar} - Developer
+    \item \textbf{Himanshu Poojary} - Developer
 \end{itemize}
 
 \subsection{Meeting Details}
@@ -94,41 +96,87 @@ The project development involved a series of meetings with the following partici
     \item Planning for database connectivity and API endpoints
 \end{itemize}
 
-\subsubsection{Recent Progress: July 2025}
-\textbf{Focus:} Backend Integration and Bug Fixes
+\subsubsection{Meeting 5: July 8, 2025}
+\textbf{Objective:} Team Expansion and Task Delegation
 \begin{itemize}
-    \item Backend API integration completed
-    \item Database connectivity established
-    \item Attendance tracking system bugs resolved
-    \item Admin portal functionality enhanced
+    \item Backend of admin system nearing completion with minor fixes pending
+    \item New team members (Himanshu and Saketh) onboarded
+    \item Project walkthrough conducted
+    \item \textbf{Task Assigned:} Streamlining course and student allocation in admin portal
 \end{itemize}
 
-\section{Technical Progress}
-
-\subsection{Database Development}
+\subsubsection{Meeting 6: July 29, 2025}
+\textbf{Objective:} Admin Portal Enhancement
 \begin{itemize}
-    \item \textbf{Schema Design:} Comprehensive database schema created using Prisma ORM
-    \item \textbf{Entity Coverage:} Users, Students, Teachers, Courses, Enrollments, Attendance, Marks
-    \item \textbf{Technology Stack:} PostgreSQL with Prisma ORM
+    \item Streamlined course and student enrollment in admin section
+    \item Progress review of admin backend
+    \item Task planning for remaining features
+    \item Backend optimization discussions
 \end{itemize}
 
-\subsection{Frontend Development}
+\section{Technology Stack}
+
+\subsection{Frontend Technologies}
 \begin{itemize}
-    \item \textbf{Framework:} Next.js 15 with TypeScript
-    \item \textbf{UI Components:} Responsive design using Tailwind CSS
-    \item \textbf{User Portals:} Student, Teacher, Admin, and Analytics portals
-    \item \textbf{Authentication:} Role-based login system implemented
+    \item \textbf{Framework:} Next.js 15
+    \item \textbf{Language:} TypeScript
+    \item \textbf{UI Framework:} Tailwind CSS
+    \item \textbf{State Management:} React Context API
 \end{itemize}
 
-\subsection{Backend Development}
+\subsection{Backend Technologies}
 \begin{itemize}
-    \item \textbf{API Framework:} Express.js with TypeScript
-    \item \textbf{Database Integration:} Prisma client configuration and connectivity
-    \item \textbf{Health Monitoring:} Database connectivity endpoints
-    \item \textbf{API Endpoints:} Complete CRUD operations for all entities
-    \item \textbf{Authentication:} JWT-based authentication system
-    \item \textbf{Data Management:} Student, course, attendance, and marks APIs
+    \item \textbf{Runtime:} Node.js (v18+)
+    \item \textbf{Framework:} Express.js with TypeScript
+    \item \textbf{ORM:} Prisma
+    \item \textbf{Authentication:} JWT with HTTP-only cookies
 \end{itemize}
+
+\subsection{Database}
+\begin{itemize}
+    \item \textbf{Database:} PostgreSQL
+    \item \textbf{ORM:} Prisma
+    \item \textbf{Schema:} Migrations managed by Prisma
+\end{itemize}
+
+\section{Development Setup Instructions}
+
+\subsection{Prerequisites}
+\begin{itemize}
+    \item Node.js (v18 or higher)
+    \item PostgreSQL database
+    \item npm or yarn package manager
+\end{itemize}
+
+\subsection{Database Setup}
+\begin{enumerate}
+    \item Create a new PostgreSQL database
+    \item Run schema setup:
+    \begin{itemize}
+        \item Use provided \texttt{newschema.sql}, or
+        \item Use Prisma migrations
+    \end{itemize}
+    \item (Optional) Import sample data from \texttt{sample\_data\_simplified/}
+\end{enumerate}
+
+\subsection{Backend Setup}
+\begin{enumerate}
+    \item Navigate to backend directory: \texttt{cd backend}
+    \item Install dependencies: \texttt{npm install}
+    \item Copy environment file: \texttt{cp .env.example .env}
+    \item Configure database URL in \texttt{.env}
+    \item Generate Prisma client: \texttt{npm run db:generate}
+    \item Apply database migrations: \texttt{npm run db:push}
+    \item Start development server: \texttt{npm run dev}
+\end{enumerate}
+
+\subsection{Frontend Setup}
+\begin{enumerate}
+    \item Navigate to frontend directory: \texttt{cd frontend}
+    \item Install dependencies: \texttt{npm install}
+    \item Start development server: \texttt{npm run dev}
+    \item Access application at \texttt{http://localhost:3000}
+\end{enumerate}
 
 \section{Key Deliverables Completed}
 
@@ -144,47 +192,51 @@ The project development involved a series of meetings with the following partici
     \item Attendance bug fixes and UI improvements
 \end{enumerate}
 
-\section{Current Status}
 
-\begin{table}[h]
-\centering
-\begin{tabular}{@{}lc@{}}
-\toprule
-\textbf{Component} & \textbf{Status} \\
-\midrule
-Database Schema & \textcolor{green}{Completed} \\
-Authentication System & \textcolor{green}{Completed} \\
-Student Portal & \textcolor{orange}{In Progress} \\
-Teacher Portal & \textcolor{orange}{In Progress} \\
-Admin Portal & \textcolor{orange}{In Progress} \\
-Analytics Portal & \textcolor{green}{Completed} \\
-Marks Section & \textcolor{orange}{In Development} \\
-Backend API & \textcolor{orange}{In Progress} \\
-\bottomrule
-\end{tabular}
-\caption{Project Component Status}
-\end{table}
+\section{Pending Features}
+
+The following features are currently under development:
+
+\subsection{Student Portal Backend}
+\begin{itemize}
+    \item Integration of student marks system
+    \item Integration of attendance tracking
+    \item Student profile management
+    \item Course enrollment workflow
+\end{itemize}
+
+\subsection{Teacher Portal Backend}
+\begin{itemize}
+    \item Integration of attendance management system
+    \item Integration of marks management system
+    \item Course material management
+    \item Student performance tracking
+\end{itemize}
+
+\subsection{Analytics Portal Backend}
+\begin{itemize}
+    \item Integration of college-wide statistics
+    \item Department-level analytics
+    \item Attendance trend analysis
+    \item Academic performance metrics
+\end{itemize}
 
 \section{Next Steps}
 
-With the core system now fully functional, the next development phase will focus on:
+With the admin portal nearing completion, the next development phase will focus on:
 \begin{itemize}
+    \item Completion of student portal backend features
+    \item Implementation of teacher portal functionality
+    \item Development of analytics system
     \item Performance optimization and code refactoring
     \item Enhanced security features and data validation
-    \item Advanced reporting and analytics features
-    \item Mobile responsiveness improvements
     \item User training documentation and guides
-    \item Production deployment preparation
 \end{itemize}
-
-\section{Conclusion}
-
-The College ERP System development has been successfully completed according to schedule. All major components including database design, authentication system, frontend interfaces, backend API integration, and core functionality have been implemented and are fully operational. The system now provides comprehensive academic management capabilities including student enrollment, course management, attendance tracking, and marks management. Recent bug fixes have improved system reliability and user experience. The project is ready for production deployment and user training.
 
 \vspace{1cm}
 \noindent
 \textbf{Prepared by:} Krishna N Acharya \\
-\textbf{Date:} July 8, 2025 \\
+\textbf{Date:} August 2025 \\
 \textbf{Project:} College ERP System Development
 
 \end{document}
