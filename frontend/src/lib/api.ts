@@ -1,11 +1,14 @@
 // API functions for student attendance system
-import { 
-  Student, 
+import { StudentInfo } from '@/types/student';
+import { Student, 
   DailyAttendance, 
   CourseAttendanceStats, 
   OverallAttendanceStats, 
   MonthlyAttendanceData 
 } from './types'
+import {Studentinfo } from './types/student';
+
+
 import { 
   CourseEnrollmentData, 
   EnrollmentResult, 
@@ -75,9 +78,10 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 // Student API functions
 export const studentApi = {
   // Get student profile information
-  async getStudentProfile(studentId: string): Promise<Student> {
-    return apiRequest<Student>(`/api/students/${studentId}`)
+  async getStudentProfile(studentId: string): Promise<StudentInfo> {
+    return apiRequest<StudentInfo>(`/api/student/students/${studentId}`)
   },
+
 
   // Get today's attendance for a student
   async getTodayAttendance(studentId: string): Promise<DailyAttendance[]> {
@@ -88,7 +92,7 @@ export const studentApi = {
   // Get attendance for a specific date
   async getAttendanceByDate(studentId: string, date: string): Promise<DailyAttendance[]> {
     return apiRequest<DailyAttendance[]>(`/api/students/${studentId}/attendance/daily?date=${date}`)
-  },
+  },    
 
   // Get monthly attendance data for calendar
   async getMonthlyAttendance(

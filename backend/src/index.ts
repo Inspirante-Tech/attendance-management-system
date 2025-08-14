@@ -20,7 +20,13 @@ try {
 } catch (error) {
   console.error('=== Error importing admin routes ===', error);
 }
-
+let studentRoutes;
+try {
+  studentRoutes = require('./routes/student').default;
+  console.log('=== Student routes imported successfully ===');
+} catch (error) {
+  console.error('=== Error importing student routes ===', error);
+}
 dotenv.config();
 
 const app = express();
@@ -64,6 +70,7 @@ app.get('/', (req, res) => {
       departmentById: '/api/departments/:id',
       departmentsByCollege: '/api/departments/college/:collegeId',
       departmentStats: '/api/departments/:id/stats'
+      
     }
   });
 });
@@ -75,9 +82,14 @@ app.use('/api/users', usersRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/colleges', collegesRoutes);
+
 if (adminRoutes) {
   app.use('/api/admin', adminRoutes);
   console.log('=== Admin routes registered ===');
+}
+if (studentRoutes){
+  app.use('/api/student', studentRoutes);
+  console.log('=== Student routes registered ===');
 }
 
 // Health check endpoint (legacy - also available at /api/db/health)

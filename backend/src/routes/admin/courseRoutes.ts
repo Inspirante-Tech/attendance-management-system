@@ -4,6 +4,9 @@ import DatabaseService from '../../lib/database';
 
 const router = Router();
 
+
+
+
 //to get information on a particular course:
 router.get('/courses/:courseId', async (req, res) => {
   try {
