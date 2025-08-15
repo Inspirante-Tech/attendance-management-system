@@ -61,6 +61,32 @@ router.get('/overview/:academicYear?', authenticateToken, async (req: Authentica
       if (totalMarks >= 30) passedStudents++; // Adjusted pass threshold
     });
 
+    // Calculate real low attendance students
+    let lowAttendanceStudents = 0;
+    const studentAttendanceMap = new Map();
+    
+    // Calculate attendance per student
+    attendanceRecords.forEach(record => {
+      if (record.studentId) {
+        if (!studentAttendanceMap.has(record.studentId)) {
+          studentAttendanceMap.set(record.studentId, { total: 0, present: 0 });
+        }
+        const studentData = studentAttendanceMap.get(record.studentId);
+        studentData.total++;
+        if (record.status === 'present') {
+          studentData.present++;
+        }
+      }
+    });
+
+    // Count students with less than 75% attendance
+    studentAttendanceMap.forEach((data, studentId) => {
+      const studentAttendance = (data.present / data.total) * 100;
+      if (studentAttendance < 75) {
+        lowAttendanceStudents++;
+      }
+    });
+
     const averageMarks = markCount > 0 ? (totalScore / markCount) : 0;
     const passRate = markCount > 0 ? (passedStudents / markCount) * 100 : 0;
 
@@ -74,6 +100,7 @@ router.get('/overview/:academicYear?', authenticateToken, async (req: Authentica
         averageAttendance: parseFloat(averageAttendance.toFixed(1)),
         averageMarks: parseFloat(averageMarks.toFixed(1)),
         passRate: parseFloat(passRate.toFixed(1)),
+        lowAttendanceStudents,
         totalAttendanceSessions,
         totalTeachers,
         totalDepartments

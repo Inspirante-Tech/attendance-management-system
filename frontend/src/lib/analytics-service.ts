@@ -11,6 +11,7 @@ export interface OverviewStats {
   averageAttendance: number;
   averageMarks: number;
   passRate: number;
+  lowAttendanceStudents: number;
   totalAttendanceSessions: number;
   totalTeachers: number;
   totalDepartments: number;

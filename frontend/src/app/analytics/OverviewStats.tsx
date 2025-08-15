@@ -77,10 +77,27 @@ export default function OverviewStats({ academicYear }: OverviewStatsProps) {
     return null;
   }
 
-  // Calculate low attendance students (estimate as 5% of total students if attendance < 75%)
-  const lowAttendanceStudents = stats.averageAttendance < 75 
-    ? Math.floor(stats.totalStudents * 0.05) 
-    : Math.floor(stats.totalStudents * 0.02);
+  // Use real low attendance student count from backend
+  const lowAttendanceStudents = stats.lowAttendanceStudents;
+
+  // Dynamic color thresholds based on data
+  const getAttendanceColor = (attendance: number) => {
+    if (attendance >= 85) return "bg-green-500";
+    if (attendance >= 75) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const getMarksColor = (marks: number) => {
+    if (marks >= 80) return "bg-green-500";
+    if (marks >= 70) return "bg-yellow-500";
+    return "bg-red-500";
+  };
+
+  const getPassRateColor = (passRate: number) => {
+    if (passRate >= 90) return "bg-green-500";
+    if (passRate >= 80) return "bg-yellow-500";
+    return "bg-red-500";
+  };
 
   const statCards = [
     {
@@ -101,22 +118,22 @@ export default function OverviewStats({ academicYear }: OverviewStatsProps) {
       title: "Average Attendance",
       value: `${stats.averageAttendance}%`,
       icon: CheckCircle2,
-      color: stats.averageAttendance >= 85 ? "bg-green-500" : stats.averageAttendance >= 75 ? "bg-yellow-500" : "bg-red-500",
+      color: getAttendanceColor(stats.averageAttendance),
       description: "Overall attendance rate"
     },
     {
       title: "Average Marks",
       value: `${stats.averageMarks}%`,
       icon: GraduationCap,
-      color: stats.averageMarks >= 80 ? "bg-green-500" : stats.averageMarks >= 70 ? "bg-yellow-500" : "bg-red-500",
+      color: getMarksColor(stats.averageMarks),
       description: "Combined theory & lab marks"
     },
     {
       title: "Pass Rate",
       value: `${stats.passRate}%`,
       icon: TrendingUp,
-      color: stats.passRate >= 90 ? "bg-green-500" : stats.passRate >= 80 ? "bg-yellow-500" : "bg-red-500",
-      description: "Students with >60% marks"
+      color: getPassRateColor(stats.passRate),
+      description: "Students with passing marks"
     },
     {
       title: "Low Attendance Alert",
