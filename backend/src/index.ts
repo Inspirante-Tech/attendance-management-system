@@ -11,6 +11,7 @@ import usersRoutes from './routes/users';
 import coursesRoutes from './routes/courses';
 import departmentsRoutes from './routes/departments';
 import collegesRoutes from './routes/colleges';
+import analyticsRoutes from './routes/analytics';
 
 console.log('=== About to import admin routes ===');
 let adminRoutes;
@@ -63,7 +64,11 @@ app.get('/', (req, res) => {
       departments: '/api/departments',
       departmentById: '/api/departments/:id',
       departmentsByCollege: '/api/departments/college/:collegeId',
-      departmentStats: '/api/departments/:id/stats'
+      departmentStats: '/api/departments/:id/stats',
+      analytics: '/api/analytics',
+      analyticsOverview: '/api/analytics/overview/:academicYear?',
+      analyticsAttendance: '/api/analytics/attendance/:academicYear?',
+      analyticsMarks: '/api/analytics/marks/:academicYear?'
     }
   });
 });
@@ -75,6 +80,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/colleges', collegesRoutes);
+app.use('/api/analytics', analyticsRoutes);
 if (adminRoutes) {
   app.use('/api/admin', adminRoutes);
   console.log('=== Admin routes registered ===');

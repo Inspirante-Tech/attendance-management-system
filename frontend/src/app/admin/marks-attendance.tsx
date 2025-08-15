@@ -156,6 +156,9 @@ export default function MarksAttendanceManagement({
     setLoading(true)
     setError(null)
     try {
+      // First, get courses assigned to the current user
+      const assignedCoursesResponse = await adminApi.getAssignedCourses()
+      
       const response = await adminApi.getAttendanceByDate(
         selectedDate,
         selectedCourse !== 'all' ? selectedCourse : undefined,
@@ -175,17 +178,26 @@ export default function MarksAttendanceManagement({
           courseName: item.courseName
         }))
         
-        // Extract unique courses for the filter dropdown
-        const courses = transformedAttendance
-          .filter(record => record.courseId && record.courseName)
-          .reduce((acc, record) => {
-            if (!acc.find(c => c.id === record.courseId)) {
-              acc.push({ id: record.courseId!, name: record.courseName! })
-            }
-            return acc
-          }, [] as {id: string, name: string}[])
-        
-        setAvailableCourses(courses)
+        // Use assigned courses if available, otherwise extract from attendance data
+        if (assignedCoursesResponse.status === 'success' && assignedCoursesResponse.data.length > 0) {
+          const assignedCourses = assignedCoursesResponse.data.map(course => ({
+            id: course.id,
+            name: `${course.code} - ${course.name}`
+          }))
+          setAvailableCourses(assignedCourses)
+        } else {
+          // Extract unique courses for the filter dropdown as fallback
+          const courses = transformedAttendance
+            .filter(record => record.courseId && record.courseName)
+            .reduce((acc, record) => {
+              if (!acc.find(c => c.id === record.courseId)) {
+                acc.push({ id: record.courseId!, name: record.courseName! })
+              }
+              return acc
+            }, [] as {id: string, name: string}[])
+          
+          setAvailableCourses(courses)
+        }
         
         // Filter for specific student if provided
         const filteredAttendance = selectedStudentId 
