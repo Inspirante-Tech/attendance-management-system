@@ -152,7 +152,8 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
     });
 
     const departmentAnalytics = await Promise.all(departments.map(async dept => {
-      const totalStudents = dept.sections.reduce((sum, section) => sum + section.students.length, 0);
+      // Calculate unique students across all sections in this department
+      const departmentUniqueStudentIds = new Set();
       
       // Calculate real department attendance
       let deptTotalRecords = 0;
@@ -202,10 +203,22 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
         deptTotalRecords += sectionTotalRecords;
         deptPresentRecords += sectionPresentRecords;
 
+        // Calculate unique students enrolled in this section's courses
+        const uniqueStudentIds = new Set();
+        section.course_offerings.forEach(offering => {
+          offering.enrollments.forEach(enrollment => {
+            if (enrollment.student?.id) {
+              uniqueStudentIds.add(enrollment.student.id);
+              departmentUniqueStudentIds.add(enrollment.student.id); // Add to department set
+            }
+          });
+        });
+        const sectionEnrolledStudents = uniqueStudentIds.size;
+
         return {
           section: section.section_name,
           attendance: parseFloat(sectionAttendance.toFixed(1)),
-          students: section.students.length,
+          students: sectionEnrolledStudents, // Use actual unique students instead of total enrollments
           courses: actualCourses.length,
           courseStats: actualCourses.length > 0 ? actualCourses : [
             { name: 'No Courses Available', code: 'N/A', attendance: 0, enrollments: 0, students: [] }
@@ -220,7 +233,7 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
         name: dept.name,
         code: dept.code || 'XXX',
         attendance: parseFloat(deptAttendance.toFixed(1)),
-        students: totalStudents,
+        students: departmentUniqueStudentIds.size,
         sections: sectionAnalytics
       };
     }));
@@ -278,7 +291,8 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
     });
 
     const departmentAnalytics = await Promise.all(departments.map(async dept => {
-      const totalStudents = dept.sections.reduce((sum, section) => sum + section.students.length, 0);
+      // Calculate unique students across all sections in this department
+      const departmentUniqueStudentIds = new Set();
       
       // Calculate real department marks
       let deptTotalMarks = 0;
@@ -366,11 +380,23 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
         deptMarkCount += sectionMarkCount;
         deptPassedStudents += sectionPassedStudents;
 
+        // Calculate unique students enrolled in this section's courses
+        const uniqueStudentIds = new Set();
+        section.course_offerings.forEach(offering => {
+          offering.enrollments.forEach(enrollment => {
+            if (enrollment.student?.id) {
+              uniqueStudentIds.add(enrollment.student.id);
+              departmentUniqueStudentIds.add(enrollment.student.id); // Add to department set
+            }
+          });
+        });
+        const sectionEnrolledStudents = uniqueStudentIds.size;
+
         return {
           section: section.section_name,
           avgMarks: parseFloat(sectionAvgMarks.toFixed(1)),
           passRate: parseFloat(sectionPassRate.toFixed(1)),
-          students: section.students.length,
+          students: sectionEnrolledStudents, // Use actual unique students instead of total enrollments
           courses: actualCourses.length,
           courseStats: actualCourses.length > 0 ? actualCourses : [
             { 
@@ -395,7 +421,7 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
         code: dept.code || 'XXX',
         avgMarks: parseFloat(deptAvgMarks.toFixed(1)),
         passRate: parseFloat(deptPassRate.toFixed(1)),
-        students: totalStudents,
+        students: departmentUniqueStudentIds.size,
         sections: sectionAnalytics
       };
     }));
