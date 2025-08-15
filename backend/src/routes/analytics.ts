@@ -39,15 +39,15 @@ router.get('/overview/:academicYear?', authenticateToken, async (req: Authentica
     // Get theory and lab marks for average calculation
     const theoryMarks = await prisma.theoryMarks.findMany();
     const labMarks = await prisma.labMarks.findMany();
-    
+
     let totalScore = 0;
     let markCount = 0;
     let passedStudents = 0;
 
     // Process theory marks
     theoryMarks.forEach(marks => {
-      const totalMarks = (marks.mse1Marks || 0) + (marks.mse2Marks || 0) + (marks.mse3Marks || 0) + 
-                        (marks.task1Marks || 0) + (marks.task2Marks || 0) + (marks.task3Marks || 0);
+      const totalMarks = (marks.mse1Marks || 0) + (marks.mse2Marks || 0) + (marks.mse3Marks || 0) +
+        (marks.task1Marks || 0) + (marks.task2Marks || 0) + (marks.task3Marks || 0);
       totalScore += totalMarks;
       markCount++;
       if (totalMarks >= 30) passedStudents++; // Adjusted pass threshold based on actual data scale
@@ -64,7 +64,7 @@ router.get('/overview/:academicYear?', authenticateToken, async (req: Authentica
     // Calculate real low attendance students
     let lowAttendanceStudents = 0;
     const studentAttendanceMap = new Map();
-    
+
     // Calculate attendance per student
     attendanceRecords.forEach(record => {
       if (record.studentId) {
@@ -154,15 +154,15 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
     const departmentAnalytics = await Promise.all(departments.map(async dept => {
       // Calculate unique students across all sections in this department
       const departmentUniqueStudentIds = new Set();
-      
+
       // Calculate real department attendance
       let deptTotalRecords = 0;
       let deptPresentRecords = 0;
-      
+
       const sectionAnalytics = await Promise.all(dept.sections.map(async section => {
         let sectionTotalRecords = 0;
         let sectionPresentRecords = 0;
-        
+
         // Get actual courses for this section with real attendance data
         const actualCourses = await Promise.all(section.course_offerings.map(async offering => {
           // Get real attendance records for this course offering
@@ -173,32 +173,51 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
               }
             }
           });
-          
+
           const coursePresentRecords = attendanceRecords.filter(record => record.status === 'present').length;
           const courseTotalRecords = attendanceRecords.length;
           const courseAttendance = courseTotalRecords > 0 ? (coursePresentRecords / courseTotalRecords) * 100 : 0;
-          
+
           // Add to section totals
           sectionTotalRecords += courseTotalRecords;
           sectionPresentRecords += coursePresentRecords;
-          
+
           return {
             name: offering.course.name,
             code: offering.course.code,
             attendance: parseFloat(courseAttendance.toFixed(1)),
             enrollments: offering.enrollments.length,
-            students: offering.enrollments.map(enrollment => ({
-              id: enrollment.student?.id,
-              name: enrollment.student?.user?.name,
-              usn: enrollment.student?.usn,
-              semester: enrollment.student?.semester
-            })).filter(student => student.name)
+            students: await Promise.all(offering.enrollments.map(async enrollment => {
+              if (!enrollment.student) return null;
+
+              // Calculate individual student attendance for this course
+              const studentAttendanceRecords = await prisma.attendanceRecord.findMany({
+                where: {
+                  studentId: enrollment.student.id,
+                  attendance: {
+                    offeringId: offering.id
+                  }
+                }
+              });
+
+              const studentPresentCount = studentAttendanceRecords.filter(record => record.status === 'present').length;
+              const studentTotalCount = studentAttendanceRecords.length;
+              const studentAttendancePercent = studentTotalCount > 0 ? (studentPresentCount / studentTotalCount) * 100 : 0;
+
+              return {
+                id: enrollment.student.id,
+                name: enrollment.student.user?.name,
+                usn: enrollment.student.usn,
+                semester: enrollment.student.semester,
+                attendancePercent: parseFloat(studentAttendancePercent.toFixed(1))
+              };
+            })).then(results => results.filter(student => student !== null))
           };
         }));
-        
+
         // Calculate section attendance
         const sectionAttendance = sectionTotalRecords > 0 ? (sectionPresentRecords / sectionTotalRecords) * 100 : 0;
-        
+
         // Add to department totals
         deptTotalRecords += sectionTotalRecords;
         deptPresentRecords += sectionPresentRecords;
@@ -225,7 +244,7 @@ router.get('/attendance/:academicYear?', authenticateToken, async (req: Authenti
           ]
         };
       }));
-      
+
       // Calculate department attendance
       const deptAttendance = deptTotalRecords > 0 ? (deptPresentRecords / deptTotalRecords) * 100 : 0;
 
@@ -293,17 +312,17 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
     const departmentAnalytics = await Promise.all(departments.map(async dept => {
       // Calculate unique students across all sections in this department
       const departmentUniqueStudentIds = new Set();
-      
+
       // Calculate real department marks
       let deptTotalMarks = 0;
       let deptMarkCount = 0;
       let deptPassedStudents = 0;
-      
+
       const sectionAnalytics = await Promise.all(dept.sections.map(async section => {
         let sectionTotalMarks = 0;
         let sectionMarkCount = 0;
         let sectionPassedStudents = 0;
-        
+
         // Get actual courses for this section with real marks data
         const actualCourses = await Promise.all(section.course_offerings.map(async offering => {
           // Get real theory marks for this course offering
@@ -314,7 +333,7 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
               }
             }
           });
-          
+
           // Get real lab marks for this course offering
           const labMarks = await prisma.labMarks.findMany({
             where: {
@@ -323,21 +342,21 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
               }
             }
           });
-          
+
           // Calculate course averages
           let courseTotalMarks = 0;
           let courseMarkCount = 0;
           let coursePassed = 0;
-          
+
           // Process theory marks
           theoryMarks.forEach(mark => {
-            const theoryTotal = (mark.mse1Marks || 0) + (mark.mse2Marks || 0) + (mark.mse3Marks || 0) + 
-                               (mark.task1Marks || 0) + (mark.task2Marks || 0) + (mark.task3Marks || 0);
+            const theoryTotal = (mark.mse1Marks || 0) + (mark.mse2Marks || 0) + (mark.mse3Marks || 0) +
+              (mark.task1Marks || 0) + (mark.task2Marks || 0) + (mark.task3Marks || 0);
             courseTotalMarks += theoryTotal;
             courseMarkCount++;
             if (theoryTotal >= 30) coursePassed++; // Adjusted pass threshold
           });
-          
+
           // Process lab marks
           labMarks.forEach(mark => {
             const labTotal = (mark.recordMarks || 0) + (mark.continuousEvaluationMarks || 0) + (mark.labMseMarks || 0);
@@ -345,11 +364,11 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
             courseMarkCount++;
             if (labTotal >= 30) coursePassed++; // Adjusted pass threshold
           });
-          
+
           const courseAvgMarks = courseMarkCount > 0 ? courseTotalMarks / courseMarkCount : 0;
           const coursePassRate = courseMarkCount > 0 ? (coursePassed / courseMarkCount) * 100 : 0;
           const courseFailRate = 100 - coursePassRate;
-          
+
           // Add to section totals
           sectionTotalMarks += courseTotalMarks;
           sectionMarkCount += courseMarkCount;
@@ -362,19 +381,44 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
             passRate: parseFloat(coursePassRate.toFixed(1)),
             failRate: parseFloat(courseFailRate.toFixed(1)),
             enrollments: offering.enrollments.length,
-            students: offering.enrollments.map(enrollment => ({
-              id: enrollment.student?.id,
-              name: enrollment.student?.user?.name,
-              usn: enrollment.student?.usn,
-              semester: enrollment.student?.semester
-            })).filter(student => student.name)
+            students: await Promise.all(offering.enrollments.map(async enrollment => {
+              if (!enrollment.student) return null;
+
+              // Get student's marks for this course
+              const theoryMark = theoryMarks.find(mark => mark.enrollmentId === enrollment.id);
+              const labMark = labMarks.find(mark => mark.enrollmentId === enrollment.id);
+
+              // Calculate total marks
+              let theoryTotal = 0;
+              if (theoryMark) {
+                theoryTotal = (theoryMark.mse1Marks || 0) + (theoryMark.mse2Marks || 0) + (theoryMark.mse3Marks || 0) +
+                  (theoryMark.task1Marks || 0) + (theoryMark.task2Marks || 0) + (theoryMark.task3Marks || 0);
+              }
+
+              let labTotal = 0;
+              if (labMark) {
+                labTotal = (labMark.recordMarks || 0) + (labMark.continuousEvaluationMarks || 0) + (labMark.labMseMarks || 0);
+              }
+
+              const totalMarks = theoryTotal + labTotal;
+
+              return {
+                id: enrollment.student.id,
+                name: enrollment.student.user?.name,
+                usn: enrollment.student.usn,
+                semester: enrollment.student.semester,
+                theoryMarks: theoryTotal,
+                labMarks: labTotal,
+                totalMarks: totalMarks
+              };
+            })).then(results => results.filter(student => student !== null))
           };
         }));
-        
+
         // Calculate section averages
         const sectionAvgMarks = sectionMarkCount > 0 ? sectionTotalMarks / sectionMarkCount : 0;
         const sectionPassRate = sectionMarkCount > 0 ? (sectionPassedStudents / sectionMarkCount) * 100 : 0;
-        
+
         // Add to department totals
         deptTotalMarks += sectionTotalMarks;
         deptMarkCount += sectionMarkCount;
@@ -399,9 +443,9 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
           students: sectionEnrolledStudents, // Use actual unique students instead of total enrollments
           courses: actualCourses.length,
           courseStats: actualCourses.length > 0 ? actualCourses : [
-            { 
-              name: 'No Courses Available', 
-              code: 'N/A', 
+            {
+              name: 'No Courses Available',
+              code: 'N/A',
               avgMarks: 0,
               passRate: 0,
               failRate: 0,
@@ -411,7 +455,7 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
           ]
         };
       }));
-      
+
       // Calculate department averages
       const deptAvgMarks = deptMarkCount > 0 ? deptTotalMarks / deptMarkCount : 0;
       const deptPassRate = deptMarkCount > 0 ? (deptPassedStudents / deptMarkCount) * 100 : 0;
@@ -447,13 +491,13 @@ router.get('/marks/:academicYear?', authenticateToken, async (req: Authenticated
 router.get('/academic-years', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    
+
     const academicYears = await prisma.academic_years.findMany({
       orderBy: { year_name: 'desc' }
     });
 
     // If no years in DB, return default years
-    const years = academicYears.length > 0 
+    const years = academicYears.length > 0
       ? academicYears.map(year => year.year_name)
       : ['2024-25', '2023-24', '2022-23', '2021-22'];
 

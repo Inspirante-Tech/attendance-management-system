@@ -47,7 +47,7 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
 
   if (error) {
     const isAuthError = error.includes('Authentication failed') || error.includes('No authentication token');
-    
+
     return (
       <Card className="p-6">
         <div className="text-center text-red-600">
@@ -55,7 +55,7 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
           <p className="font-medium">Failed to load attendance analytics</p>
           <p className="text-sm text-gray-500 mt-1">{error}</p>
           {isAuthError && (
-            <button 
+            <button
               onClick={() => window.location.href = '/login/admin'}
               className="mt-3 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-sm"
             >
@@ -81,16 +81,16 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
   const departmentWiseData = data.departments;
 
   const toggleDepartment = (deptKey: string) => {
-    setExpandedDepts(prev => 
-      prev.includes(deptKey) 
+    setExpandedDepts(prev =>
+      prev.includes(deptKey)
         ? prev.filter(key => key !== deptKey)
         : [...prev, deptKey]
     );
   };
 
   const toggleCourse = (courseKey: string) => {
-    setExpandedCourses(prev => 
-      prev.includes(courseKey) 
+    setExpandedCourses(prev =>
+      prev.includes(courseKey)
         ? prev.filter(key => key !== courseKey)
         : [...prev, courseKey]
     );
@@ -108,7 +108,7 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
       <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
         {departmentWiseData.map((dept, index) => (
           <Card key={`${dept.code}-${index}`} className="overflow-hidden">
-            <CardHeader 
+            <CardHeader
               className="cursor-pointer hover:bg-gray-50 transition-colors pb-4"
               onClick={() => toggleDepartment(`${dept.code}-${index}`)}
             >
@@ -124,8 +124,8 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
                   <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getAttendanceColor(dept.attendance || 0)}`}>
                     {dept.attendance?.toFixed(1)}%
                   </div>
-                  {expandedDepts.includes(`${dept.code}-${index}`) ? 
-                    <ChevronDown className="h-5 w-5" /> : 
+                  {expandedDepts.includes(`${dept.code}-${index}`) ?
+                    <ChevronDown className="h-5 w-5" /> :
                     <ChevronRight className="h-5 w-5" />
                   }
                 </div>
@@ -146,15 +146,15 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
                           <span className="text-gray-500">({section.students} students)</span>
                         </div>
                       </div>
-                      
+
                       <div className="grid grid-cols-1 gap-2">
                         {section.courseStats.map((course) => {
                           const courseKey = `${dept.code}-${section.section}-${course.code}`;
                           const isExpanded = expandedCourses.includes(courseKey);
-                          
+
                           return (
                             <div key={course.code} className="bg-gray-50 p-3 rounded">
-                              <div 
+                              <div
                                 className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
                                 onClick={() => toggleCourse(courseKey)}
                               >
@@ -166,13 +166,13 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
                                   <span className={`px-2 py-1 rounded text-xs ${getAttendanceColor(course.attendance || 0)}`}>
                                     {course.attendance?.toFixed(1)}%
                                   </span>
-                                  {isExpanded ? 
-                                    <ChevronDown className="h-4 w-4" /> : 
+                                  {isExpanded ?
+                                    <ChevronDown className="h-4 w-4" /> :
                                     <ChevronRight className="h-4 w-4" />
                                   }
                                 </div>
                               </div>
-                              
+
                               {isExpanded && course.students && course.students.length > 0 && (
                                 <div className="mt-2 pl-2 border-l-2 border-blue-200">
                                   <p className="text-xs font-medium text-gray-600 mb-1">
@@ -181,16 +181,33 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
                                   <div className="grid grid-cols-1 gap-1">
                                     {course.students.map((student, studentIndex) => (
                                       <div key={student.id || studentIndex} className="text-xs bg-white p-2 rounded border">
-                                        <div className="font-medium">{student.name || 'Unknown Student'}</div>
-                                        <div className="text-gray-500">
-                                          USN: {student.usn || 'N/A'} • Sem: {student.semester || 'N/A'}
+                                        <div className="flex justify-between items-start">
+                                          <div className="flex-1">
+                                            <div className="font-medium">{student.name || 'Unknown Student'}</div>
+                                            <div className="text-gray-500">
+                                              USN: {student.usn || 'N/A'} • Sem: {student.semester || 'N/A'}
+                                            </div>
+                                          </div>
+                                          <div className="flex-shrink-0 ml-2">
+                                            <span className={`px-2 py-1 rounded text-xs font-medium ${(student.attendancePercent || 0) >= 90
+                                                ? 'bg-green-100 text-green-700'
+                                                : (student.attendancePercent || 0) >= 75
+                                                  ? 'bg-yellow-100 text-yellow-700'
+                                                  : 'bg-red-100 text-red-700'
+                                              }`}>
+                                              {student.attendancePercent !== undefined
+                                                ? `${student.attendancePercent}%`
+                                                : 'N/A'
+                                              }
+                                            </span>
+                                          </div>
                                         </div>
                                       </div>
                                     ))}
                                   </div>
                                 </div>
                               )}
-                              
+
                               {isExpanded && (!course.students || course.students.length === 0) && (
                                 <div className="mt-2 pl-2 border-l-2 border-gray-200">
                                   <p className="text-xs text-gray-500">No students enrolled in this course</p>

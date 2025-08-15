@@ -32,6 +32,10 @@ export interface StudentInfo {
   name?: string;
   usn?: string;
   semester?: number;
+  attendancePercent?: number; // For attendance analytics
+  theoryMarks?: number; // For marks analytics
+  labMarks?: number; // For marks analytics
+  totalMarks?: number; // For marks analytics
 }
 
 export interface SectionStats {
@@ -68,11 +72,11 @@ class AnalyticsService {
   private async makeRequest(endpoint: string, options?: RequestInit) {
     // Get token from auth service (which uses cookies)
     const token = authService.getToken();
-    
+
     if (!token) {
       throw new Error('No authentication token found. Please log in.');
     }
-    
+
     const response = await fetch(`${API_BASE_URL}${endpoint}`, {
       headers: {
         'Content-Type': 'application/json',
@@ -89,7 +93,7 @@ class AnalyticsService {
         if (!refreshed) {
           throw new Error('Authentication failed. Please log in again.');
         }
-        
+
         // Retry the request with new token
         const newToken = authService.getToken();
         if (newToken) {
@@ -101,7 +105,7 @@ class AnalyticsService {
             },
             ...options,
           });
-          
+
           if (retryResponse.ok) {
             const retryData = await retryResponse.json();
             if (retryData.status === 'error') {
@@ -110,14 +114,14 @@ class AnalyticsService {
             return retryData.data;
           }
         }
-        
+
         throw new Error('Authentication failed. Please log in again.');
       }
       throw new Error(`API Error: ${response.status} ${response.statusText}`);
     }
 
     const data = await response.json();
-    
+
     if (data.status === 'error') {
       throw new Error(data.error || 'Unknown API error');
     }
@@ -126,26 +130,26 @@ class AnalyticsService {
   }
 
   async getOverviewStats(academicYear?: string): Promise<OverviewStats> {
-    const endpoint = academicYear 
+    const endpoint = academicYear
       ? `/api/analytics/overview/${academicYear}`
       : '/api/analytics/overview';
-    
+
     return this.makeRequest(endpoint);
   }
 
   async getAttendanceAnalytics(academicYear?: string): Promise<AttendanceAnalyticsData> {
-    const endpoint = academicYear 
+    const endpoint = academicYear
       ? `/api/analytics/attendance/${academicYear}`
       : '/api/analytics/attendance';
-    
+
     return this.makeRequest(endpoint);
   }
 
   async getMarksAnalytics(academicYear?: string): Promise<MarksAnalyticsData> {
-    const endpoint = academicYear 
+    const endpoint = academicYear
       ? `/api/analytics/marks/${academicYear}`
       : '/api/analytics/marks';
-    
+
     return this.makeRequest(endpoint);
   }
 
