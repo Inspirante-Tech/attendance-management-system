@@ -410,6 +410,14 @@ export const adminApi = {
     return apiRequest<{ status: string; data: any[] }>(`/api/admin/attendance?${params.toString()}`)
   },
 
+  async getAssignedCourses(): Promise<{ status: string; data: any[] }> {
+    return apiRequest<{ status: string; data: any[] }>('/api/admin/assigned-courses')
+  },
+
+  async getStudentCourses(studentId: string): Promise<{ status: string; data: any[] }> {
+    return apiRequest<{ status: string; data: any[] }>(`/api/admin/student-courses/${studentId}`)
+  },
+
   async updateAttendance(attendanceId: string, status: 'present' | 'absent'): Promise<{ status: string; data: any }> {
     return apiRequest<{ status: string; data: any }>(`/api/admin/attendance/${attendanceId}`, {
       method: 'PUT',
