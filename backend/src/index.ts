@@ -31,6 +31,15 @@ try {
   console.error('=== Error importing admin routes ===', error);
 }
 
+console.log('=== About to import teacher routes ===');
+let teacherRoutes;
+try {
+  teacherRoutes = require('./routes/teacher').default;
+  console.log('=== Teacher routes imported successfully ===');
+} catch (error) {
+  console.error('=== Error importing teacher routes ===', error);
+}
+
 dotenv.config();
 
 const app = express();
@@ -54,7 +63,7 @@ DatabaseService.connect().catch((error) => {
 });
 
 app.get('/', (req, res) => {
-  res.json({ 
+  res.json({
     message: 'College ERP backend is running',
     database: 'Connected to PostgreSQL via Prisma',
     version: '1.0.0',
@@ -98,6 +107,10 @@ if (adminRoutes) {
   app.use('/api/admin', adminRoutes);
   console.log('=== Admin routes registered ===');
 }
+if (teacherRoutes) {
+  app.use('/api/teacher', teacherRoutes);
+  console.log('=== Teacher routes registered ===');
+}
 
 // Health check endpoint (legacy - also available at /api/db/health)
 app.get('/health', async (req, res) => {
@@ -118,18 +131,18 @@ app.get('/health', async (req, res) => {
 app.get('/api/health', async (req, res) => {
   try {
     const isHealthy = await DatabaseService.healthCheck();
-    res.json({ 
-      status: 'ok', 
+    res.json({
+      status: 'ok',
       timestamp: new Date().toISOString(),
       database: isHealthy ? 'connected' : 'disconnected'
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       timestamp: new Date().toISOString(),
-      database: 'disconnected', 
-      error: errorMessage 
+      database: 'disconnected',
+      error: errorMessage
     });
   }
 });

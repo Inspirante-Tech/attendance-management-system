@@ -16,13 +16,13 @@ export default function ExportReports({ filters }: ExportReportsProps) {
 
   const downloadFile = (data: any, filename: string, mimeType: string) => {
     let blob: Blob;
-    
+
     if (mimeType === 'text/csv') {
       blob = new Blob([data], { type: mimeType });
     } else {
       blob = new Blob([JSON.stringify(data, null, 2)], { type: mimeType });
     }
-    
+
     const url = window.URL.createObjectURL(blob);
     const element = document.createElement('a');
     element.href = url;
@@ -40,7 +40,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
   const handleExport = async (format: 'pdf' | 'excel' | 'csv') => {
     setIsExporting(true);
     setExportingType(format);
-    
+
     try {
       const token = getAuthToken();
       if (!token) {
@@ -62,7 +62,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
 
       const contentType = response.headers.get('content-type');
       const contentDisposition = response.headers.get('content-disposition');
-      
+
       let filename = `analytics_report_${filters.academicYear}_${Date.now()}`;
       if (contentDisposition) {
         const fileNameMatch = contentDisposition.match(/filename="(.+)"/);
@@ -82,7 +82,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
       }
 
       console.log(`${format.toUpperCase()} export completed successfully`);
-      
+
     } catch (error) {
       console.error(`${format.toUpperCase()} export error:`, error);
       alert(`Failed to export ${format.toUpperCase()} report: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -113,7 +113,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
           )}
           <span>PDF</span>
         </Button>
-        
+
         <Button
           onClick={() => handleExport('excel')}
           disabled={isExporting}
@@ -128,7 +128,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
           )}
           <span>Excel</span>
         </Button>
-        
+
         <Button
           onClick={() => handleExport('csv')}
           disabled={isExporting}
@@ -143,7 +143,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
           )}
           <span>CSV</span>
         </Button>
-        
+
         <Button
           onClick={handlePrint}
           disabled={isExporting}
@@ -155,7 +155,7 @@ export default function ExportReports({ filters }: ExportReportsProps) {
           <span>Print</span>
         </Button>
       </div>
-      
+
       {isExporting && (
         <div className="text-xs text-gray-500 mt-1">
           Generating {exportingType?.toUpperCase()} report...

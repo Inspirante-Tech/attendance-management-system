@@ -6,34 +6,57 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { DropdownNavigation, type Course, type Section } from '@/app/teacher/dropdown-navigation'
 import { CourseManagement } from '@/app/teacher/course-management'
 import { MasterSearch } from '@/app/teacher/master-search'
-import { 
-  User, 
-  GraduationCap
+import { TeacherAPI, type TeacherDashboardData, type CourseOffering } from '@/lib/teacher-api'
+import { authService } from '@/lib/auth'
+import {
+  User,
+  GraduationCap,
+  BookOpen,
+  Users,
+  Calendar,
+  TrendingUp
 } from 'lucide-react'
 
-// Mock teacher data - replace with actual API call
-const mockTeacherData = {
-  teacher_id: '456e7890-e12b-34c5-d678-901234567890',
-  user_id: '456e7890-e12b-34c5-d678-901234567890',
-  name: 'Dr. Rajesh Kumar',
-  phone: '+91 9876543210',
-  department: 'Computer Science Engineering',
-  designation: 'Associate Professor',
-  employee_id: 'EMP001',
-  college_name: 'NMAM Institute of Technology',
-  photo_url: undefined
-}
+export default function TeacherDashboard() {
+  const [dashboardData, setDashboardData] = useState<TeacherDashboardData | null>(null)
+  const [courses, setCourses] = useState<CourseOffering[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-export default function TeacherDashboard() {  const [teacherData] = useState(mockTeacherData)
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null)
   const [selectedSection, setSelectedSection] = useState<Section | null>(null)
 
-  // Mock function to load teacher data - replace with actual API call
+  // Load teacher data
   useEffect(() => {
-    // loadTeacherData()
+    loadTeacherData()
   }, [])
+
+  const loadTeacherData = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      if (!authService.isAuthenticated()) {
+        throw new Error('Not authenticated')
+      }
+
+      // Load dashboard data and courses in parallel
+      const [dashboardResult, coursesResult] = await Promise.all([
+        TeacherAPI.getDashboard(),
+        TeacherAPI.getCourses()
+      ])
+
+      setDashboardData(dashboardResult)
+      setCourses(coursesResult)
+    } catch (err) {
+      console.error('Error loading teacher data:', err)
+      setError(err instanceof Error ? err.message : 'Failed to load teacher data')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const resetSelection = () => {
     setSelectedYear(null)
@@ -60,101 +83,101 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
     }
   }) => {
     switch (result.type) {
-      case 'year':
-        resetSelection()
-        setSelectedYear(result.title)
-        break
-      case 'department':
-        resetSelection()
-        // For departments, we need to select a year first
-        // Default to 3rd Year if not specified in metadata
-        const yearForDept = result.metadata?.year || '3rd Year'
-        setSelectedYear(yearForDept)
-        // Use department ID instead of full name
-        setSelectedDepartment(result.metadata?.department || 'CSE')
-        break
       case 'course':
         resetSelection()
-        // Set year and department from metadata
-        const yearForCourse = result.metadata?.year || '3rd Year'
-        const deptForCourse = result.metadata?.department || 'CSE'
-        setSelectedYear(yearForCourse)
-        setSelectedDepartment(deptForCourse)
-        
-        // Extract course info and set
-        const courseParts = result.title.split(' - ')
-        if (courseParts.length >= 2) {
+        // Find the actual course offering from our data
+        const courseOffering = courses.find(c =>
+          c.course.code === result.metadata?.course_code ||
+          c.course.id === result.id
+        )
+
+        if (courseOffering) {
+          setSelectedYear(courseOffering.academicYear)
+          setSelectedDepartment(courseOffering.course.department)
+
           setSelectedCourse({
-            course_id: result.id,
-            course_code: courseParts[0],
-            course_name: courseParts[1],
-            department_id: deptForCourse,
-            total_students: 60, // Default values - should come from API
-            classes_completed: 25,
-            total_classes: 40,
-            attendance_percentage: 85.0
+            course_id: courseOffering.course.id,
+            course_code: courseOffering.course.code,
+            course_name: courseOffering.course.name,
+            department_id: courseOffering.course.department,
+            total_students: courseOffering.enrolledStudents,
+            classes_completed: 25, // TODO: Get from API
+            total_classes: 40, // TODO: Get from API
+            attendance_percentage: 85.0, // TODO: Get from API
+            has_theory_component: courseOffering.course.hasTheoryComponent,
+            has_lab_component: courseOffering.course.hasLabComponent,
+            course_type: courseOffering.course.type,
+            offering_id: courseOffering.offeringId
           })
-          // Reset section when course changes
-          setSelectedSection(null)
-        }
-        break
-      case 'student':
-        // Navigate to student's course/class
-        resetSelection()
-        const yearForStudent = result.metadata?.year || '3rd Year'
-        const deptForStudent = result.metadata?.department || 'Computer Science Engineering'
-        setSelectedYear(yearForStudent)
-        setSelectedDepartment(deptForStudent)
-        // Could navigate to a specific course if student metadata includes it
-        break
-      case 'elective':
-        resetSelection()
-        const yearForElective = result.metadata?.year || '4th Year'
-        setSelectedYear(yearForElective)
-        
-        // For open electives, don't set department - they should appear in course dropdown
-        // Extract course info and set directly
-        const electiveParts = result.title.split(' - ')
-        if (electiveParts.length >= 2) {
-          setSelectedCourse({
-            course_id: result.id,
-            course_code: electiveParts[0],
-            course_name: electiveParts[1],
-            department_id: 'OPEN_ELECTIVE',
-            total_students: 45, // Default values for electives
-            classes_completed: 20,
-            total_classes: 40,
-            attendance_percentage: 88.0,
-            course_type: 'open_elective',
-            is_open_elective: true
-          })
-          
-          // Set mixed section for open electives
-          setSelectedSection({
-            section_id: 'MIXED',
-            section_name: 'Mixed',
-            department_id: 'OPEN_ELECTIVE',
-            total_students: 45,
-            present_today: 40,
-            attendance_percentage: 88.0
-          })
+
+          if (courseOffering.section) {
+            setSelectedSection({
+              section_id: courseOffering.section.id,
+              section_name: courseOffering.section.name,
+              department_id: courseOffering.course.department,
+              total_students: courseOffering.enrolledStudents,
+              present_today: Math.floor(courseOffering.enrolledStudents * 0.85), // Mock
+              attendance_percentage: 85.0 // Mock
+            })
+          }
         }
         break
       default:
-        console.log('Unknown search result type:', result.type)
+        console.log('Search result type not yet implemented:', result.type)
     }
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-3 sm:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Loading teacher dashboard...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-3 sm:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Dashboard</h2>
+            <p className="text-red-600 mb-4">{error}</p>
+            <button
+              onClick={loadTeacherData}
+              className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!dashboardData) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-3 sm:p-6 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-gray-600">No dashboard data available</p>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-50 via-white to-green-50 p-3 sm:p-6">
-      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">        {/* Header */}
+      <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Teacher Dashboard</h1>
             <p className="text-gray-600 mt-1 text-sm sm:text-base">Attendance Management System</p>
           </div>
           <div className="flex items-center space-x-4">
-            <a 
+            <a
               href="/analytics"
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
             >
@@ -171,10 +194,10 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
           <CardHeader className="pb-2">
             <div className="flex items-start sm:items-center gap-3">
               <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center flex-shrink-0">
-                {teacherData.photo_url ? (
-                  <Image 
-                    src={teacherData.photo_url} 
-                    alt={teacherData.name}
+                {dashboardData.teacher.photoUrl ? (
+                  <Image
+                    src={dashboardData.teacher.photoUrl}
+                    alt={dashboardData.teacher.name}
                     width={40}
                     height={40}
                     className="rounded-full object-cover"
@@ -185,12 +208,12 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex flex-col gap-1">
-                  <span className="text-base sm:text-lg font-medium truncate">Welcome, {teacherData.name}</span>
+                  <span className="text-base sm:text-lg font-medium truncate">Welcome, {dashboardData.teacher.name}</span>
                   <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs sm:text-sm text-emerald-100">
-                    <span>{teacherData.employee_id}</span>
+                    <span>{dashboardData.teacher.departmentCode}</span>
                     <div className="flex items-center space-x-1 sm:space-x-2">
                       <GraduationCap className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
-                      <span className="truncate">{teacherData.college_name}</span>
+                      <span className="truncate">{dashboardData.teacher.college}</span>
                     </div>
                   </div>
                 </div>
@@ -199,11 +222,51 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
           </CardHeader>
         </Card>
 
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="text-sm font-medium">Total Courses</div>
+              <BookOpen className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <div className="px-6 pb-4">
+              <div className="text-2xl font-bold">{dashboardData.statistics.totalCourses}</div>
+            </div>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="text-sm font-medium">Total Students</div>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <div className="px-6 pb-4">
+              <div className="text-2xl font-bold">{dashboardData.statistics.totalStudents}</div>
+            </div>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="text-sm font-medium">Sessions Taken</div>
+              <Calendar className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <div className="px-6 pb-4">
+              <div className="text-2xl font-bold">{dashboardData.statistics.totalSessions}</div>
+            </div>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div className="text-sm font-medium">Avg Attendance</div>
+              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <div className="px-6 pb-4">
+              <div className="text-2xl font-bold">{dashboardData.statistics.averageAttendance.toFixed(1)}%</div>
+            </div>
+          </Card>
+        </div>
+
         {/* Master Search */}
         <div className="flex justify-center">
           <MasterSearch
             onNavigate={handleSearchNavigation}
-            placeholder="Search years, departments, courses, students..."
+            placeholder="Search courses, students..."
           />
         </div>
 
@@ -217,6 +280,7 @@ export default function TeacherDashboard() {  const [teacherData] = useState(moc
           onDepartmentSelect={setSelectedDepartment}
           onCourseSelect={setSelectedCourse}
           onSectionSelect={setSelectedSection}
+          courses={courses}
         />
 
         {/* Main Content */}
