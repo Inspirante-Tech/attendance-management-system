@@ -6,6 +6,8 @@ import { Card, CardHeader } from '@/components/ui/card'
 import { DropdownNavigation, type Course, type Section } from '@/app/teacher/dropdown-navigation'
 import { CourseManagement } from '@/app/teacher/course-management'
 import { MasterSearch } from '@/app/teacher/master-search'
+import { CoursesModal } from '@/components/teacher/courses-modal'
+import { StudentsModal } from '@/components/teacher/students-modal'
 import { TeacherAPI, type TeacherDashboardData, type CourseOffering } from '@/lib/teacher-api'
 import { authService } from '@/lib/auth'
 import {
@@ -22,6 +24,10 @@ export default function TeacherDashboard() {
   const [courses, setCourses] = useState<CourseOffering[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  // Modal states
+  const [showCoursesModal, setShowCoursesModal] = useState(false)
+  const [showStudentsModal, setShowStudentsModal] = useState(false)
 
   const [selectedYear, setSelectedYear] = useState<string | null>(null)
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null)
@@ -92,38 +98,48 @@ export default function TeacherDashboard() {
         )
 
         if (courseOffering) {
-          setSelectedYear(courseOffering.academicYear)
-          setSelectedDepartment(courseOffering.course.department)
-
-          setSelectedCourse({
-            course_id: courseOffering.course.id,
-            course_code: courseOffering.course.code,
-            course_name: courseOffering.course.name,
-            department_id: courseOffering.course.department,
-            total_students: courseOffering.enrolledStudents,
-            classes_completed: 25, // TODO: Get from API
-            total_classes: 40, // TODO: Get from API
-            attendance_percentage: 85.0, // TODO: Get from API
-            has_theory_component: courseOffering.course.hasTheoryComponent,
-            has_lab_component: courseOffering.course.hasLabComponent,
-            course_type: courseOffering.course.type,
-            offering_id: courseOffering.offeringId
-          })
-
-          if (courseOffering.section) {
-            setSelectedSection({
-              section_id: courseOffering.section.id,
-              section_name: courseOffering.section.name,
-              department_id: courseOffering.course.department,
-              total_students: courseOffering.enrolledStudents,
-              present_today: Math.floor(courseOffering.enrolledStudents * 0.85), // Mock
-              attendance_percentage: 85.0 // Mock
-            })
-          }
+          navigateToCourse(courseOffering)
         }
         break
       default:
         console.log('Search result type not yet implemented:', result.type)
+    }
+  }
+
+  // Handle course selection from courses modal
+  const handleCourseSelect = (courseOffering: CourseOffering) => {
+    resetSelection()
+    navigateToCourse(courseOffering)
+  }
+
+  const navigateToCourse = (courseOffering: CourseOffering) => {
+    setSelectedYear(courseOffering.academicYear)
+    setSelectedDepartment(courseOffering.course.department)
+
+    setSelectedCourse({
+      course_id: courseOffering.course.id,
+      course_code: courseOffering.course.code,
+      course_name: courseOffering.course.name,
+      department_id: courseOffering.course.department,
+      total_students: courseOffering.enrolledStudents,
+      classes_completed: 25, // TODO: Get from API
+      total_classes: 40, // TODO: Get from API
+      attendance_percentage: 85.0, // TODO: Get from API
+      has_theory_component: courseOffering.course.hasTheoryComponent,
+      has_lab_component: courseOffering.course.hasLabComponent,
+      course_type: courseOffering.course.type as 'regular' | 'open_elective',
+      offering_id: courseOffering.offeringId
+    })
+
+    if (courseOffering.section) {
+      setSelectedSection({
+        section_id: courseOffering.section.id,
+        section_name: courseOffering.section.name,
+        department_id: courseOffering.course.department,
+        total_students: courseOffering.enrolledStudents,
+        present_today: Math.floor(courseOffering.enrolledStudents * 0.85), // Mock
+        attendance_percentage: 85.0 // Mock
+      })
     }
   }
 
@@ -224,22 +240,30 @@ export default function TeacherDashboard() {
 
         {/* Statistics Cards */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-emerald-300"
+            onClick={() => setShowCoursesModal(true)}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="text-sm font-medium">Total Courses</div>
               <BookOpen className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <div className="px-6 pb-4">
               <div className="text-2xl font-bold">{dashboardData.statistics.totalCourses}</div>
+              <p className="text-xs text-muted-foreground mt-1">Click to view all courses</p>
             </div>
           </Card>
-          <Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:border-emerald-300"
+            onClick={() => setShowStudentsModal(true)}
+          >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <div className="text-sm font-medium">Total Students</div>
               <Users className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <div className="px-6 pb-4">
               <div className="text-2xl font-bold">{dashboardData.statistics.totalStudents}</div>
+              <p className="text-xs text-muted-foreground mt-1">Click to view all students</p>
             </div>
           </Card>
           <Card>
@@ -294,6 +318,18 @@ export default function TeacherDashboard() {
             />
           )}
         </div>
+
+        {/* Modals */}
+        <CoursesModal
+          open={showCoursesModal}
+          onOpenChange={setShowCoursesModal}
+          onCourseSelect={handleCourseSelect}
+        />
+
+        <StudentsModal
+          open={showStudentsModal}
+          onOpenChange={setShowStudentsModal}
+        />
       </div>
     </div>
   )

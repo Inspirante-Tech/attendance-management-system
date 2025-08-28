@@ -43,6 +43,7 @@ export interface Course {
   is_open_elective?: boolean
   has_theory_component?: boolean
   has_lab_component?: boolean
+  offering_id?: string
 }
 
 export interface Section {
@@ -149,7 +150,7 @@ export function DropdownNavigation({
       const response = await adminApi.getAllDepartments()
       // Handle the wrapped API response format
       const departmentData = response.status === 'success' ? response.data : []
-      
+
       // Ensure departmentData is an array
       if (!Array.isArray(departmentData)) {
         console.warn('Department data is not an array:', departmentData)
