@@ -146,19 +146,30 @@ export function DropdownNavigation({
   const loadDepartments = async () => {
     setLoading(prev => ({ ...prev, departments: true }))
     try {
-      const departmentData = await adminApi.getAllDepartments()
+      const response = await adminApi.getAllDepartments()
+      // Handle the wrapped API response format
+      const departmentData = response.status === 'success' ? response.data : []
+      
+      // Ensure departmentData is an array
+      if (!Array.isArray(departmentData)) {
+        console.warn('Department data is not an array:', departmentData)
+        setDepartments([])
+        return
+      }
+
       // Transform department data to match expected format
       const transformedDepts = departmentData.map((dept: any) => ({
         department_id: dept.code,
         department_name: dept.name,
         short_name: dept.code,
-        total_students: dept.total_students || 0,
-        total_courses: dept.total_courses || 0,
-        active_classes_today: dept.active_classes_today || 0
+        total_students: dept.students?.length || 0,
+        total_courses: dept.courses?.length || 0,
+        active_classes_today: 0 // This would need to be calculated
       }))
       setDepartments(transformedDepts)
     } catch (error) {
       console.error('Error loading departments:', error)
+      setDepartments([]) // Set empty array as fallback
     } finally {
       setLoading(prev => ({ ...prev, departments: false }))
     }
