@@ -17,7 +17,6 @@ import {
     Download
 } from 'lucide-react'
 import { TeacherAPI, type CourseOffering } from '@/lib/teacher-api'
-import { adminApi } from '@/lib/api'
 
 // Types for marks and attendance 
 interface StudentMark {
@@ -104,12 +103,9 @@ export default function TeacherMarksAttendanceManagement({
                         // For each student, get their marks
                         for (const studentData of studentsResponse) {
                             try {
-                                const marksResponse = await adminApi.getStudentMarks(
+                                const marksResponse = await TeacherAPI.getStudentMarks(
                                     course.course.id, // courseId
-                                    undefined, // departmentId
-                                    undefined, // year
-                                    undefined, // studentId (UUID)
-                                    studentData.student.usn // studentUsn (USN string)
+                                    studentData.student.usn // studentUsn
                                 )
 
                                 if (marksResponse.status === 'success' && marksResponse.data.length > 0) {
@@ -185,11 +181,8 @@ export default function TeacherMarksAttendanceManagement({
 
                 for (const studentData of studentsResponse) {
                     try {
-                        const marksResponse = await adminApi.getStudentMarks(
+                        const marksResponse = await TeacherAPI.getStudentMarks(
                             course.course.id,
-                            undefined,
-                            undefined,
-                            undefined,
                             studentData.student.usn
                         )
 
@@ -264,10 +257,9 @@ export default function TeacherMarksAttendanceManagement({
         setError(null)
         try {
             // Load attendance for the selected date
-            const response = await adminApi.getAttendanceByDate(
+            const response = await TeacherAPI.getAttendanceByDate(
                 selectedDate,
-                selectedCourse !== 'all' ? selectedCourse : undefined,
-                undefined // departmentId
+                selectedCourse !== 'all' ? selectedCourse : undefined
             )
 
             if (response.status === 'success') {
@@ -302,7 +294,7 @@ export default function TeacherMarksAttendanceManagement({
     const handleMarkEdit = async (enrollmentId: string, field: string, value: string) => {
         const numValue = value === '' ? null : parseInt(value)
         try {
-            const response = await adminApi.updateStudentMark(enrollmentId, field, numValue)
+            const response = await TeacherAPI.updateStudentMark(enrollmentId, field, numValue)
             if (response.status === 'success') {
                 // Update local state
                 setMarks(prev => prev.map(mark => {
@@ -361,7 +353,7 @@ export default function TeacherMarksAttendanceManagement({
         try {
             if (recordId.startsWith('pending-') || record.status === 'not_marked') {
                 // Create new attendance record
-                const response = await adminApi.createAttendanceRecord({
+                const response = await TeacherAPI.createAttendanceRecord({
                     studentId: record.studentId,
                     date: record.date,
                     status: 'present',
@@ -380,7 +372,7 @@ export default function TeacherMarksAttendanceManagement({
             } else {
                 // Toggle existing attendance record
                 const newStatus = record.status === 'present' ? 'absent' : 'present'
-                const response = await adminApi.updateAttendance(recordId, newStatus)
+                const response = await TeacherAPI.updateAttendance(recordId, newStatus)
 
                 if (response.status === 'success') {
                     setAttendanceRecords(prev => prev.map(r =>
@@ -391,6 +383,48 @@ export default function TeacherMarksAttendanceManagement({
         } catch (err) {
             console.error('Error updating attendance:', err)
             setError('Failed to update attendance')
+        }
+    }
+
+    // Create attendance session for selected date and course
+    const createAttendanceSession = async () => {
+        if (selectedCourse === 'all') {
+            setError('Please select a specific course to create attendance session')
+            return
+        }
+
+        setLoading(true)
+        setError(null)
+
+        try {
+            const response = await TeacherAPI.createAttendanceSession({
+                courseId: selectedCourse,
+                date: selectedDate,
+                periodNumber: 1,
+                syllabusCovered: ''
+            })
+
+            if (response.status === 'success') {
+                // Convert the new session data to our AttendanceRecord format
+                const newRecords: AttendanceRecord[] = response.data.records.map((record: any) => ({
+                    id: record.id,
+                    date: selectedDate,
+                    studentId: record.studentId,
+                    usn: record.usn,
+                    student_name: record.student_name,
+                    status: record.status as 'present' | 'absent',
+                    courseId: selectedCourse,
+                    courseName: response.data.course?.name || 'Unknown Course'
+                }))
+
+                setAttendanceRecords(newRecords)
+                console.log(`✅ ${response.message}`)
+            }
+        } catch (err) {
+            console.error('Error creating attendance session:', err)
+            setError('Failed to create attendance session')
+        } finally {
+            setLoading(false)
         }
     }
 
@@ -792,10 +826,25 @@ export default function TeacherMarksAttendanceManagement({
                                         }
                                     </CardDescription>
                                 </div>
-                                <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
-                                    <Save className="w-4 h-4 mr-2" />
-                                    Save Changes
-                                </Button>
+                                <div className="flex gap-2">
+                                    {attendanceRecords.length === 0 && selectedCourse !== 'all' && (
+                                        <Button
+                                            onClick={createAttendanceSession}
+                                            size="sm"
+                                            className="bg-blue-600 hover:bg-blue-700"
+                                            disabled={loading}
+                                        >
+                                            <Users className="w-4 h-4 mr-2" />
+                                            Create Attendance Session
+                                        </Button>
+                                    )}
+                                    {attendanceRecords.length > 0 && (
+                                        <Button size="sm" className="bg-emerald-600 hover:bg-emerald-700">
+                                            <Save className="w-4 h-4 mr-2" />
+                                            Save Changes
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent className="p-0">
@@ -810,44 +859,66 @@ export default function TeacherMarksAttendanceManagement({
                                         </tr>
                                     </thead>
                                     <tbody className="bg-white">
-                                        {attendanceRecords.map((record) => (
-                                            <tr key={record.id} className="hover:bg-gray-50">
-                                                <td className="border border-gray-300 px-3 py-2 font-mono text-sm">{record.usn}</td>
-                                                <td className="border border-gray-300 px-3 py-2 font-medium">{record.student_name}</td>
-                                                <td className="border border-gray-300 px-3 py-2">
-                                                    <div className="text-sm">
-                                                        <div className="font-medium">{record.courseName || 'No Course'}</div>
+                                        {attendanceRecords.length === 0 ? (
+                                            <tr>
+                                                <td colSpan={4} className="border border-gray-300 px-6 py-8 text-center">
+                                                    <div className="text-gray-500">
+                                                        {selectedCourse === 'all' ? (
+                                                            <div>
+                                                                <Users className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                                                <p className="font-medium">Select a specific course to mark attendance</p>
+                                                                <p className="text-sm">Choose a course from the dropdown above to create an attendance session</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div>
+                                                                <Calendar className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                                                                <p className="font-medium">No attendance session for this date</p>
+                                                                <p className="text-sm">Click "Create Attendance Session" to start marking attendance</p>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </td>
-                                                <td className="border border-gray-300 px-3 py-2">
-                                                    <button
-                                                        onClick={() => toggleAttendance(record.id)}
-                                                        className={`inline-flex items-center px-3 py-2 rounded-full text-xs font-medium transition-colors duration-200 ${record.status === 'present'
-                                                            ? 'bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer'
-                                                            : record.status === 'absent'
-                                                                ? 'bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer'
-                                                                : 'bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer'
-                                                            } hover:scale-105`}
-                                                        title={
-                                                            record.status === 'not_marked'
-                                                                ? 'Click to mark as Present'
-                                                                : record.status === 'present'
-                                                                    ? 'Click to mark as Absent'
-                                                                    : 'Click to mark as Present'
-                                                        }
-                                                    >
-                                                        {record.status === 'present' ? (
-                                                            <CheckCircle className="w-3 h-3 mr-1" />
-                                                        ) : record.status === 'absent' ? (
-                                                            <XCircle className="w-3 h-3 mr-1" />
-                                                        ) : (
-                                                            <Clock className="w-3 h-3 mr-1" />
-                                                        )}
-                                                        {record.status === 'not_marked' ? 'Not Marked' : record.status === 'present' ? 'Present' : 'Absent'}
-                                                    </button>
-                                                </td>
                                             </tr>
-                                        ))}
+                                        ) : (
+                                            attendanceRecords.map((record) => (
+                                                <tr key={record.id} className="hover:bg-gray-50">
+                                                    <td className="border border-gray-300 px-3 py-2 font-mono text-sm">{record.usn}</td>
+                                                    <td className="border border-gray-300 px-3 py-2 font-medium">{record.student_name}</td>
+                                                    <td className="border border-gray-300 px-3 py-2">
+                                                        <div className="text-sm">
+                                                            <div className="font-medium">{record.courseName || 'No Course'}</div>
+                                                        </div>
+                                                    </td>
+                                                    <td className="border border-gray-300 px-3 py-2">
+                                                        <button
+                                                            onClick={() => toggleAttendance(record.id)}
+                                                            className={`inline-flex items-center px-3 py-2 rounded-full text-xs font-medium transition-colors duration-200 ${record.status === 'present'
+                                                                ? 'bg-green-100 text-green-800 hover:bg-green-200 cursor-pointer'
+                                                                : record.status === 'absent'
+                                                                    ? 'bg-red-100 text-red-800 hover:bg-red-200 cursor-pointer'
+                                                                    : 'bg-gray-100 text-gray-800 hover:bg-gray-200 cursor-pointer'
+                                                                } hover:scale-105`}
+                                                            title={
+                                                                record.status === 'not_marked'
+                                                                    ? 'Click to mark as Present'
+                                                                    : record.status === 'present'
+                                                                        ? 'Click to mark as Absent'
+                                                                        : 'Click to mark as Present'
+                                                            }
+                                                        >
+                                                            {record.status === 'present' ? (
+                                                                <CheckCircle className="w-3 h-3 mr-1" />
+                                                            ) : record.status === 'absent' ? (
+                                                                <XCircle className="w-3 h-3 mr-1" />
+                                                            ) : (
+                                                                <Clock className="w-3 h-3 mr-1" />
+                                                            )}
+                                                            {record.status === 'not_marked' ? 'Not Marked' : record.status === 'present' ? 'Present' : 'Absent'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))
+                                        )}
                                     </tbody>
                                 </table>
                             </div>

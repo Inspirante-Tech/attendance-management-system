@@ -399,4 +399,132 @@ export class TeacherAPI {
             return [];
         }
     }
+
+    // Update student marks (teacher-specific endpoint)
+    static async updateStudentMark(enrollmentId: string, field: string, value: number | null): Promise<{
+        status: 'success' | 'error';
+        message?: string;
+    }> {
+        const response = await fetch(`${API_BASE_URL}/teacher/marks/${enrollmentId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ [field]: value }),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status !== 'success') {
+            throw new Error(result.message || 'Failed to update marks');
+        }
+
+        return result;
+    }
+
+    // Get marks for students in teacher's courses
+    static async getStudentMarks(courseId?: string, studentUsn?: string): Promise<{
+        status: 'success' | 'error';
+        data: any[];
+        message?: string;
+    }> {
+        const params = new URLSearchParams();
+        if (courseId) params.append('courseId', courseId);
+        if (studentUsn) params.append('studentUsn', studentUsn);
+
+        const response = await fetch(`${API_BASE_URL}/teacher/marks?${params.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status !== 'success') {
+            throw new Error(result.message || 'Failed to fetch marks');
+        }
+
+        return result;
+    }
+
+    // Attendance Management Methods
+    static async getAttendanceByDate(date: string, courseId?: string): Promise<{ status: string; data: any[] }> {
+        const params = new URLSearchParams();
+        params.append('date', date);
+        if (courseId) params.append('courseId', courseId);
+
+        const response = await fetch(`${API_BASE_URL}/teacher/attendance?${params.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders()
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    static async createAttendanceRecord(data: {
+        studentId: string;
+        date: string;
+        status: 'present' | 'absent';
+        courseId?: string;
+    }): Promise<{ status: string; data: any }> {
+        const response = await fetch(`${API_BASE_URL}/teacher/attendance`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    static async updateAttendance(attendanceId: string, status: 'present' | 'absent'): Promise<{ status: string; data: any }> {
+        const response = await fetch(`${API_BASE_URL}/teacher/attendance/${attendanceId}`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ status })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
+
+    static async createAttendanceSession(data: {
+        courseId: string;
+        date: string;
+        periodNumber?: number;
+        syllabusCovered?: string;
+    }): Promise<{ status: string; data: any; message: string }> {
+        const response = await fetch(`${API_BASE_URL}/teacher/attendance/session`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        return await response.json();
+    }
 }
