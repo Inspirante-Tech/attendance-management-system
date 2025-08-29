@@ -91,10 +91,25 @@ model Student {
   departments       Department?         @relation(fields: [department_id], references: [id], onUpdate: NoAction)
   sections          sections?           @relation(fields: [section_id], references: [section_id], onUpdate: NoAction)
   user              User                @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
+  marks             Mark[]
   @@map("students")
 }
 
+model Mark {
+  id             String             @id @default(dbgenerated("uuid_generate_v4()")) @map("mark_id") @db.Uuid
+  studentId      String             @map("student_id") @db.Uuid
+  assessmentId   String             @map("assessment_id") @db.Uuid
+  enrollmentId   String?            @map("enrollment_id") @db.Uuid
+  obtainedMarks  Int?               @map("obtained_marks") @db.SmallInt
+  lastUpdatedAt  DateTime?          @default(now()) @map("last_updated_at") @db.Timestamp(6)
+
+  student        Student            @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  assessment     Assessment         @relation(fields: [assessmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  enrollment     StudentEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([studentId, assessmentId]) // each student has 1 mark per assessment
+  @@map("marks")
+}
 model Teacher {
   id              String           @id @default(dbgenerated("uuid_generate_v4()")) @map("teacher_id") @db.Uuid
   userId          String           @unique @map("user_id") @db.Uuid
@@ -164,6 +179,19 @@ model OpenElectiveRestriction {
   @@map("open_elective_restrictions")
 }
 
+
+
+model Assessment {
+  id              String          @id @default(dbgenerated("uuid_generate_v4()")) @map("assessment_id") @db.Uuid
+  courseOffering  CourseOffering  @relation(fields: [courseOfferingId], references: [id])
+  courseOfferingId String         @map("offering_id") @db.Uuid
+  name            String          // e.g. "MSE1", "Lab", "Task1"
+  maxMarks        Int             // e.g. 50, 100
+  weightage       Int             // e.g. 100%, 50%
+  order           Int             // for ordering assessments in table
+  marks           Mark[]          // 🔑 link to student marks
+}
+
 model CourseOffering {
   id             String              @id @default(dbgenerated("uuid_generate_v4()")) @map("offering_id") @db.Uuid
   courseId       String              @map("course_id") @db.Uuid
@@ -177,20 +205,9 @@ model CourseOffering {
   teacher        Teacher?            @relation(fields: [teacherId], references: [id], onUpdate: NoAction)
   academic_years academic_years?     @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
   enrollments    StudentEnrollment[]
-
+  assessments    Assessment[]  
+  marks          Mark[]        
   @@map("course_offerings")
-}
-
-model HybridMarks {
-  id        String         @id @default(dbgenerated("uuid_generate_v4()")) @map("hybrid_marks_id") @db.Uuid
-  cid       String         @map("offering_id") @db.Uuid
-  maxmarks  Int
-  testname  String
-
-  // relation to CourseOffering
-  courseOffering CourseOffering @relation(fields: [cid], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("hybrid_marks") // DB table name
 }
 
 model StudentEnrollment {
@@ -199,14 +216,17 @@ model StudentEnrollment {
   offeringId     String?         @map("offering_id") @db.Uuid
   attemptNumber  Int?            @default(1) @map("attempt_number")
   year_id        String?         @db.Uuid
-  labMarks       LabMarks?
+
   offering       CourseOffering? @relation(fields: [offeringId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   student        Student?        @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   academic_years academic_years? @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
-  theoryMarks    TheoryMarks?
+
+  // NEW: All marks of this student for this enrollment
+  marks          Mark[]
 
   @@map("student_enrollments")
 }
+
 
 model Attendance {
   id                String             @id @default(dbgenerated("uuid_generate_v4()")) @map("attendance_id") @db.Uuid
@@ -234,32 +254,34 @@ model AttendanceRecord {
   @@map("attendance_records")
 }
 
-model TheoryMarks {
-  id            String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
-  enrollmentId  String            @unique @map("enrollment_id") @db.Uuid
-  mse1Marks     Int?              @map("mse1_marks") @db.SmallInt
-  mse2Marks     Int?              @map("mse2_marks") @db.SmallInt
-  mse3Marks     Int?              @map("mse3_marks") @db.SmallInt
-  task1Marks    Int?              @map("task1_marks") @db.SmallInt
-  task2Marks    Int?              @map("task2_marks") @db.SmallInt
-  task3Marks    Int?              @map("task3_marks") @db.SmallInt
-  lastUpdatedAt DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
-  enrollment    StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+//removed it for using dynamic table
 
-  @@map("theory_marks")
-}
+// model TheoryMarks {
+//   id            String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
+//   enrollmentId  String            @unique @map("enrollment_id") @db.Uuid
+//   mse1Marks     Int?              @map("mse1_marks") @db.SmallInt
+//   mse2Marks     Int?              @map("mse2_marks") @db.SmallInt
+//   mse3Marks     Int?              @map("mse3_marks") @db.SmallInt
+//   task1Marks    Int?              @map("task1_marks") @db.SmallInt
+//   task2Marks    Int?              @map("task2_marks") @db.SmallInt
+//   task3Marks    Int?              @map("task3_marks") @db.SmallInt
+//   lastUpdatedAt DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
+//   enrollment    StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-model LabMarks {
-  id                        String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
-  enrollmentId              String            @unique @map("enrollment_id") @db.Uuid
-  recordMarks               Int?              @map("record_marks") @db.SmallInt
-  continuousEvaluationMarks Int?              @map("continuous_evaluation_marks") @db.SmallInt
-  labMseMarks               Int?              @map("lab_mse_marks") @db.SmallInt
-  lastUpdatedAt             DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
-  enrollment                StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+//   @@map("theory_marks")
+// }
 
-  @@map("lab_marks")
-}
+// model LabMarks {
+//   id                        String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
+//   enrollmentId              String            @unique @map("enrollment_id") @db.Uuid
+//   recordMarks               Int?              @map("record_marks") @db.SmallInt
+//   continuousEvaluationMarks Int?              @map("continuous_evaluation_marks") @db.SmallInt
+//   labMseMarks               Int?              @map("lab_mse_marks") @db.SmallInt
+//   lastUpdatedAt             DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
+//   enrollment                StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+//   @@map("lab_marks")
+// }
 
 model Admin {
   id     String @id @default(dbgenerated("uuid_generate_v4()")) @map("admin_id") @db.Uuid
