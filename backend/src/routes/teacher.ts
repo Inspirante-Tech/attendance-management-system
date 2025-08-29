@@ -608,4 +608,96 @@ router.get('/courses/:offeringId/attendance-analytics', authenticateToken, async
     }
 });
 
+// TEST ROUTE - to verify routing is working
+router.get('/courses/:offeringId/test', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    console.log('🔥🔥🔥 TEST ROUTE HIT!!! 🔥🔥🔥');
+    res.json({ message: 'Test route works!', offeringId: req.params.offeringId });
+});
+
+// Get course statistics for dashboard
+router.get('/courses/:offeringId/statistics', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    console.log('🚨🚨🚨 STATISTICS ROUTE HIT!!! 🚨🚨🚨');
+    try {
+        const userId = req.user?.id;
+        const { offeringId } = req.params;
+
+        console.log('=== COURSE STATISTICS REQUEST ===');
+        console.log('User ID:', userId);
+        console.log('Offering ID:', offeringId);
+
+        if (!userId) {
+            console.log('ERROR: User not authenticated');
+            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+        }
+
+        const prisma = DatabaseService.getInstance();
+
+        // Verify teacher has access to this course offering
+        const teacher = await prisma.teacher.findUnique({
+            where: { userId },
+            include: {
+                courseOfferings: {
+                    where: { id: offeringId }
+                }
+            }
+        });
+
+        console.log('Teacher found:', teacher ? 'Yes' : 'No');
+        console.log('Course offerings for teacher:', teacher?.courseOfferings?.length || 0);
+
+        if (!teacher || teacher.courseOfferings.length === 0) {
+            console.log('ERROR: Access denied to course offering', offeringId);
+            console.log('Teacher courseOfferings:', teacher?.courseOfferings);
+            return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
+        }
+
+        console.log('Access granted, fetching statistics...');
+
+        // Get statistics for this course offering
+        const attendanceSessions = await prisma.attendance.findMany({
+            where: {
+                offeringId,
+                teacherId: teacher.id,
+                status: 'held'
+            },
+            include: {
+                attendanceRecords: true
+            }
+        });
+
+        console.log('Attendance sessions found:', attendanceSessions.length);
+
+        const totalClasses = attendanceSessions.length;
+        const totalAttendanceRecords = attendanceSessions.reduce((sum, session) => sum + session.attendanceRecords.length, 0);
+        const totalPresentRecords = attendanceSessions.reduce((sum, session) =>
+            sum + session.attendanceRecords.filter(record => record.status === 'present').length, 0);
+
+        const overallAttendancePercentage = totalAttendanceRecords > 0
+            ? (totalPresentRecords / totalAttendanceRecords) * 100
+            : 0;
+
+        const statistics = {
+            classesCompleted: totalClasses,
+            totalClasses: totalClasses, // For now, assume all held sessions are completed
+            overallAttendancePercentage: Math.round(overallAttendancePercentage * 10) / 10
+        };
+
+        console.log('Statistics calculated:', statistics);
+        console.log('=== END COURSE STATISTICS REQUEST ===');
+
+        res.json({
+            status: 'success',
+            data: statistics
+        });
+
+    } catch (error) {
+        console.error('Course statistics error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to load course statistics',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
 export default router;

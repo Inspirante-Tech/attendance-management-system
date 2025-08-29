@@ -280,33 +280,51 @@ export class TeacherAPI {
         overallAttendancePercentage: number;
     }> {
         try {
-            // Get attendance history to calculate statistics
-            const [historyData, analyticsData] = await Promise.all([
-                this.getAttendanceHistory(offeringId, 100), // Get more records for accurate count
-                this.getAttendanceAnalytics(offeringId)
-            ]);
+            const response = await fetch(`${API_BASE_URL}/teacher/courses/${offeringId}/statistics`, {
+                method: 'GET',
+                headers: getAuthHeaders(),
+            });
 
-            const totalClasses = historyData.length;
-            const classesCompleted = historyData.length; // All records represent completed classes
+            if (!response.ok) {
+                throw new Error(`Failed to fetch course statistics: ${response.statusText}`);
+            }
 
-            // Calculate overall attendance percentage from analytics
-            const overallAttendancePercentage = analyticsData.length > 0
-                ? analyticsData.reduce((sum, student) => sum + student.attendance.attendancePercentage, 0) / analyticsData.length
-                : 0;
+            const result = await response.json();
 
-            return {
-                totalClasses,
-                classesCompleted,
-                overallAttendancePercentage: Math.round(overallAttendancePercentage * 10) / 10
-            };
+            if (result.status !== 'success') {
+                throw new Error(result.message || 'Failed to fetch course statistics');
+            }
+
+            return result.data;
         } catch (error) {
             console.error('Error fetching course statistics:', error);
-            // Return default values if API call fails
-            return {
-                totalClasses: 0,
-                classesCompleted: 0,
-                overallAttendancePercentage: 0
-            };
+            // Fallback to existing method if new endpoint fails
+            try {
+                const [historyData, analyticsData] = await Promise.all([
+                    this.getAttendanceHistory(offeringId, 100),
+                    this.getAttendanceAnalytics(offeringId)
+                ]);
+
+                const totalClasses = historyData.length;
+                const classesCompleted = historyData.length;
+
+                const overallAttendancePercentage = analyticsData.length > 0
+                    ? analyticsData.reduce((sum, student) => sum + student.attendance.attendancePercentage, 0) / analyticsData.length
+                    : 0;
+
+                return {
+                    totalClasses,
+                    classesCompleted,
+                    overallAttendancePercentage: Math.round(overallAttendancePercentage * 10) / 10
+                };
+            } catch (fallbackError) {
+                console.error('Error with fallback course statistics:', fallbackError);
+                return {
+                    totalClasses: 0,
+                    classesCompleted: 0,
+                    overallAttendancePercentage: 0
+                };
+            }
         }
     }
 

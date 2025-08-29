@@ -36,6 +36,8 @@ let teacherRoutes;
 try {
   teacherRoutes = require('./routes/teacher').default;
   console.log('=== Teacher routes imported successfully ===');
+  console.log('=== Teacher routes type:', typeof teacherRoutes);
+  console.log('=== Teacher routes is function:', typeof teacherRoutes === 'function');
 } catch (error) {
   console.error('=== Error importing teacher routes ===', error);
 }
@@ -53,6 +55,19 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
+
+// Add request logging to debug API calls
+app.use((req, res, next) => {
+  if (req.path.includes('/teacher/courses/') && req.path.includes('/statistics')) {
+    console.log('=== STATISTICS ENDPOINT REQUEST ===');
+    console.log('Method:', req.method);
+    console.log('Path:', req.path);
+    console.log('URL:', req.url);
+    console.log('Headers:', req.headers.authorization ? 'Authorization header present' : 'No auth header');
+    console.log('=== END STATISTICS REQUEST LOG ===');
+  }
+  next();
+});
 
 const PORT = process.env.PORT || 4000;
 
