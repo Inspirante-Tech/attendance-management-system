@@ -131,7 +131,9 @@ export default function TeacherDashboard() {
 
     try {
       // Get real course statistics from API
+      console.log('Fetching course statistics for offering ID:', courseOffering.offeringId)
       const courseStats = await TeacherAPI.getCourseStatistics(courseOffering.offeringId)
+      console.log('Course statistics received:', courseStats)
 
       setSelectedCourse({
         course_id: courseOffering.course.id,
@@ -148,7 +150,13 @@ export default function TeacherDashboard() {
         offering_id: courseOffering.offeringId
       })
     } catch (error) {
-      console.error('Error fetching course statistics:', error)
+      console.error('Error fetching course statistics for offering ID:', courseOffering.offeringId, error)
+      console.error('Error details:', {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        offeringId: courseOffering.offeringId,
+        courseCode: courseOffering.course.code,
+        courseName: courseOffering.course.name
+      })
       // Fallback to default values if API fails
       setSelectedCourse({
         course_id: courseOffering.course.id,
@@ -254,8 +262,17 @@ export default function TeacherDashboard() {
           </div>
           <div className="flex items-center space-x-4">
             <a
-              href="/analytics"
+              href="/teacher/marks-attendance"
               className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors flex items-center space-x-2"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
+              </svg>
+              <span>View/Edit All</span>
+            </a>
+            <a
+              href="/analytics"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
@@ -358,6 +375,7 @@ export default function TeacherDashboard() {
             ref={masterSearchRef}
             onNavigate={handleSearchNavigation}
             placeholder="Search courses, students..."
+            hidden={showCoursesModal || showStudentsModal}
           />
         </div>
 
@@ -389,6 +407,7 @@ export default function TeacherDashboard() {
               selectedYear={selectedYear}
               selectedDepartment={selectedDepartment}
               selectedSection={selectedSection}
+              courses={courses}
             />
           )}
         </div>
