@@ -148,12 +148,12 @@ export default function AttendanceAnalytics({ academicYear }: AttendanceAnalytic
                       </div>
 
                       <div className="grid grid-cols-1 gap-2">
-                        {section.courseStats.map((course) => {
+                        {section.courseStats.map((course, courseIndex) => {
                           const courseKey = `${dept.code}-${section.section}-${course.code}`;
                           const isExpanded = expandedCourses.includes(courseKey);
 
                           return (
-                            <div key={course.code} className="bg-gray-50 p-3 rounded">
+                            <div key={`${section.section}-${course.code}-${courseIndex}`} className="bg-gray-50 p-3 rounded">
                               <div
                                 className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
                                 onClick={() => toggleCourse(courseKey)}
