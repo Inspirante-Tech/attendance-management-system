@@ -4,10 +4,10 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
+import {
+  Plus,
+  Search,
+  Edit,
   Trash2,
   BookOpen,
   Building2,
@@ -16,7 +16,7 @@ import {
   AlertCircle,
   MessageSquarePlusIcon,
   UserPlus
-  
+
 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 import Cookies from 'js-cookie'
@@ -74,7 +74,7 @@ interface Course {
       name: string
     }
   }[]
-} 
+}
 
 // Helper function to extract year from course - now uses backend year data
 const getCourseYear = (course: Course): string => {
@@ -88,7 +88,7 @@ const getCourseYear = (course: Course): string => {
       default: return '1st'
     }
   }
-  
+
   // Fallback to extracting from course code if no year field
   const yearMatch = course.code.match(/[A-Z]{2,4}([1-4])[0-9]{2,3}/)
   if (yearMatch) {
@@ -101,7 +101,7 @@ const getCourseYear = (course: Course): string => {
       default: return '1st'
     }
   }
-  
+
   // Default to 1st if no pattern matches
   return '1st'
 }
@@ -126,7 +126,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     hasLabComponent: false,
     restrictedDepartments: [] as string[] // Add restricted departments for open electives
   })
-  
+
   // Edit functionality state
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -181,13 +181,13 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       try {
         setLoading(true)
         setError(null)
-        
+
         // Fetch both courses and departments using the new course management endpoint
         const [coursesResponse, departmentsResponse] = await Promise.all([
           adminApi.getCourseManagement(),
           adminApi.getAllDepartments()
         ])
-        console.log(coursesResponse)  
+        console.log(coursesResponse)
         if (coursesResponse.status === 'success') {
           // Transform API data to match our Course interface
           const transformedCourses: Course[] = coursesResponse.data.map((course: any) => ({
@@ -212,12 +212,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
             teacherAssigned: course.teacherAssigned || false,
             openElectiveRestrictions: course.openElectiveRestrictions || []
           }))
-          
+
           setCourses(transformedCourses)
         } else {
           setError(coursesResponse.error || 'Failed to fetch courses')
         }
-        
+
         if (departmentsResponse.status === 'success') {
           setDepartments(departmentsResponse.data.map((dept: any) => ({
             id: dept.id,
@@ -245,8 +245,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   // Get filtered courses
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         course.department.name.toLowerCase().includes(searchTerm.toLowerCase())
+      course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.department.name.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (!matchesSearch) return false
 
@@ -261,12 +261,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     if (selectedYear !== 'all') {
       // Use the same logic as getCourseYear to extract year consistently
       const courseYear = getCourseYear(course)
-      const expectedYear = selectedYear === '1' ? '1st' : 
-                          selectedYear === '2' ? '2nd' : 
-                          selectedYear === '3' ? '3rd' : 
-                          selectedYear === '4' ? '4th' : 
-                          '1st' // default fallback
-      
+      const expectedYear = selectedYear === '1' ? '1st' :
+        selectedYear === '2' ? '2nd' :
+          selectedYear === '3' ? '3rd' :
+            selectedYear === '4' ? '4th' :
+              '1st' // default fallback
+
       if (courseYear !== expectedYear) {
         return false
       }
@@ -298,7 +298,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           adminApi.getAllCourses(),
           adminApi.getAllDepartments()
         ])
-        
+
         if (coursesResponse.status === 'success') {
           const transformedCourses: Course[] = coursesResponse.data.map((course: any) => ({
             id: course.id,
@@ -320,12 +320,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
             offerings: course.courseOfferings || [],
             openElectiveRestrictions: course.openElectiveRestrictions || []
           }))
-          
+
           setCourses(transformedCourses)
         } else {
           setError(coursesResponse.error || 'Failed to fetch courses')
         }
-        
+
         if (departmentsResponse.status === 'success') {
           setDepartments(departmentsResponse.data.map((dept: any) => ({
             id: dept.id,
@@ -359,7 +359,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               .filter(([, count]) => (count as number) > 0)
               .map(([type, count]) => `${count} ${type}`)
               .join(', ')
-            
+
             // Offer force delete option
             const forceDelete = confirm(
               `Cannot delete course: ${errorMsg}\n\nDependencies found: ${depDetails}\n\n` +
@@ -368,7 +368,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               `⚠️ THIS WILL PERMANENTLY DELETE ALL RELATED RECORDS ⚠️\n\n` +
               `Click Cancel to abort the deletion.`
             )
-            
+
             if (forceDelete) {
               await forceDeleteCourse(courseId)
             }
@@ -402,7 +402,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   // Open edit form
   const openEditForm = (course: Course) => {
     setEditingCourse(course)
-    
+
     // Extract year as string from course year or course code
     let yearString = '1'; // default
     if (course.year) {
@@ -414,7 +414,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         yearString = yearMatch[1];
       }
     }
-    
+
     setEditFormData({
       code: course.code,
       name: course.name,
@@ -444,7 +444,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         hasLabComponent: editFormData.hasLabComponent,
         restrictedDepartments: editFormData.restrictedDepartments
       })
-      
+
       if (response.status === 'success') {
         // Refresh the data instead of trying to merge form data
         refreshData()
@@ -475,7 +475,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           hasLabComponent: newCourse.hasLabComponent,
           restrictedDepartments: newCourse.restrictedDepartments
         })
-        
+
         if (response.status === 'success') {
           // Add the new course to the list
           const newCourseData: Course = {
@@ -496,7 +496,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
             hasLabComponent: response.data.hasLabComponent || newCourse.hasLabComponent,
             offerings: []
           }
-          
+
           setCourses(prev => [...prev, newCourseData])
           setNewCourse({
             code: '',
@@ -527,15 +527,15 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     setSelectedCourse(course)
     setShowEnrollmentModal(true)
     setSelectedStudents([]) // Clear previous selections
-    
+
     try {
       setEnrollmentLoading(true)
-      
+
       // Fetch teachers first
       const teachersResponse = await adminApi.getUsersByRole('teacher')
       if (teachersResponse.status === 'success') {
         setTeachers(teachersResponse.data)
-        
+
         // Pre-select teacher AFTER teachers are loaded
         if (course.teacherAssigned && course.teacher) {
           setSelectedTeacher(course.teacher.id)
@@ -543,10 +543,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           setSelectedTeacher('')
         }
       }
-      
+
       // Fetch eligible students
       await fetchEligibleStudents(course.id, enrollmentYear, enrollmentSemester)
-      
+
     } catch (error) {
       console.error('Error fetching enrollment data:', error)
       setError('Failed to load enrollment data')
@@ -588,7 +588,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     }
 
     // For core courses, automatically enroll all eligible students
-    const studentsToEnroll = selectedCourse.type === 'core' 
+    const studentsToEnroll = selectedCourse.type === 'core'
       ? eligibleStudents.map(s => s.id)
       : selectedStudents
 
@@ -601,18 +601,18 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     try {
       setEnrollmentLoading(true)
       const response = await adminApi.enrollStudents(
-        selectedCourse.id, 
-        studentsToEnroll, 
-        enrollmentYear, 
-        enrollmentSemester, 
+        selectedCourse.id,
+        studentsToEnroll,
+        enrollmentYear,
+        enrollmentSemester,
         selectedTeacher || undefined
       )
-      
+
       if (response.status === 'success') {
         const enrolledCount = response.data.enrollmentsCreated
         const courseTypeText = selectedCourse.type === 'core' ? 'automatically enrolled' : 'enrolled'
         alert(`Successfully ${courseTypeText} ${enrolledCount} students`)
-        
+
         // For core courses, clear the students list since they're all enrolled
         // For electives, clear selections and refresh
         if (selectedCourse.type === 'core') {
@@ -690,7 +690,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         // Reset file input
         const fileInput = document.getElementById('csv-upload') as HTMLInputElement
         if (fileInput) fileInput.value = ''
-        
+
         // Refresh eligible students list
         if (selectedCourse) {
           await fetchEligibleStudents(selectedCourse.id, enrollmentYear, enrollmentSemester)
@@ -759,7 +759,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         <div className="flex flex-wrap gap-4 items-center">
           <div className="flex-1 min-w-[200px] max-w-[700px]">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-600" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-black" />
               <Input
                 placeholder="Search courses..."
                 value={searchTerm}
@@ -768,7 +768,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               />
             </div>
           </div>
-          
+
           <select
             value={selectedDepartment}
             onChange={(e) => setSelectedDepartment(e.target.value)}
@@ -820,7 +820,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -832,7 +832,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -898,14 +898,13 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       </div>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        course.type === 'core' ? 'bg-blue-100 text-blue-800' :
-                        course.type === 'department_elective' ? 'bg-green-100 text-green-800' :
-                        'bg-purple-100 text-purple-800'
-                      }`}>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${course.type === 'core' ? 'bg-blue-100 text-blue-800' :
+                          course.type === 'department_elective' ? 'bg-green-100 text-green-800' :
+                            'bg-purple-100 text-purple-800'
+                        }`}>
                         {course.type.replace('_', ' ')}
                       </span>
-                    </td> 
+                    </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800">
                         {course.teacherAssigned && course.teacher ? (
@@ -922,7 +921,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       </div>
                     </td>
                     {/* testing for number of teachers */}
-{/* <td className="border border-gray-300 px-3 py-2">
+                    {/* <td className="border border-gray-300 px-3 py-2">
       <div className="text-sm text-gray-800">
         {assignedTeachers.length > 0 ? (
           <div>
@@ -984,9 +983,9 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         <Button size="sm" title='Edit' variant="outline" onClick={() => openEditForm(course)}>
                           <Edit className="h-4 w-4" />
                         </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
+                        <Button
+                          size="sm"
+                          variant="outline"
                           onClick={() => openEnrollmentModal(course)}
                           className="bg-blue-50 hover:bg-blue-100"
                           title="Manage Enrollments"
@@ -1019,7 +1018,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               <form onSubmit={handleAddCourse} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Course Code</label>
-                  <Input 
+                  <Input
                     placeholder="e.g., CS301"
                     value={newCourse.code}
                     onChange={(e) => setNewCourse(prev => ({ ...prev, code: e.target.value }))}
@@ -1029,7 +1028,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Course Name</label>
-                  <Input 
+                  <Input
                     placeholder="e.g., Data Structures"
                     value={newCourse.name}
                     onChange={(e) => setNewCourse(prev => ({ ...prev, name: e.target.value }))}
@@ -1039,7 +1038,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     title="Select Department"
                     value={newCourse.department}
@@ -1054,7 +1053,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     title="Select Batch Year"
                     value={newCourse.year}
@@ -1069,7 +1068,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Course Type</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     title="Select Course Type"
                     value={newCourse.type}
@@ -1080,7 +1079,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     <option value="open_elective">Open Elective</option>
                   </select>
                 </div>
-                
+
                 {/* Restricted Departments for Open Electives */}
                 {newCourse.type === 'open_elective' && (
                   <div>
@@ -1128,8 +1127,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 )}
                 <div className="flex items-center gap-4">
                   <label className="flex items-center text-gray-900">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="mr-2"
                       checked={newCourse.hasTheoryComponent}
                       onChange={(e) => setNewCourse(prev => ({ ...prev, hasTheoryComponent: e.target.checked }))}
@@ -1137,8 +1136,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     Theory Component
                   </label>
                   <label className="flex items-center text-gray-900">
-                    <input 
-                      type="checkbox" 
+                    <input
+                      type="checkbox"
                       className="mr-2"
                       checked={newCourse.hasLabComponent}
                       onChange={(e) => setNewCourse(prev => ({ ...prev, hasLabComponent: e.target.checked }))}
@@ -1236,7 +1235,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     <option value="open_elective">Open Elective</option>
                   </select>
                 </div>
-                
+
                 {/* Restricted Departments for Open Electives */}
                 {editFormData.type === 'open_elective' && (
                   <div>
@@ -1324,7 +1323,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               <h2 className="text-xl font-bold text-gray-900 mb-4">
                 Manage Enrollments for {selectedCourse.name}
               </h2>
-              
+
               {/* Course Type Information */}
               <div className="mb-4 p-3 bg-blue-50 rounded-lg">
                 <h3 className="font-semibold text-blue-900 mb-2">Course Information</h3>
@@ -1342,7 +1341,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                           <li>Open to all students of the selected batch year</li>
                           {enrollmentData.course.restrictions.length > 0 && (
                             <li>
-                              Restricted departments: {enrollmentData.course.restrictions.map((r: {departmentCode: string}) => r.departmentCode).join(', ')}
+                              Restricted departments: {enrollmentData.course.restrictions.map((r: { departmentCode: string }) => r.departmentCode).join(', ')}
                             </li>
                           )}
                         </ul>
@@ -1370,7 +1369,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 <p className="text-sm text-gray-600 mb-3">
                   Upload a CSV file with student data. Required column: <strong>usn</strong>. Optional columns: name, email, section.
                 </p>
-                
+
                 {/* CSV Upload Form */}
                 <div className="space-y-3">
                   <div className="flex items-center gap-3">
@@ -1391,7 +1390,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       {csvUploadLoading ? 'Uploading...' : 'Upload CSV'}
                     </Button>
                   </div>
-                  
+
                   {/* Upload Results */}
                   {uploadResults && (
                     <div className="mt-3 p-3 bg-white rounded border">
@@ -1418,8 +1417,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 <div className="mt-3 text-xs text-gray-500">
                   <p><strong>CSV Format Example:</strong></p>
                   <code className="bg-white px-2 py-1 rounded text-xs">
-                    usn,name,email,section<br/>
-                    1BG22CS001,John Doe,john@example.com,A<br/>
+                    usn,name,email,section<br />
+                    1BG22CS001,John Doe,john@example.com,A<br />
                     1BG22CS002,Jane Smith,jane@example.com,B
                   </code>
                 </div>
@@ -1436,163 +1435,163 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   {showManualSelection ? 'Hide Manual Selection' : 'Show Manual Selection'}
                 </Button>
               </div>
-              
+
               {/* Enrollment Form */}
               {showManualSelection && (
-              <form onSubmit={handleEnrollmentSubmit} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={enrollmentYear}
-                    onChange={(e) => setEnrollmentYear(e.target.value)}
-                    title="Select Batch Year"
-                  >
-                    <option value="2024">2024</option>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Semester</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={enrollmentSemester}
-                    onChange={(e) => setEnrollmentSemester(e.target.value)}
-                    title="Select Semester"
-                  >
-                    <option value="1">1st Semester</option>
-                    <option value="2">2nd Semester</option>
-                  </select>
-                </div>
-                
-                {/* Student Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">
-                    {selectedCourse.type === 'core' ? 'Students to be enrolled' : 'Select Students'} {eligibleStudents.length > 0 && `(${eligibleStudents.length} eligible)`}
-                  </label>
-                  <div className="border rounded-md p-3 bg-gray-50 max-h-48 overflow-y-auto">
-                    {enrollmentLoading ? (
-                      <div className="text-center py-4">
-                        <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
-                        <p className="text-sm text-gray-500 mt-2">Loading eligible students...</p>
-                      </div>
-                    ) : eligibleStudents.length === 0 ? (
-                      <p className="text-gray-500 text-sm py-4 text-center">
-                        No eligible students found for this course and batch year/semester combination.
-                      </p>
-                    ) : selectedCourse.type === 'core' ? (
-                      /* For core courses, show all students as automatically selected */
-                      <div className="space-y-2">
-                        <div className="mb-3 pb-2 border-b">
-                          <span className="text-sm font-medium text-green-900">
-                            ✓ All students will be automatically enrolled ({eligibleStudents.length} students)
-                          </span>
-                          <p className="text-xs text-gray-600 mt-1">
-                            Core courses are mandatory for all students in the department
-                          </p>
+                <form onSubmit={handleEnrollmentSubmit} className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={enrollmentYear}
+                      onChange={(e) => setEnrollmentYear(e.target.value)}
+                      title="Select Batch Year"
+                    >
+                      <option value="2024">2024</option>
+                      <option value="2025">2025</option>
+                      <option value="2026">2026</option>
+                      <option value="2027">2027</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Semester</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={enrollmentSemester}
+                      onChange={(e) => setEnrollmentSemester(e.target.value)}
+                      title="Select Semester"
+                    >
+                      <option value="1">1st Semester</option>
+                      <option value="2">2nd Semester</option>
+                    </select>
+                  </div>
+
+                  {/* Student Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">
+                      {selectedCourse.type === 'core' ? 'Students to be enrolled' : 'Select Students'} {eligibleStudents.length > 0 && `(${eligibleStudents.length} eligible)`}
+                    </label>
+                    <div className="border rounded-md p-3 bg-gray-50 max-h-48 overflow-y-auto">
+                      {enrollmentLoading ? (
+                        <div className="text-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                          <p className="text-sm text-gray-500 mt-2">Loading eligible students...</p>
                         </div>
-                        {eligibleStudents.map(student => (
-                          <div key={student.id} className="flex items-center text-gray-900 bg-green-50 p-1 rounded">
-                            <div className="mr-2 text-green-600">✓</div>
-                            <div className="flex-1">
-                              <div className="text-sm font-medium">{student.name}</div>
-                              <div className="text-xs text-gray-500">
-                                USN: {student.usn} | 
-                                {student.department && ` ${student.department.code} |`}
-                                {student.section && ` Section: ${student.section.name}`}
+                      ) : eligibleStudents.length === 0 ? (
+                        <p className="text-gray-500 text-sm py-4 text-center">
+                          No eligible students found for this course and batch year/semester combination.
+                        </p>
+                      ) : selectedCourse.type === 'core' ? (
+                        /* For core courses, show all students as automatically selected */
+                        <div className="space-y-2">
+                          <div className="mb-3 pb-2 border-b">
+                            <span className="text-sm font-medium text-green-900">
+                              ✓ All students will be automatically enrolled ({eligibleStudents.length} students)
+                            </span>
+                            <p className="text-xs text-gray-600 mt-1">
+                              Core courses are mandatory for all students in the department
+                            </p>
+                          </div>
+                          {eligibleStudents.map(student => (
+                            <div key={student.id} className="flex items-center text-gray-900 bg-green-50 p-1 rounded">
+                              <div className="mr-2 text-green-600">✓</div>
+                              <div className="flex-1">
+                                <div className="text-sm font-medium">{student.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  USN: {student.usn} |
+                                  {student.department && ` ${student.department.code} |`}
+                                  {student.section && ` Section: ${student.section.name}`}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      /* For electives, allow manual selection */
-                      <div className="space-y-2">
-                        <div className="flex items-center mb-3 pb-2 border-b">
-                          <input
-                            type="checkbox"
-                            className="mr-2"
-                            checked={selectedStudents.length === eligibleStudents.length}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedStudents(eligibleStudents.map(s => s.id))
-                              } else {
-                                setSelectedStudents([])
-                              }
-                            }}
-                            aria-label="Select all students"
-                          />
-                          <span className="text-sm font-medium text-gray-900">
-                            Select All ({eligibleStudents.length} students)
-                          </span>
+                          ))}
                         </div>
-                        {eligibleStudents.map(student => (
-                          <label key={student.id} className="flex items-center text-gray-900 hover:bg-gray-100 p-1 rounded">
+                      ) : (
+                        /* For electives, allow manual selection */
+                        <div className="space-y-2">
+                          <div className="flex items-center mb-3 pb-2 border-b">
                             <input
                               type="checkbox"
                               className="mr-2"
-                              checked={selectedStudents.includes(student.id)}
+                              checked={selectedStudents.length === eligibleStudents.length}
                               onChange={(e) => {
                                 if (e.target.checked) {
-                                  setSelectedStudents(prev => [...prev, student.id])
+                                  setSelectedStudents(eligibleStudents.map(s => s.id))
                                 } else {
-                                  setSelectedStudents(prev => prev.filter(id => id !== student.id))
+                                  setSelectedStudents([])
                                 }
                               }}
+                              aria-label="Select all students"
                             />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium">{student.name}</div>
-                              <div className="text-xs text-gray-500">
-                                USN: {student.usn} | 
-                                {student.department && ` ${student.department.code} |`}
-                                {student.section && ` Section: ${student.section.name}`}
+                            <span className="text-sm font-medium text-gray-900">
+                              Select All ({eligibleStudents.length} students)
+                            </span>
+                          </div>
+                          {eligibleStudents.map(student => (
+                            <label key={student.id} className="flex items-center text-gray-900 hover:bg-gray-100 p-1 rounded">
+                              <input
+                                type="checkbox"
+                                className="mr-2"
+                                checked={selectedStudents.includes(student.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedStudents(prev => [...prev, student.id])
+                                  } else {
+                                    setSelectedStudents(prev => prev.filter(id => id !== student.id))
+                                  }
+                                }}
+                              />
+                              <div className="flex-1">
+                                <div className="text-sm font-medium">{student.name}</div>
+                                <div className="text-xs text-gray-500">
+                                  USN: {student.usn} |
+                                  {student.department && ` ${student.department.code} |`}
+                                  {student.section && ` Section: ${student.section.name}`}
+                                </div>
                               </div>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
-                    )}
+                            </label>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                </div>
-                
-                {/* Teacher Selection */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Assign Teacher (Optional)</label>
-                  <select
-                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    value={selectedTeacher}
-                    onChange={(e) => setSelectedTeacher(e.target.value)}
-                    title="Select Teacher"
-                  >
-                    <option value="">Select Teacher</option>
-                    {teachers.map(teacher => (
-                      <option key={teacher.id} value={teacher.id}>
-                        {teacher.name} ({teacher.username})
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-2 pt-4">
-                  <Button 
-                    type="submit" 
-                    className="flex-1" 
-                    disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0)}
-                  >
-                    {enrollmentLoading ? 'Saving...' : 'Save'}
-                  </Button>
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowEnrollmentModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                </div>
-              </form>
+
+                  {/* Teacher Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Assign Teacher (Optional)</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={selectedTeacher}
+                      onChange={(e) => setSelectedTeacher(e.target.value)}
+                      title="Select Teacher"
+                    >
+                      <option value="">Select Teacher</option>
+                      {teachers.map(teacher => (
+                        <option key={teacher.id} value={teacher.id}>
+                          {teacher.name} ({teacher.username})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0)}
+                    >
+                      {enrollmentLoading ? 'Saving...' : 'Save'}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setShowEnrollmentModal(false)}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
               )}
             </div>
           </div>

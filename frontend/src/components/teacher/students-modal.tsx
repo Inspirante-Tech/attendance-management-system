@@ -99,11 +99,11 @@ export function StudentsModal({ open, onOpenChange }: StudentsModalProps) {
                 {/* Header */}
                 <div className="flex items-center justify-between p-6 border-b">
                     <div>
-                        <h2 className="text-xl font-semibold flex items-center gap-2">
+                        <h2 className="text-xl font-semibold flex items-center gap-2 text-black">
                             <Users className="w-5 h-5" />
                             My Students
                         </h2>
-                        <p className="text-sm text-gray-600 mt-1">
+                        <p className="text-sm text-black mt-1">
                             {getTotalStudentsCount()} unique students across {courses.length} courses
                         </p>
                     </div>
