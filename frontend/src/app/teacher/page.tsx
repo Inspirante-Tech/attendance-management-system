@@ -19,6 +19,7 @@ import {
   TrendingUp
 } from 'lucide-react'
 
+
 export default function TeacherDashboard() {
   const [dashboardData, setDashboardData] = useState<TeacherDashboardData | null>(null)
   const [courses, setCourses] = useState<CourseOffering[]>([])

@@ -161,6 +161,7 @@ Table course_offerings {
   teacher teachers
   academic_years academic_years
   enrollments student_enrollments [not null]
+  markComponents MarkComponent [not null]
 }
 
 Table student_enrollments {
@@ -174,6 +175,7 @@ Table student_enrollments {
   student students
   academic_years academic_years
   theoryMarks theory_marks
+  marks Mark [not null]
 }
 
 Table attendance {
@@ -262,6 +264,26 @@ Table sections {
   }
 }
 
+Table MarkComponent {
+  id String [pk]
+  offeringId String [not null]
+  name String [not null]
+  maxMarks Int [not null]
+  weightage Float [not null]
+  order Int [not null]
+  offering course_offerings [not null]
+  marks Mark [not null]
+}
+
+Table Mark {
+  id String [pk]
+  enrollmentId String [not null]
+  componentId String [not null]
+  score Int [not null]
+  enrollment student_enrollments [not null]
+  component MarkComponent [not null]
+}
+
 Enum attendance_status {
   present
   absent
@@ -347,3 +369,9 @@ Ref: report_viewers.userId - users.id [delete: Cascade]
 Ref: academic_years.college_id > colleges.id [delete: Cascade]
 
 Ref: sections.department_id > departments.id [delete: Cascade]
+
+Ref: MarkComponent.offeringId > course_offerings.id [delete: Cascade]
+
+Ref: Mark.enrollmentId > student_enrollments.id [delete: Cascade]
+
+Ref: Mark.componentId > MarkComponent.id [delete: Cascade]

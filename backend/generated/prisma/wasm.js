@@ -279,6 +279,22 @@ exports.Prisma.SectionsScalarFieldEnum = {
   section_name: 'section_name'
 };
 
+exports.Prisma.MarkComponentScalarFieldEnum = {
+  id: 'id',
+  offeringId: 'offeringId',
+  name: 'name',
+  maxMarks: 'maxMarks',
+  weightage: 'weightage',
+  order: 'order'
+};
+
+exports.Prisma.MarkScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  componentId: 'componentId',
+  score: 'score'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -331,7 +347,9 @@ exports.Prisma.ModelName = {
   Admin: 'Admin',
   ReportViewer: 'ReportViewer',
   academic_years: 'academic_years',
-  sections: 'sections'
+  sections: 'sections',
+  MarkComponent: 'MarkComponent',
+  Mark: 'Mark'
 };
 
 /**

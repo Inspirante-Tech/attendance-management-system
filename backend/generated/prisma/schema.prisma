@@ -3,10 +3,11 @@ generator client {
   output   = "../generated/prisma"
 }
 
-// generator dbml {
-//   provider = "prisma-dbml-generator"
-//   output   = "./prisma/dbml"
-// }
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output   = "./prisma/dbml"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -176,9 +177,22 @@ model CourseOffering {
   teacher        Teacher?            @relation(fields: [teacherId], references: [id], onUpdate: NoAction)
   academic_years academic_years?     @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
   enrollments    StudentEnrollment[]
+  markComponents MarkComponent[]
 
   @@map("course_offerings")
 }
+
+// model HybridMarks {
+//   id       String @id @default(dbgenerated("uuid_generate_v4()")) @map("hybrid_marks_id") @db.Uuid
+//   cid      String @map("offering_id") @db.Uuid
+//   maxmarks Int
+//   testname String
+
+//   // relation to CourseOffering
+//   courseOffering CourseOffering @relation(fields: [cid], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+//   @@map("hybrid_marks") // DB table name
+// }
 
 model StudentEnrollment {
   id             String          @id @default(dbgenerated("uuid_generate_v4()")) @map("enrollment_id") @db.Uuid
@@ -191,6 +205,7 @@ model StudentEnrollment {
   student        Student?        @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   academic_years academic_years? @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
   theoryMarks    TheoryMarks?
+  marks          Mark[]
 
   @@map("student_enrollments")
 }
@@ -287,6 +302,28 @@ model sections {
   students         Student[]
 
   @@unique([department_id, section_name])
+}
+
+//for dynamic table 
+model MarkComponent {
+  id         String         @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  offeringId String         @db.Uuid
+  name       String // e.g. "MSE1", "Lab", "Project"
+  maxMarks   Int // out of how many marks (e.g. 30, 50)
+  weightage  Float // percentage weight (e.g. 0.2 for 20%)
+  order      Int // column order in UI
+  offering   CourseOffering @relation(fields: [offeringId], references: [id], onDelete: Cascade)
+  marks      Mark[] // all student marks for this component
+}
+
+model Mark {
+  id           String @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  enrollmentId String @db.Uuid
+  componentId  String @db.Uuid
+  score        Int // student’s actual marks
+
+  enrollment StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  component  MarkComponent     @relation(fields: [componentId], references: [id], onDelete: Cascade)
 }
 
 enum attendance_status {

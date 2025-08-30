@@ -113,6 +113,16 @@ export type academic_years = $Result.DefaultSelection<Prisma.$academic_yearsPayl
  * 
  */
 export type sections = $Result.DefaultSelection<Prisma.$sectionsPayload>
+/**
+ * Model MarkComponent
+ * 
+ */
+export type MarkComponent = $Result.DefaultSelection<Prisma.$MarkComponentPayload>
+/**
+ * Model Mark
+ * 
+ */
+export type Mark = $Result.DefaultSelection<Prisma.$MarkPayload>
 
 /**
  * Enums
@@ -482,6 +492,26 @@ export class PrismaClient<
     * ```
     */
   get sections(): Prisma.sectionsDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.markComponent`: Exposes CRUD operations for the **MarkComponent** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more MarkComponents
+    * const markComponents = await prisma.markComponent.findMany()
+    * ```
+    */
+  get markComponent(): Prisma.MarkComponentDelegate<ExtArgs, ClientOptions>;
+
+  /**
+   * `prisma.mark`: Exposes CRUD operations for the **Mark** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Marks
+    * const marks = await prisma.mark.findMany()
+    * ```
+    */
+  get mark(): Prisma.MarkDelegate<ExtArgs, ClientOptions>;
 }
 
 export namespace Prisma {
@@ -941,7 +971,9 @@ export namespace Prisma {
     Admin: 'Admin',
     ReportViewer: 'ReportViewer',
     academic_years: 'academic_years',
-    sections: 'sections'
+    sections: 'sections',
+    MarkComponent: 'MarkComponent',
+    Mark: 'Mark'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -960,7 +992,7 @@ export namespace Prisma {
       omit: GlobalOmitOptions
     }
     meta: {
-      modelProps: "college" | "department" | "user" | "userRoleAssignment" | "student" | "teacher" | "course" | "departmentElectiveGroup" | "courseElectiveGroupMember" | "openElectiveRestriction" | "courseOffering" | "studentEnrollment" | "attendance" | "attendanceRecord" | "theoryMarks" | "labMarks" | "admin" | "reportViewer" | "academic_years" | "sections"
+      modelProps: "college" | "department" | "user" | "userRoleAssignment" | "student" | "teacher" | "course" | "departmentElectiveGroup" | "courseElectiveGroupMember" | "openElectiveRestriction" | "courseOffering" | "studentEnrollment" | "attendance" | "attendanceRecord" | "theoryMarks" | "labMarks" | "admin" | "reportViewer" | "academic_years" | "sections" | "markComponent" | "mark"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2444,6 +2476,154 @@ export namespace Prisma {
           }
         }
       }
+      MarkComponent: {
+        payload: Prisma.$MarkComponentPayload<ExtArgs>
+        fields: Prisma.MarkComponentFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarkComponentFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarkComponentFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          findFirst: {
+            args: Prisma.MarkComponentFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarkComponentFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          findMany: {
+            args: Prisma.MarkComponentFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>[]
+          }
+          create: {
+            args: Prisma.MarkComponentCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          createMany: {
+            args: Prisma.MarkComponentCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarkComponentCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>[]
+          }
+          delete: {
+            args: Prisma.MarkComponentDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          update: {
+            args: Prisma.MarkComponentUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarkComponentDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarkComponentUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarkComponentUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarkComponentUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkComponentPayload>
+          }
+          aggregate: {
+            args: Prisma.MarkComponentAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMarkComponent>
+          }
+          groupBy: {
+            args: Prisma.MarkComponentGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarkComponentGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarkComponentCountArgs<ExtArgs>
+            result: $Utils.Optional<MarkComponentCountAggregateOutputType> | number
+          }
+        }
+      }
+      Mark: {
+        payload: Prisma.$MarkPayload<ExtArgs>
+        fields: Prisma.MarkFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.MarkFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.MarkFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          findFirst: {
+            args: Prisma.MarkFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.MarkFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          findMany: {
+            args: Prisma.MarkFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>[]
+          }
+          create: {
+            args: Prisma.MarkCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          createMany: {
+            args: Prisma.MarkCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.MarkCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>[]
+          }
+          delete: {
+            args: Prisma.MarkDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          update: {
+            args: Prisma.MarkUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          deleteMany: {
+            args: Prisma.MarkDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.MarkUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateManyAndReturn: {
+            args: Prisma.MarkUpdateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>[]
+          }
+          upsert: {
+            args: Prisma.MarkUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$MarkPayload>
+          }
+          aggregate: {
+            args: Prisma.MarkAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateMark>
+          }
+          groupBy: {
+            args: Prisma.MarkGroupByArgs<ExtArgs>
+            result: $Utils.Optional<MarkGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.MarkCountArgs<ExtArgs>
+            result: $Utils.Optional<MarkCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -2548,6 +2728,8 @@ export namespace Prisma {
     reportViewer?: ReportViewerOmit
     academic_years?: academic_yearsOmit
     sections?: sectionsOmit
+    markComponent?: MarkComponentOmit
+    mark?: MarkOmit
   }
 
   /* Types for Logging */
@@ -2987,11 +3169,13 @@ export namespace Prisma {
   export type CourseOfferingCountOutputType = {
     attendances: number
     enrollments: number
+    markComponents: number
   }
 
   export type CourseOfferingCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     attendances?: boolean | CourseOfferingCountOutputTypeCountAttendancesArgs
     enrollments?: boolean | CourseOfferingCountOutputTypeCountEnrollmentsArgs
+    markComponents?: boolean | CourseOfferingCountOutputTypeCountMarkComponentsArgs
   }
 
   // Custom InputTypes
@@ -3017,6 +3201,44 @@ export namespace Prisma {
    */
   export type CourseOfferingCountOutputTypeCountEnrollmentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: StudentEnrollmentWhereInput
+  }
+
+  /**
+   * CourseOfferingCountOutputType without action
+   */
+  export type CourseOfferingCountOutputTypeCountMarkComponentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarkComponentWhereInput
+  }
+
+
+  /**
+   * Count Type StudentEnrollmentCountOutputType
+   */
+
+  export type StudentEnrollmentCountOutputType = {
+    marks: number
+  }
+
+  export type StudentEnrollmentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    marks?: boolean | StudentEnrollmentCountOutputTypeCountMarksArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * StudentEnrollmentCountOutputType without action
+   */
+  export type StudentEnrollmentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the StudentEnrollmentCountOutputType
+     */
+    select?: StudentEnrollmentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * StudentEnrollmentCountOutputType without action
+   */
+  export type StudentEnrollmentCountOutputTypeCountMarksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarkWhereInput
   }
 
 
@@ -3128,6 +3350,37 @@ export namespace Prisma {
    */
   export type SectionsCountOutputTypeCountStudentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: StudentWhereInput
+  }
+
+
+  /**
+   * Count Type MarkComponentCountOutputType
+   */
+
+  export type MarkComponentCountOutputType = {
+    marks: number
+  }
+
+  export type MarkComponentCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    marks?: boolean | MarkComponentCountOutputTypeCountMarksArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * MarkComponentCountOutputType without action
+   */
+  export type MarkComponentCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponentCountOutputType
+     */
+    select?: MarkComponentCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * MarkComponentCountOutputType without action
+   */
+  export type MarkComponentCountOutputTypeCountMarksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarkWhereInput
   }
 
 
@@ -14815,6 +15068,7 @@ export namespace Prisma {
     teacher?: boolean | CourseOffering$teacherArgs<ExtArgs>
     academic_years?: boolean | CourseOffering$academic_yearsArgs<ExtArgs>
     enrollments?: boolean | CourseOffering$enrollmentsArgs<ExtArgs>
+    markComponents?: boolean | CourseOffering$markComponentsArgs<ExtArgs>
     _count?: boolean | CourseOfferingCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["courseOffering"]>
 
@@ -14861,6 +15115,7 @@ export namespace Prisma {
     teacher?: boolean | CourseOffering$teacherArgs<ExtArgs>
     academic_years?: boolean | CourseOffering$academic_yearsArgs<ExtArgs>
     enrollments?: boolean | CourseOffering$enrollmentsArgs<ExtArgs>
+    markComponents?: boolean | CourseOffering$markComponentsArgs<ExtArgs>
     _count?: boolean | CourseOfferingCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type CourseOfferingIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -14885,6 +15140,7 @@ export namespace Prisma {
       teacher: Prisma.$TeacherPayload<ExtArgs> | null
       academic_years: Prisma.$academic_yearsPayload<ExtArgs> | null
       enrollments: Prisma.$StudentEnrollmentPayload<ExtArgs>[]
+      markComponents: Prisma.$MarkComponentPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -15293,6 +15549,7 @@ export namespace Prisma {
     teacher<T extends CourseOffering$teacherArgs<ExtArgs> = {}>(args?: Subset<T, CourseOffering$teacherArgs<ExtArgs>>): Prisma__TeacherClient<$Result.GetResult<Prisma.$TeacherPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     academic_years<T extends CourseOffering$academic_yearsArgs<ExtArgs> = {}>(args?: Subset<T, CourseOffering$academic_yearsArgs<ExtArgs>>): Prisma__academic_yearsClient<$Result.GetResult<Prisma.$academic_yearsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     enrollments<T extends CourseOffering$enrollmentsArgs<ExtArgs> = {}>(args?: Subset<T, CourseOffering$enrollmentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StudentEnrollmentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    markComponents<T extends CourseOffering$markComponentsArgs<ExtArgs> = {}>(args?: Subset<T, CourseOffering$markComponentsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -15829,6 +16086,30 @@ export namespace Prisma {
   }
 
   /**
+   * CourseOffering.markComponents
+   */
+  export type CourseOffering$markComponentsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    where?: MarkComponentWhereInput
+    orderBy?: MarkComponentOrderByWithRelationInput | MarkComponentOrderByWithRelationInput[]
+    cursor?: MarkComponentWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarkComponentScalarFieldEnum | MarkComponentScalarFieldEnum[]
+  }
+
+  /**
    * CourseOffering without action
    */
   export type CourseOfferingDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -16050,6 +16331,8 @@ export namespace Prisma {
     student?: boolean | StudentEnrollment$studentArgs<ExtArgs>
     academic_years?: boolean | StudentEnrollment$academic_yearsArgs<ExtArgs>
     theoryMarks?: boolean | StudentEnrollment$theoryMarksArgs<ExtArgs>
+    marks?: boolean | StudentEnrollment$marksArgs<ExtArgs>
+    _count?: boolean | StudentEnrollmentCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["studentEnrollment"]>
 
   export type StudentEnrollmentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
@@ -16089,6 +16372,8 @@ export namespace Prisma {
     student?: boolean | StudentEnrollment$studentArgs<ExtArgs>
     academic_years?: boolean | StudentEnrollment$academic_yearsArgs<ExtArgs>
     theoryMarks?: boolean | StudentEnrollment$theoryMarksArgs<ExtArgs>
+    marks?: boolean | StudentEnrollment$marksArgs<ExtArgs>
+    _count?: boolean | StudentEnrollmentCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type StudentEnrollmentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     offering?: boolean | StudentEnrollment$offeringArgs<ExtArgs>
@@ -16109,6 +16394,7 @@ export namespace Prisma {
       student: Prisma.$StudentPayload<ExtArgs> | null
       academic_years: Prisma.$academic_yearsPayload<ExtArgs> | null
       theoryMarks: Prisma.$TheoryMarksPayload<ExtArgs> | null
+      marks: Prisma.$MarkPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -16515,6 +16801,7 @@ export namespace Prisma {
     student<T extends StudentEnrollment$studentArgs<ExtArgs> = {}>(args?: Subset<T, StudentEnrollment$studentArgs<ExtArgs>>): Prisma__StudentClient<$Result.GetResult<Prisma.$StudentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     academic_years<T extends StudentEnrollment$academic_yearsArgs<ExtArgs> = {}>(args?: Subset<T, StudentEnrollment$academic_yearsArgs<ExtArgs>>): Prisma__academic_yearsClient<$Result.GetResult<Prisma.$academic_yearsPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
     theoryMarks<T extends StudentEnrollment$theoryMarksArgs<ExtArgs> = {}>(args?: Subset<T, StudentEnrollment$theoryMarksArgs<ExtArgs>>): Prisma__TheoryMarksClient<$Result.GetResult<Prisma.$TheoryMarksPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+    marks<T extends StudentEnrollment$marksArgs<ExtArgs> = {}>(args?: Subset<T, StudentEnrollment$marksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -17037,6 +17324,30 @@ export namespace Prisma {
      */
     include?: TheoryMarksInclude<ExtArgs> | null
     where?: TheoryMarksWhereInput
+  }
+
+  /**
+   * StudentEnrollment.marks
+   */
+  export type StudentEnrollment$marksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    where?: MarkWhereInput
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    cursor?: MarkWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarkScalarFieldEnum | MarkScalarFieldEnum[]
   }
 
   /**
@@ -25878,6 +26189,2236 @@ export namespace Prisma {
 
 
   /**
+   * Model MarkComponent
+   */
+
+  export type AggregateMarkComponent = {
+    _count: MarkComponentCountAggregateOutputType | null
+    _avg: MarkComponentAvgAggregateOutputType | null
+    _sum: MarkComponentSumAggregateOutputType | null
+    _min: MarkComponentMinAggregateOutputType | null
+    _max: MarkComponentMaxAggregateOutputType | null
+  }
+
+  export type MarkComponentAvgAggregateOutputType = {
+    maxMarks: number | null
+    weightage: number | null
+    order: number | null
+  }
+
+  export type MarkComponentSumAggregateOutputType = {
+    maxMarks: number | null
+    weightage: number | null
+    order: number | null
+  }
+
+  export type MarkComponentMinAggregateOutputType = {
+    id: string | null
+    offeringId: string | null
+    name: string | null
+    maxMarks: number | null
+    weightage: number | null
+    order: number | null
+  }
+
+  export type MarkComponentMaxAggregateOutputType = {
+    id: string | null
+    offeringId: string | null
+    name: string | null
+    maxMarks: number | null
+    weightage: number | null
+    order: number | null
+  }
+
+  export type MarkComponentCountAggregateOutputType = {
+    id: number
+    offeringId: number
+    name: number
+    maxMarks: number
+    weightage: number
+    order: number
+    _all: number
+  }
+
+
+  export type MarkComponentAvgAggregateInputType = {
+    maxMarks?: true
+    weightage?: true
+    order?: true
+  }
+
+  export type MarkComponentSumAggregateInputType = {
+    maxMarks?: true
+    weightage?: true
+    order?: true
+  }
+
+  export type MarkComponentMinAggregateInputType = {
+    id?: true
+    offeringId?: true
+    name?: true
+    maxMarks?: true
+    weightage?: true
+    order?: true
+  }
+
+  export type MarkComponentMaxAggregateInputType = {
+    id?: true
+    offeringId?: true
+    name?: true
+    maxMarks?: true
+    weightage?: true
+    order?: true
+  }
+
+  export type MarkComponentCountAggregateInputType = {
+    id?: true
+    offeringId?: true
+    name?: true
+    maxMarks?: true
+    weightage?: true
+    order?: true
+    _all?: true
+  }
+
+  export type MarkComponentAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarkComponent to aggregate.
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarkComponents to fetch.
+     */
+    orderBy?: MarkComponentOrderByWithRelationInput | MarkComponentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarkComponentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarkComponents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarkComponents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned MarkComponents
+    **/
+    _count?: true | MarkComponentCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarkComponentAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarkComponentSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarkComponentMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarkComponentMaxAggregateInputType
+  }
+
+  export type GetMarkComponentAggregateType<T extends MarkComponentAggregateArgs> = {
+        [P in keyof T & keyof AggregateMarkComponent]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMarkComponent[P]>
+      : GetScalarType<T[P], AggregateMarkComponent[P]>
+  }
+
+
+
+
+  export type MarkComponentGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarkComponentWhereInput
+    orderBy?: MarkComponentOrderByWithAggregationInput | MarkComponentOrderByWithAggregationInput[]
+    by: MarkComponentScalarFieldEnum[] | MarkComponentScalarFieldEnum
+    having?: MarkComponentScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarkComponentCountAggregateInputType | true
+    _avg?: MarkComponentAvgAggregateInputType
+    _sum?: MarkComponentSumAggregateInputType
+    _min?: MarkComponentMinAggregateInputType
+    _max?: MarkComponentMaxAggregateInputType
+  }
+
+  export type MarkComponentGroupByOutputType = {
+    id: string
+    offeringId: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    _count: MarkComponentCountAggregateOutputType | null
+    _avg: MarkComponentAvgAggregateOutputType | null
+    _sum: MarkComponentSumAggregateOutputType | null
+    _min: MarkComponentMinAggregateOutputType | null
+    _max: MarkComponentMaxAggregateOutputType | null
+  }
+
+  type GetMarkComponentGroupByPayload<T extends MarkComponentGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarkComponentGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarkComponentGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarkComponentGroupByOutputType[P]>
+            : GetScalarType<T[P], MarkComponentGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarkComponentSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    offeringId?: boolean
+    name?: boolean
+    maxMarks?: boolean
+    weightage?: boolean
+    order?: boolean
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+    marks?: boolean | MarkComponent$marksArgs<ExtArgs>
+    _count?: boolean | MarkComponentCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["markComponent"]>
+
+  export type MarkComponentSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    offeringId?: boolean
+    name?: boolean
+    maxMarks?: boolean
+    weightage?: boolean
+    order?: boolean
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["markComponent"]>
+
+  export type MarkComponentSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    offeringId?: boolean
+    name?: boolean
+    maxMarks?: boolean
+    weightage?: boolean
+    order?: boolean
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["markComponent"]>
+
+  export type MarkComponentSelectScalar = {
+    id?: boolean
+    offeringId?: boolean
+    name?: boolean
+    maxMarks?: boolean
+    weightage?: boolean
+    order?: boolean
+  }
+
+  export type MarkComponentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "offeringId" | "name" | "maxMarks" | "weightage" | "order", ExtArgs["result"]["markComponent"]>
+  export type MarkComponentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+    marks?: boolean | MarkComponent$marksArgs<ExtArgs>
+    _count?: boolean | MarkComponentCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type MarkComponentIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+  }
+  export type MarkComponentIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    offering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
+  }
+
+  export type $MarkComponentPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "MarkComponent"
+    objects: {
+      offering: Prisma.$CourseOfferingPayload<ExtArgs>
+      marks: Prisma.$MarkPayload<ExtArgs>[]
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      offeringId: string
+      name: string
+      maxMarks: number
+      weightage: number
+      order: number
+    }, ExtArgs["result"]["markComponent"]>
+    composites: {}
+  }
+
+  type MarkComponentGetPayload<S extends boolean | null | undefined | MarkComponentDefaultArgs> = $Result.GetResult<Prisma.$MarkComponentPayload, S>
+
+  type MarkComponentCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarkComponentFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarkComponentCountAggregateInputType | true
+    }
+
+  export interface MarkComponentDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['MarkComponent'], meta: { name: 'MarkComponent' } }
+    /**
+     * Find zero or one MarkComponent that matches the filter.
+     * @param {MarkComponentFindUniqueArgs} args - Arguments to find a MarkComponent
+     * @example
+     * // Get one MarkComponent
+     * const markComponent = await prisma.markComponent.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarkComponentFindUniqueArgs>(args: SelectSubset<T, MarkComponentFindUniqueArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one MarkComponent that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarkComponentFindUniqueOrThrowArgs} args - Arguments to find a MarkComponent
+     * @example
+     * // Get one MarkComponent
+     * const markComponent = await prisma.markComponent.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarkComponentFindUniqueOrThrowArgs>(args: SelectSubset<T, MarkComponentFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarkComponent that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentFindFirstArgs} args - Arguments to find a MarkComponent
+     * @example
+     * // Get one MarkComponent
+     * const markComponent = await prisma.markComponent.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarkComponentFindFirstArgs>(args?: SelectSubset<T, MarkComponentFindFirstArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first MarkComponent that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentFindFirstOrThrowArgs} args - Arguments to find a MarkComponent
+     * @example
+     * // Get one MarkComponent
+     * const markComponent = await prisma.markComponent.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarkComponentFindFirstOrThrowArgs>(args?: SelectSubset<T, MarkComponentFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more MarkComponents that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all MarkComponents
+     * const markComponents = await prisma.markComponent.findMany()
+     * 
+     * // Get first 10 MarkComponents
+     * const markComponents = await prisma.markComponent.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const markComponentWithIdOnly = await prisma.markComponent.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarkComponentFindManyArgs>(args?: SelectSubset<T, MarkComponentFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a MarkComponent.
+     * @param {MarkComponentCreateArgs} args - Arguments to create a MarkComponent.
+     * @example
+     * // Create one MarkComponent
+     * const MarkComponent = await prisma.markComponent.create({
+     *   data: {
+     *     // ... data to create a MarkComponent
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarkComponentCreateArgs>(args: SelectSubset<T, MarkComponentCreateArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many MarkComponents.
+     * @param {MarkComponentCreateManyArgs} args - Arguments to create many MarkComponents.
+     * @example
+     * // Create many MarkComponents
+     * const markComponent = await prisma.markComponent.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarkComponentCreateManyArgs>(args?: SelectSubset<T, MarkComponentCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many MarkComponents and returns the data saved in the database.
+     * @param {MarkComponentCreateManyAndReturnArgs} args - Arguments to create many MarkComponents.
+     * @example
+     * // Create many MarkComponents
+     * const markComponent = await prisma.markComponent.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many MarkComponents and only return the `id`
+     * const markComponentWithIdOnly = await prisma.markComponent.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarkComponentCreateManyAndReturnArgs>(args?: SelectSubset<T, MarkComponentCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a MarkComponent.
+     * @param {MarkComponentDeleteArgs} args - Arguments to delete one MarkComponent.
+     * @example
+     * // Delete one MarkComponent
+     * const MarkComponent = await prisma.markComponent.delete({
+     *   where: {
+     *     // ... filter to delete one MarkComponent
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarkComponentDeleteArgs>(args: SelectSubset<T, MarkComponentDeleteArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one MarkComponent.
+     * @param {MarkComponentUpdateArgs} args - Arguments to update one MarkComponent.
+     * @example
+     * // Update one MarkComponent
+     * const markComponent = await prisma.markComponent.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarkComponentUpdateArgs>(args: SelectSubset<T, MarkComponentUpdateArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more MarkComponents.
+     * @param {MarkComponentDeleteManyArgs} args - Arguments to filter MarkComponents to delete.
+     * @example
+     * // Delete a few MarkComponents
+     * const { count } = await prisma.markComponent.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarkComponentDeleteManyArgs>(args?: SelectSubset<T, MarkComponentDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarkComponents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many MarkComponents
+     * const markComponent = await prisma.markComponent.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarkComponentUpdateManyArgs>(args: SelectSubset<T, MarkComponentUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more MarkComponents and returns the data updated in the database.
+     * @param {MarkComponentUpdateManyAndReturnArgs} args - Arguments to update many MarkComponents.
+     * @example
+     * // Update many MarkComponents
+     * const markComponent = await prisma.markComponent.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more MarkComponents and only return the `id`
+     * const markComponentWithIdOnly = await prisma.markComponent.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarkComponentUpdateManyAndReturnArgs>(args: SelectSubset<T, MarkComponentUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one MarkComponent.
+     * @param {MarkComponentUpsertArgs} args - Arguments to update or create a MarkComponent.
+     * @example
+     * // Update or create a MarkComponent
+     * const markComponent = await prisma.markComponent.upsert({
+     *   create: {
+     *     // ... data to create a MarkComponent
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the MarkComponent we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarkComponentUpsertArgs>(args: SelectSubset<T, MarkComponentUpsertArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of MarkComponents.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentCountArgs} args - Arguments to filter MarkComponents to count.
+     * @example
+     * // Count the number of MarkComponents
+     * const count = await prisma.markComponent.count({
+     *   where: {
+     *     // ... the filter for the MarkComponents we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarkComponentCountArgs>(
+      args?: Subset<T, MarkComponentCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarkComponentCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a MarkComponent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarkComponentAggregateArgs>(args: Subset<T, MarkComponentAggregateArgs>): Prisma.PrismaPromise<GetMarkComponentAggregateType<T>>
+
+    /**
+     * Group by MarkComponent.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkComponentGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarkComponentGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarkComponentGroupByArgs['orderBy'] }
+        : { orderBy?: MarkComponentGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarkComponentGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarkComponentGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the MarkComponent model
+   */
+  readonly fields: MarkComponentFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for MarkComponent.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarkComponentClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    offering<T extends CourseOfferingDefaultArgs<ExtArgs> = {}>(args?: Subset<T, CourseOfferingDefaultArgs<ExtArgs>>): Prisma__CourseOfferingClient<$Result.GetResult<Prisma.$CourseOfferingPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    marks<T extends MarkComponent$marksArgs<ExtArgs> = {}>(args?: Subset<T, MarkComponent$marksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the MarkComponent model
+   */
+  interface MarkComponentFieldRefs {
+    readonly id: FieldRef<"MarkComponent", 'String'>
+    readonly offeringId: FieldRef<"MarkComponent", 'String'>
+    readonly name: FieldRef<"MarkComponent", 'String'>
+    readonly maxMarks: FieldRef<"MarkComponent", 'Int'>
+    readonly weightage: FieldRef<"MarkComponent", 'Float'>
+    readonly order: FieldRef<"MarkComponent", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * MarkComponent findUnique
+   */
+  export type MarkComponentFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarkComponent to fetch.
+     */
+    where: MarkComponentWhereUniqueInput
+  }
+
+  /**
+   * MarkComponent findUniqueOrThrow
+   */
+  export type MarkComponentFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarkComponent to fetch.
+     */
+    where: MarkComponentWhereUniqueInput
+  }
+
+  /**
+   * MarkComponent findFirst
+   */
+  export type MarkComponentFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarkComponent to fetch.
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarkComponents to fetch.
+     */
+    orderBy?: MarkComponentOrderByWithRelationInput | MarkComponentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarkComponents.
+     */
+    cursor?: MarkComponentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarkComponents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarkComponents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarkComponents.
+     */
+    distinct?: MarkComponentScalarFieldEnum | MarkComponentScalarFieldEnum[]
+  }
+
+  /**
+   * MarkComponent findFirstOrThrow
+   */
+  export type MarkComponentFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarkComponent to fetch.
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarkComponents to fetch.
+     */
+    orderBy?: MarkComponentOrderByWithRelationInput | MarkComponentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for MarkComponents.
+     */
+    cursor?: MarkComponentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarkComponents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarkComponents.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of MarkComponents.
+     */
+    distinct?: MarkComponentScalarFieldEnum | MarkComponentScalarFieldEnum[]
+  }
+
+  /**
+   * MarkComponent findMany
+   */
+  export type MarkComponentFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter, which MarkComponents to fetch.
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of MarkComponents to fetch.
+     */
+    orderBy?: MarkComponentOrderByWithRelationInput | MarkComponentOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing MarkComponents.
+     */
+    cursor?: MarkComponentWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` MarkComponents from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` MarkComponents.
+     */
+    skip?: number
+    distinct?: MarkComponentScalarFieldEnum | MarkComponentScalarFieldEnum[]
+  }
+
+  /**
+   * MarkComponent create
+   */
+  export type MarkComponentCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * The data needed to create a MarkComponent.
+     */
+    data: XOR<MarkComponentCreateInput, MarkComponentUncheckedCreateInput>
+  }
+
+  /**
+   * MarkComponent createMany
+   */
+  export type MarkComponentCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many MarkComponents.
+     */
+    data: MarkComponentCreateManyInput | MarkComponentCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * MarkComponent createManyAndReturn
+   */
+  export type MarkComponentCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * The data used to create many MarkComponents.
+     */
+    data: MarkComponentCreateManyInput | MarkComponentCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarkComponent update
+   */
+  export type MarkComponentUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * The data needed to update a MarkComponent.
+     */
+    data: XOR<MarkComponentUpdateInput, MarkComponentUncheckedUpdateInput>
+    /**
+     * Choose, which MarkComponent to update.
+     */
+    where: MarkComponentWhereUniqueInput
+  }
+
+  /**
+   * MarkComponent updateMany
+   */
+  export type MarkComponentUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update MarkComponents.
+     */
+    data: XOR<MarkComponentUpdateManyMutationInput, MarkComponentUncheckedUpdateManyInput>
+    /**
+     * Filter which MarkComponents to update
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * Limit how many MarkComponents to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarkComponent updateManyAndReturn
+   */
+  export type MarkComponentUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * The data used to update MarkComponents.
+     */
+    data: XOR<MarkComponentUpdateManyMutationInput, MarkComponentUncheckedUpdateManyInput>
+    /**
+     * Filter which MarkComponents to update
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * Limit how many MarkComponents to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * MarkComponent upsert
+   */
+  export type MarkComponentUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * The filter to search for the MarkComponent to update in case it exists.
+     */
+    where: MarkComponentWhereUniqueInput
+    /**
+     * In case the MarkComponent found by the `where` argument doesn't exist, create a new MarkComponent with this data.
+     */
+    create: XOR<MarkComponentCreateInput, MarkComponentUncheckedCreateInput>
+    /**
+     * In case the MarkComponent was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarkComponentUpdateInput, MarkComponentUncheckedUpdateInput>
+  }
+
+  /**
+   * MarkComponent delete
+   */
+  export type MarkComponentDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+    /**
+     * Filter which MarkComponent to delete.
+     */
+    where: MarkComponentWhereUniqueInput
+  }
+
+  /**
+   * MarkComponent deleteMany
+   */
+  export type MarkComponentDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which MarkComponents to delete
+     */
+    where?: MarkComponentWhereInput
+    /**
+     * Limit how many MarkComponents to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * MarkComponent.marks
+   */
+  export type MarkComponent$marksArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    where?: MarkWhereInput
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    cursor?: MarkWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: MarkScalarFieldEnum | MarkScalarFieldEnum[]
+  }
+
+  /**
+   * MarkComponent without action
+   */
+  export type MarkComponentDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the MarkComponent
+     */
+    select?: MarkComponentSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the MarkComponent
+     */
+    omit?: MarkComponentOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkComponentInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Mark
+   */
+
+  export type AggregateMark = {
+    _count: MarkCountAggregateOutputType | null
+    _avg: MarkAvgAggregateOutputType | null
+    _sum: MarkSumAggregateOutputType | null
+    _min: MarkMinAggregateOutputType | null
+    _max: MarkMaxAggregateOutputType | null
+  }
+
+  export type MarkAvgAggregateOutputType = {
+    score: number | null
+  }
+
+  export type MarkSumAggregateOutputType = {
+    score: number | null
+  }
+
+  export type MarkMinAggregateOutputType = {
+    id: string | null
+    enrollmentId: string | null
+    componentId: string | null
+    score: number | null
+  }
+
+  export type MarkMaxAggregateOutputType = {
+    id: string | null
+    enrollmentId: string | null
+    componentId: string | null
+    score: number | null
+  }
+
+  export type MarkCountAggregateOutputType = {
+    id: number
+    enrollmentId: number
+    componentId: number
+    score: number
+    _all: number
+  }
+
+
+  export type MarkAvgAggregateInputType = {
+    score?: true
+  }
+
+  export type MarkSumAggregateInputType = {
+    score?: true
+  }
+
+  export type MarkMinAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    componentId?: true
+    score?: true
+  }
+
+  export type MarkMaxAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    componentId?: true
+    score?: true
+  }
+
+  export type MarkCountAggregateInputType = {
+    id?: true
+    enrollmentId?: true
+    componentId?: true
+    score?: true
+    _all?: true
+  }
+
+  export type MarkAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Mark to aggregate.
+     */
+    where?: MarkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Marks to fetch.
+     */
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: MarkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Marks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Marks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Marks
+    **/
+    _count?: true | MarkCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: MarkAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: MarkSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: MarkMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: MarkMaxAggregateInputType
+  }
+
+  export type GetMarkAggregateType<T extends MarkAggregateArgs> = {
+        [P in keyof T & keyof AggregateMark]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateMark[P]>
+      : GetScalarType<T[P], AggregateMark[P]>
+  }
+
+
+
+
+  export type MarkGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: MarkWhereInput
+    orderBy?: MarkOrderByWithAggregationInput | MarkOrderByWithAggregationInput[]
+    by: MarkScalarFieldEnum[] | MarkScalarFieldEnum
+    having?: MarkScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: MarkCountAggregateInputType | true
+    _avg?: MarkAvgAggregateInputType
+    _sum?: MarkSumAggregateInputType
+    _min?: MarkMinAggregateInputType
+    _max?: MarkMaxAggregateInputType
+  }
+
+  export type MarkGroupByOutputType = {
+    id: string
+    enrollmentId: string
+    componentId: string
+    score: number
+    _count: MarkCountAggregateOutputType | null
+    _avg: MarkAvgAggregateOutputType | null
+    _sum: MarkSumAggregateOutputType | null
+    _min: MarkMinAggregateOutputType | null
+    _max: MarkMaxAggregateOutputType | null
+  }
+
+  type GetMarkGroupByPayload<T extends MarkGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<MarkGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof MarkGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], MarkGroupByOutputType[P]>
+            : GetScalarType<T[P], MarkGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type MarkSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    componentId?: boolean
+    score?: boolean
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mark"]>
+
+  export type MarkSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    componentId?: boolean
+    score?: boolean
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mark"]>
+
+  export type MarkSelectUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    enrollmentId?: boolean
+    componentId?: boolean
+    score?: boolean
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["mark"]>
+
+  export type MarkSelectScalar = {
+    id?: boolean
+    enrollmentId?: boolean
+    componentId?: boolean
+    score?: boolean
+  }
+
+  export type MarkOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "enrollmentId" | "componentId" | "score", ExtArgs["result"]["mark"]>
+  export type MarkInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }
+  export type MarkIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }
+  export type MarkIncludeUpdateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
+    component?: boolean | MarkComponentDefaultArgs<ExtArgs>
+  }
+
+  export type $MarkPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Mark"
+    objects: {
+      enrollment: Prisma.$StudentEnrollmentPayload<ExtArgs>
+      component: Prisma.$MarkComponentPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      enrollmentId: string
+      componentId: string
+      score: number
+    }, ExtArgs["result"]["mark"]>
+    composites: {}
+  }
+
+  type MarkGetPayload<S extends boolean | null | undefined | MarkDefaultArgs> = $Result.GetResult<Prisma.$MarkPayload, S>
+
+  type MarkCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> =
+    Omit<MarkFindManyArgs, 'select' | 'include' | 'distinct' | 'omit'> & {
+      select?: MarkCountAggregateInputType | true
+    }
+
+  export interface MarkDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Mark'], meta: { name: 'Mark' } }
+    /**
+     * Find zero or one Mark that matches the filter.
+     * @param {MarkFindUniqueArgs} args - Arguments to find a Mark
+     * @example
+     * // Get one Mark
+     * const mark = await prisma.mark.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends MarkFindUniqueArgs>(args: SelectSubset<T, MarkFindUniqueArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findUnique", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find one Mark that matches the filter or throw an error with `error.code='P2025'`
+     * if no matches were found.
+     * @param {MarkFindUniqueOrThrowArgs} args - Arguments to find a Mark
+     * @example
+     * // Get one Mark
+     * const mark = await prisma.mark.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends MarkFindUniqueOrThrowArgs>(args: SelectSubset<T, MarkFindUniqueOrThrowArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Mark that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkFindFirstArgs} args - Arguments to find a Mark
+     * @example
+     * // Get one Mark
+     * const mark = await prisma.mark.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends MarkFindFirstArgs>(args?: SelectSubset<T, MarkFindFirstArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findFirst", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find the first Mark that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkFindFirstOrThrowArgs} args - Arguments to find a Mark
+     * @example
+     * // Get one Mark
+     * const mark = await prisma.mark.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends MarkFindFirstOrThrowArgs>(args?: SelectSubset<T, MarkFindFirstOrThrowArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findFirstOrThrow", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Find zero or more Marks that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Marks
+     * const marks = await prisma.mark.findMany()
+     * 
+     * // Get first 10 Marks
+     * const marks = await prisma.mark.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const markWithIdOnly = await prisma.mark.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends MarkFindManyArgs>(args?: SelectSubset<T, MarkFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "findMany", GlobalOmitOptions>>
+
+    /**
+     * Create a Mark.
+     * @param {MarkCreateArgs} args - Arguments to create a Mark.
+     * @example
+     * // Create one Mark
+     * const Mark = await prisma.mark.create({
+     *   data: {
+     *     // ... data to create a Mark
+     *   }
+     * })
+     * 
+     */
+    create<T extends MarkCreateArgs>(args: SelectSubset<T, MarkCreateArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "create", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Create many Marks.
+     * @param {MarkCreateManyArgs} args - Arguments to create many Marks.
+     * @example
+     * // Create many Marks
+     * const mark = await prisma.mark.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends MarkCreateManyArgs>(args?: SelectSubset<T, MarkCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Marks and returns the data saved in the database.
+     * @param {MarkCreateManyAndReturnArgs} args - Arguments to create many Marks.
+     * @example
+     * // Create many Marks
+     * const mark = await prisma.mark.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Marks and only return the `id`
+     * const markWithIdOnly = await prisma.mark.createManyAndReturn({
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends MarkCreateManyAndReturnArgs>(args?: SelectSubset<T, MarkCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "createManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Delete a Mark.
+     * @param {MarkDeleteArgs} args - Arguments to delete one Mark.
+     * @example
+     * // Delete one Mark
+     * const Mark = await prisma.mark.delete({
+     *   where: {
+     *     // ... filter to delete one Mark
+     *   }
+     * })
+     * 
+     */
+    delete<T extends MarkDeleteArgs>(args: SelectSubset<T, MarkDeleteArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "delete", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Update one Mark.
+     * @param {MarkUpdateArgs} args - Arguments to update one Mark.
+     * @example
+     * // Update one Mark
+     * const mark = await prisma.mark.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends MarkUpdateArgs>(args: SelectSubset<T, MarkUpdateArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "update", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+    /**
+     * Delete zero or more Marks.
+     * @param {MarkDeleteManyArgs} args - Arguments to filter Marks to delete.
+     * @example
+     * // Delete a few Marks
+     * const { count } = await prisma.mark.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends MarkDeleteManyArgs>(args?: SelectSubset<T, MarkDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Marks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Marks
+     * const mark = await prisma.mark.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends MarkUpdateManyArgs>(args: SelectSubset<T, MarkUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Marks and returns the data updated in the database.
+     * @param {MarkUpdateManyAndReturnArgs} args - Arguments to update many Marks.
+     * @example
+     * // Update many Marks
+     * const mark = await prisma.mark.updateManyAndReturn({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Update zero or more Marks and only return the `id`
+     * const markWithIdOnly = await prisma.mark.updateManyAndReturn({
+     *   select: { id: true },
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    updateManyAndReturn<T extends MarkUpdateManyAndReturnArgs>(args: SelectSubset<T, MarkUpdateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "updateManyAndReturn", GlobalOmitOptions>>
+
+    /**
+     * Create or update one Mark.
+     * @param {MarkUpsertArgs} args - Arguments to update or create a Mark.
+     * @example
+     * // Update or create a Mark
+     * const mark = await prisma.mark.upsert({
+     *   create: {
+     *     // ... data to create a Mark
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Mark we want to update
+     *   }
+     * })
+     */
+    upsert<T extends MarkUpsertArgs>(args: SelectSubset<T, MarkUpsertArgs<ExtArgs>>): Prisma__MarkClient<$Result.GetResult<Prisma.$MarkPayload<ExtArgs>, T, "upsert", GlobalOmitOptions>, never, ExtArgs, GlobalOmitOptions>
+
+
+    /**
+     * Count the number of Marks.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkCountArgs} args - Arguments to filter Marks to count.
+     * @example
+     * // Count the number of Marks
+     * const count = await prisma.mark.count({
+     *   where: {
+     *     // ... the filter for the Marks we want to count
+     *   }
+     * })
+    **/
+    count<T extends MarkCountArgs>(
+      args?: Subset<T, MarkCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], MarkCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Mark.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends MarkAggregateArgs>(args: Subset<T, MarkAggregateArgs>): Prisma.PrismaPromise<GetMarkAggregateType<T>>
+
+    /**
+     * Group by Mark.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {MarkGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends MarkGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: MarkGroupByArgs['orderBy'] }
+        : { orderBy?: MarkGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, MarkGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetMarkGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Mark model
+   */
+  readonly fields: MarkFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Mark.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__MarkClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    enrollment<T extends StudentEnrollmentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, StudentEnrollmentDefaultArgs<ExtArgs>>): Prisma__StudentEnrollmentClient<$Result.GetResult<Prisma.$StudentEnrollmentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    component<T extends MarkComponentDefaultArgs<ExtArgs> = {}>(args?: Subset<T, MarkComponentDefaultArgs<ExtArgs>>): Prisma__MarkComponentClient<$Result.GetResult<Prisma.$MarkComponentPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Mark model
+   */
+  interface MarkFieldRefs {
+    readonly id: FieldRef<"Mark", 'String'>
+    readonly enrollmentId: FieldRef<"Mark", 'String'>
+    readonly componentId: FieldRef<"Mark", 'String'>
+    readonly score: FieldRef<"Mark", 'Int'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Mark findUnique
+   */
+  export type MarkFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter, which Mark to fetch.
+     */
+    where: MarkWhereUniqueInput
+  }
+
+  /**
+   * Mark findUniqueOrThrow
+   */
+  export type MarkFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter, which Mark to fetch.
+     */
+    where: MarkWhereUniqueInput
+  }
+
+  /**
+   * Mark findFirst
+   */
+  export type MarkFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter, which Mark to fetch.
+     */
+    where?: MarkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Marks to fetch.
+     */
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Marks.
+     */
+    cursor?: MarkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Marks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Marks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Marks.
+     */
+    distinct?: MarkScalarFieldEnum | MarkScalarFieldEnum[]
+  }
+
+  /**
+   * Mark findFirstOrThrow
+   */
+  export type MarkFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter, which Mark to fetch.
+     */
+    where?: MarkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Marks to fetch.
+     */
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Marks.
+     */
+    cursor?: MarkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Marks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Marks.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Marks.
+     */
+    distinct?: MarkScalarFieldEnum | MarkScalarFieldEnum[]
+  }
+
+  /**
+   * Mark findMany
+   */
+  export type MarkFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter, which Marks to fetch.
+     */
+    where?: MarkWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Marks to fetch.
+     */
+    orderBy?: MarkOrderByWithRelationInput | MarkOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Marks.
+     */
+    cursor?: MarkWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Marks from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Marks.
+     */
+    skip?: number
+    distinct?: MarkScalarFieldEnum | MarkScalarFieldEnum[]
+  }
+
+  /**
+   * Mark create
+   */
+  export type MarkCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Mark.
+     */
+    data: XOR<MarkCreateInput, MarkUncheckedCreateInput>
+  }
+
+  /**
+   * Mark createMany
+   */
+  export type MarkCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Marks.
+     */
+    data: MarkCreateManyInput | MarkCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * Mark createManyAndReturn
+   */
+  export type MarkCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * The data used to create many Marks.
+     */
+    data: MarkCreateManyInput | MarkCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Mark update
+   */
+  export type MarkUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Mark.
+     */
+    data: XOR<MarkUpdateInput, MarkUncheckedUpdateInput>
+    /**
+     * Choose, which Mark to update.
+     */
+    where: MarkWhereUniqueInput
+  }
+
+  /**
+   * Mark updateMany
+   */
+  export type MarkUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Marks.
+     */
+    data: XOR<MarkUpdateManyMutationInput, MarkUncheckedUpdateManyInput>
+    /**
+     * Filter which Marks to update
+     */
+    where?: MarkWhereInput
+    /**
+     * Limit how many Marks to update.
+     */
+    limit?: number
+  }
+
+  /**
+   * Mark updateManyAndReturn
+   */
+  export type MarkUpdateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelectUpdateManyAndReturn<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * The data used to update Marks.
+     */
+    data: XOR<MarkUpdateManyMutationInput, MarkUncheckedUpdateManyInput>
+    /**
+     * Filter which Marks to update
+     */
+    where?: MarkWhereInput
+    /**
+     * Limit how many Marks to update.
+     */
+    limit?: number
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkIncludeUpdateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Mark upsert
+   */
+  export type MarkUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Mark to update in case it exists.
+     */
+    where: MarkWhereUniqueInput
+    /**
+     * In case the Mark found by the `where` argument doesn't exist, create a new Mark with this data.
+     */
+    create: XOR<MarkCreateInput, MarkUncheckedCreateInput>
+    /**
+     * In case the Mark was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<MarkUpdateInput, MarkUncheckedUpdateInput>
+  }
+
+  /**
+   * Mark delete
+   */
+  export type MarkDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+    /**
+     * Filter which Mark to delete.
+     */
+    where: MarkWhereUniqueInput
+  }
+
+  /**
+   * Mark deleteMany
+   */
+  export type MarkDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Marks to delete
+     */
+    where?: MarkWhereInput
+    /**
+     * Limit how many Marks to delete.
+     */
+    limit?: number
+  }
+
+  /**
+   * Mark without action
+   */
+  export type MarkDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Mark
+     */
+    select?: MarkSelect<ExtArgs> | null
+    /**
+     * Omit specific fields from the Mark
+     */
+    omit?: MarkOmit<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: MarkInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -26108,6 +28649,28 @@ export namespace Prisma {
   };
 
   export type SectionsScalarFieldEnum = (typeof SectionsScalarFieldEnum)[keyof typeof SectionsScalarFieldEnum]
+
+
+  export const MarkComponentScalarFieldEnum: {
+    id: 'id',
+    offeringId: 'offeringId',
+    name: 'name',
+    maxMarks: 'maxMarks',
+    weightage: 'weightage',
+    order: 'order'
+  };
+
+  export type MarkComponentScalarFieldEnum = (typeof MarkComponentScalarFieldEnum)[keyof typeof MarkComponentScalarFieldEnum]
+
+
+  export const MarkScalarFieldEnum: {
+    id: 'id',
+    enrollmentId: 'enrollmentId',
+    componentId: 'componentId',
+    score: 'score'
+  };
+
+  export type MarkScalarFieldEnum = (typeof MarkScalarFieldEnum)[keyof typeof MarkScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -26915,6 +29478,7 @@ export namespace Prisma {
     teacher?: XOR<TeacherNullableScalarRelationFilter, TeacherWhereInput> | null
     academic_years?: XOR<Academic_yearsNullableScalarRelationFilter, academic_yearsWhereInput> | null
     enrollments?: StudentEnrollmentListRelationFilter
+    markComponents?: MarkComponentListRelationFilter
   }
 
   export type CourseOfferingOrderByWithRelationInput = {
@@ -26930,6 +29494,7 @@ export namespace Prisma {
     teacher?: TeacherOrderByWithRelationInput
     academic_years?: academic_yearsOrderByWithRelationInput
     enrollments?: StudentEnrollmentOrderByRelationAggregateInput
+    markComponents?: MarkComponentOrderByRelationAggregateInput
   }
 
   export type CourseOfferingWhereUniqueInput = Prisma.AtLeast<{
@@ -26948,6 +29513,7 @@ export namespace Prisma {
     teacher?: XOR<TeacherNullableScalarRelationFilter, TeacherWhereInput> | null
     academic_years?: XOR<Academic_yearsNullableScalarRelationFilter, academic_yearsWhereInput> | null
     enrollments?: StudentEnrollmentListRelationFilter
+    markComponents?: MarkComponentListRelationFilter
   }, "id">
 
   export type CourseOfferingOrderByWithAggregationInput = {
@@ -26990,6 +29556,7 @@ export namespace Prisma {
     student?: XOR<StudentNullableScalarRelationFilter, StudentWhereInput> | null
     academic_years?: XOR<Academic_yearsNullableScalarRelationFilter, academic_yearsWhereInput> | null
     theoryMarks?: XOR<TheoryMarksNullableScalarRelationFilter, TheoryMarksWhereInput> | null
+    marks?: MarkListRelationFilter
   }
 
   export type StudentEnrollmentOrderByWithRelationInput = {
@@ -27003,6 +29570,7 @@ export namespace Prisma {
     student?: StudentOrderByWithRelationInput
     academic_years?: academic_yearsOrderByWithRelationInput
     theoryMarks?: TheoryMarksOrderByWithRelationInput
+    marks?: MarkOrderByRelationAggregateInput
   }
 
   export type StudentEnrollmentWhereUniqueInput = Prisma.AtLeast<{
@@ -27019,6 +29587,7 @@ export namespace Prisma {
     student?: XOR<StudentNullableScalarRelationFilter, StudentWhereInput> | null
     academic_years?: XOR<Academic_yearsNullableScalarRelationFilter, academic_yearsWhereInput> | null
     theoryMarks?: XOR<TheoryMarksNullableScalarRelationFilter, TheoryMarksWhereInput> | null
+    marks?: MarkListRelationFilter
   }, "id">
 
   export type StudentEnrollmentOrderByWithAggregationInput = {
@@ -27507,6 +30076,126 @@ export namespace Prisma {
     section_id?: UuidWithAggregatesFilter<"sections"> | string
     department_id?: UuidWithAggregatesFilter<"sections"> | string
     section_name?: StringWithAggregatesFilter<"sections"> | string
+  }
+
+  export type MarkComponentWhereInput = {
+    AND?: MarkComponentWhereInput | MarkComponentWhereInput[]
+    OR?: MarkComponentWhereInput[]
+    NOT?: MarkComponentWhereInput | MarkComponentWhereInput[]
+    id?: UuidFilter<"MarkComponent"> | string
+    offeringId?: UuidFilter<"MarkComponent"> | string
+    name?: StringFilter<"MarkComponent"> | string
+    maxMarks?: IntFilter<"MarkComponent"> | number
+    weightage?: FloatFilter<"MarkComponent"> | number
+    order?: IntFilter<"MarkComponent"> | number
+    offering?: XOR<CourseOfferingScalarRelationFilter, CourseOfferingWhereInput>
+    marks?: MarkListRelationFilter
+  }
+
+  export type MarkComponentOrderByWithRelationInput = {
+    id?: SortOrder
+    offeringId?: SortOrder
+    name?: SortOrder
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+    offering?: CourseOfferingOrderByWithRelationInput
+    marks?: MarkOrderByRelationAggregateInput
+  }
+
+  export type MarkComponentWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MarkComponentWhereInput | MarkComponentWhereInput[]
+    OR?: MarkComponentWhereInput[]
+    NOT?: MarkComponentWhereInput | MarkComponentWhereInput[]
+    offeringId?: UuidFilter<"MarkComponent"> | string
+    name?: StringFilter<"MarkComponent"> | string
+    maxMarks?: IntFilter<"MarkComponent"> | number
+    weightage?: FloatFilter<"MarkComponent"> | number
+    order?: IntFilter<"MarkComponent"> | number
+    offering?: XOR<CourseOfferingScalarRelationFilter, CourseOfferingWhereInput>
+    marks?: MarkListRelationFilter
+  }, "id">
+
+  export type MarkComponentOrderByWithAggregationInput = {
+    id?: SortOrder
+    offeringId?: SortOrder
+    name?: SortOrder
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+    _count?: MarkComponentCountOrderByAggregateInput
+    _avg?: MarkComponentAvgOrderByAggregateInput
+    _max?: MarkComponentMaxOrderByAggregateInput
+    _min?: MarkComponentMinOrderByAggregateInput
+    _sum?: MarkComponentSumOrderByAggregateInput
+  }
+
+  export type MarkComponentScalarWhereWithAggregatesInput = {
+    AND?: MarkComponentScalarWhereWithAggregatesInput | MarkComponentScalarWhereWithAggregatesInput[]
+    OR?: MarkComponentScalarWhereWithAggregatesInput[]
+    NOT?: MarkComponentScalarWhereWithAggregatesInput | MarkComponentScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"MarkComponent"> | string
+    offeringId?: UuidWithAggregatesFilter<"MarkComponent"> | string
+    name?: StringWithAggregatesFilter<"MarkComponent"> | string
+    maxMarks?: IntWithAggregatesFilter<"MarkComponent"> | number
+    weightage?: FloatWithAggregatesFilter<"MarkComponent"> | number
+    order?: IntWithAggregatesFilter<"MarkComponent"> | number
+  }
+
+  export type MarkWhereInput = {
+    AND?: MarkWhereInput | MarkWhereInput[]
+    OR?: MarkWhereInput[]
+    NOT?: MarkWhereInput | MarkWhereInput[]
+    id?: UuidFilter<"Mark"> | string
+    enrollmentId?: UuidFilter<"Mark"> | string
+    componentId?: UuidFilter<"Mark"> | string
+    score?: IntFilter<"Mark"> | number
+    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
+    component?: XOR<MarkComponentScalarRelationFilter, MarkComponentWhereInput>
+  }
+
+  export type MarkOrderByWithRelationInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    componentId?: SortOrder
+    score?: SortOrder
+    enrollment?: StudentEnrollmentOrderByWithRelationInput
+    component?: MarkComponentOrderByWithRelationInput
+  }
+
+  export type MarkWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: MarkWhereInput | MarkWhereInput[]
+    OR?: MarkWhereInput[]
+    NOT?: MarkWhereInput | MarkWhereInput[]
+    enrollmentId?: UuidFilter<"Mark"> | string
+    componentId?: UuidFilter<"Mark"> | string
+    score?: IntFilter<"Mark"> | number
+    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
+    component?: XOR<MarkComponentScalarRelationFilter, MarkComponentWhereInput>
+  }, "id">
+
+  export type MarkOrderByWithAggregationInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    componentId?: SortOrder
+    score?: SortOrder
+    _count?: MarkCountOrderByAggregateInput
+    _avg?: MarkAvgOrderByAggregateInput
+    _max?: MarkMaxOrderByAggregateInput
+    _min?: MarkMinOrderByAggregateInput
+    _sum?: MarkSumOrderByAggregateInput
+  }
+
+  export type MarkScalarWhereWithAggregatesInput = {
+    AND?: MarkScalarWhereWithAggregatesInput | MarkScalarWhereWithAggregatesInput[]
+    OR?: MarkScalarWhereWithAggregatesInput[]
+    NOT?: MarkScalarWhereWithAggregatesInput | MarkScalarWhereWithAggregatesInput[]
+    id?: UuidWithAggregatesFilter<"Mark"> | string
+    enrollmentId?: UuidWithAggregatesFilter<"Mark"> | string
+    componentId?: UuidWithAggregatesFilter<"Mark"> | string
+    score?: IntWithAggregatesFilter<"Mark"> | number
   }
 
   export type CollegeCreateInput = {
@@ -28155,6 +30844,7 @@ export namespace Prisma {
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateInput = {
@@ -28166,6 +30856,7 @@ export namespace Prisma {
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUpdateInput = {
@@ -28177,6 +30868,7 @@ export namespace Prisma {
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateInput = {
@@ -28188,6 +30880,7 @@ export namespace Prisma {
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingCreateManyInput = {
@@ -28221,6 +30914,7 @@ export namespace Prisma {
     student?: StudentCreateNestedOneWithoutEnrollmentsInput
     academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
     theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateInput = {
@@ -28231,6 +30925,7 @@ export namespace Prisma {
     year_id?: string | null
     labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
     theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUpdateInput = {
@@ -28241,6 +30936,7 @@ export namespace Prisma {
     student?: StudentUpdateOneWithoutEnrollmentsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
     theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateInput = {
@@ -28251,6 +30947,7 @@ export namespace Prisma {
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
     theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentCreateManyInput = {
@@ -28723,6 +31420,119 @@ export namespace Prisma {
     section_id?: StringFieldUpdateOperationsInput | string
     department_id?: StringFieldUpdateOperationsInput | string
     section_name?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type MarkComponentCreateInput = {
+    id?: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    offering: CourseOfferingCreateNestedOneWithoutMarkComponentsInput
+    marks?: MarkCreateNestedManyWithoutComponentInput
+  }
+
+  export type MarkComponentUncheckedCreateInput = {
+    id?: string
+    offeringId: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    marks?: MarkUncheckedCreateNestedManyWithoutComponentInput
+  }
+
+  export type MarkComponentUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+    offering?: CourseOfferingUpdateOneRequiredWithoutMarkComponentsNestedInput
+    marks?: MarkUpdateManyWithoutComponentNestedInput
+  }
+
+  export type MarkComponentUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    offeringId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+    marks?: MarkUncheckedUpdateManyWithoutComponentNestedInput
+  }
+
+  export type MarkComponentCreateManyInput = {
+    id?: string
+    offeringId: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+  }
+
+  export type MarkComponentUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkComponentUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    offeringId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkCreateInput = {
+    id?: string
+    score: number
+    enrollment: StudentEnrollmentCreateNestedOneWithoutMarksInput
+    component: MarkComponentCreateNestedOneWithoutMarksInput
+  }
+
+  export type MarkUncheckedCreateInput = {
+    id?: string
+    enrollmentId: string
+    componentId: string
+    score: number
+  }
+
+  export type MarkUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    enrollment?: StudentEnrollmentUpdateOneRequiredWithoutMarksNestedInput
+    component?: MarkComponentUpdateOneRequiredWithoutMarksNestedInput
+  }
+
+  export type MarkUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    componentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkCreateManyInput = {
+    id?: string
+    enrollmentId: string
+    componentId: string
+    score: number
+  }
+
+  export type MarkUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    componentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
   }
 
   export type UuidFilter<$PrismaModel = never> = {
@@ -29476,6 +32286,16 @@ export namespace Prisma {
     isNot?: academic_yearsWhereInput | null
   }
 
+  export type MarkComponentListRelationFilter = {
+    every?: MarkComponentWhereInput
+    some?: MarkComponentWhereInput
+    none?: MarkComponentWhereInput
+  }
+
+  export type MarkComponentOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type CourseOfferingCountOrderByAggregateInput = {
     id?: SortOrder
     courseId?: SortOrder
@@ -29524,6 +32344,16 @@ export namespace Prisma {
   export type TheoryMarksNullableScalarRelationFilter = {
     is?: TheoryMarksWhereInput | null
     isNot?: TheoryMarksWhereInput | null
+  }
+
+  export type MarkListRelationFilter = {
+    every?: MarkWhereInput
+    some?: MarkWhereInput
+    none?: MarkWhereInput
+  }
+
+  export type MarkOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type StudentEnrollmentCountOrderByAggregateInput = {
@@ -29858,6 +32688,111 @@ export namespace Prisma {
     section_id?: SortOrder
     department_id?: SortOrder
     section_name?: SortOrder
+  }
+
+  export type FloatFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatFilter<$PrismaModel> | number
+  }
+
+  export type CourseOfferingScalarRelationFilter = {
+    is?: CourseOfferingWhereInput
+    isNot?: CourseOfferingWhereInput
+  }
+
+  export type MarkComponentCountOrderByAggregateInput = {
+    id?: SortOrder
+    offeringId?: SortOrder
+    name?: SortOrder
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+  }
+
+  export type MarkComponentAvgOrderByAggregateInput = {
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+  }
+
+  export type MarkComponentMaxOrderByAggregateInput = {
+    id?: SortOrder
+    offeringId?: SortOrder
+    name?: SortOrder
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+  }
+
+  export type MarkComponentMinOrderByAggregateInput = {
+    id?: SortOrder
+    offeringId?: SortOrder
+    name?: SortOrder
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+  }
+
+  export type MarkComponentSumOrderByAggregateInput = {
+    maxMarks?: SortOrder
+    weightage?: SortOrder
+    order?: SortOrder
+  }
+
+  export type FloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
+  }
+
+  export type MarkComponentScalarRelationFilter = {
+    is?: MarkComponentWhereInput
+    isNot?: MarkComponentWhereInput
+  }
+
+  export type MarkCountOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    componentId?: SortOrder
+    score?: SortOrder
+  }
+
+  export type MarkAvgOrderByAggregateInput = {
+    score?: SortOrder
+  }
+
+  export type MarkMaxOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    componentId?: SortOrder
+    score?: SortOrder
+  }
+
+  export type MarkMinOrderByAggregateInput = {
+    id?: SortOrder
+    enrollmentId?: SortOrder
+    componentId?: SortOrder
+    score?: SortOrder
+  }
+
+  export type MarkSumOrderByAggregateInput = {
+    score?: SortOrder
   }
 
   export type academic_yearsCreateNestedManyWithoutCollegesInput = {
@@ -31196,6 +34131,13 @@ export namespace Prisma {
     connect?: StudentEnrollmentWhereUniqueInput | StudentEnrollmentWhereUniqueInput[]
   }
 
+  export type MarkComponentCreateNestedManyWithoutOfferingInput = {
+    create?: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput> | MarkComponentCreateWithoutOfferingInput[] | MarkComponentUncheckedCreateWithoutOfferingInput[]
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutOfferingInput | MarkComponentCreateOrConnectWithoutOfferingInput[]
+    createMany?: MarkComponentCreateManyOfferingInputEnvelope
+    connect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+  }
+
   export type AttendanceUncheckedCreateNestedManyWithoutOfferingInput = {
     create?: XOR<AttendanceCreateWithoutOfferingInput, AttendanceUncheckedCreateWithoutOfferingInput> | AttendanceCreateWithoutOfferingInput[] | AttendanceUncheckedCreateWithoutOfferingInput[]
     connectOrCreate?: AttendanceCreateOrConnectWithoutOfferingInput | AttendanceCreateOrConnectWithoutOfferingInput[]
@@ -31208,6 +34150,13 @@ export namespace Prisma {
     connectOrCreate?: StudentEnrollmentCreateOrConnectWithoutOfferingInput | StudentEnrollmentCreateOrConnectWithoutOfferingInput[]
     createMany?: StudentEnrollmentCreateManyOfferingInputEnvelope
     connect?: StudentEnrollmentWhereUniqueInput | StudentEnrollmentWhereUniqueInput[]
+  }
+
+  export type MarkComponentUncheckedCreateNestedManyWithoutOfferingInput = {
+    create?: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput> | MarkComponentCreateWithoutOfferingInput[] | MarkComponentUncheckedCreateWithoutOfferingInput[]
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutOfferingInput | MarkComponentCreateOrConnectWithoutOfferingInput[]
+    createMany?: MarkComponentCreateManyOfferingInputEnvelope
+    connect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
   }
 
   export type AttendanceUpdateManyWithoutOfferingNestedInput = {
@@ -31276,6 +34225,20 @@ export namespace Prisma {
     deleteMany?: StudentEnrollmentScalarWhereInput | StudentEnrollmentScalarWhereInput[]
   }
 
+  export type MarkComponentUpdateManyWithoutOfferingNestedInput = {
+    create?: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput> | MarkComponentCreateWithoutOfferingInput[] | MarkComponentUncheckedCreateWithoutOfferingInput[]
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutOfferingInput | MarkComponentCreateOrConnectWithoutOfferingInput[]
+    upsert?: MarkComponentUpsertWithWhereUniqueWithoutOfferingInput | MarkComponentUpsertWithWhereUniqueWithoutOfferingInput[]
+    createMany?: MarkComponentCreateManyOfferingInputEnvelope
+    set?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    disconnect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    delete?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    connect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    update?: MarkComponentUpdateWithWhereUniqueWithoutOfferingInput | MarkComponentUpdateWithWhereUniqueWithoutOfferingInput[]
+    updateMany?: MarkComponentUpdateManyWithWhereWithoutOfferingInput | MarkComponentUpdateManyWithWhereWithoutOfferingInput[]
+    deleteMany?: MarkComponentScalarWhereInput | MarkComponentScalarWhereInput[]
+  }
+
   export type AttendanceUncheckedUpdateManyWithoutOfferingNestedInput = {
     create?: XOR<AttendanceCreateWithoutOfferingInput, AttendanceUncheckedCreateWithoutOfferingInput> | AttendanceCreateWithoutOfferingInput[] | AttendanceUncheckedCreateWithoutOfferingInput[]
     connectOrCreate?: AttendanceCreateOrConnectWithoutOfferingInput | AttendanceCreateOrConnectWithoutOfferingInput[]
@@ -31302,6 +34265,20 @@ export namespace Prisma {
     update?: StudentEnrollmentUpdateWithWhereUniqueWithoutOfferingInput | StudentEnrollmentUpdateWithWhereUniqueWithoutOfferingInput[]
     updateMany?: StudentEnrollmentUpdateManyWithWhereWithoutOfferingInput | StudentEnrollmentUpdateManyWithWhereWithoutOfferingInput[]
     deleteMany?: StudentEnrollmentScalarWhereInput | StudentEnrollmentScalarWhereInput[]
+  }
+
+  export type MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput = {
+    create?: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput> | MarkComponentCreateWithoutOfferingInput[] | MarkComponentUncheckedCreateWithoutOfferingInput[]
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutOfferingInput | MarkComponentCreateOrConnectWithoutOfferingInput[]
+    upsert?: MarkComponentUpsertWithWhereUniqueWithoutOfferingInput | MarkComponentUpsertWithWhereUniqueWithoutOfferingInput[]
+    createMany?: MarkComponentCreateManyOfferingInputEnvelope
+    set?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    disconnect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    delete?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    connect?: MarkComponentWhereUniqueInput | MarkComponentWhereUniqueInput[]
+    update?: MarkComponentUpdateWithWhereUniqueWithoutOfferingInput | MarkComponentUpdateWithWhereUniqueWithoutOfferingInput[]
+    updateMany?: MarkComponentUpdateManyWithWhereWithoutOfferingInput | MarkComponentUpdateManyWithWhereWithoutOfferingInput[]
+    deleteMany?: MarkComponentScalarWhereInput | MarkComponentScalarWhereInput[]
   }
 
   export type LabMarksCreateNestedOneWithoutEnrollmentInput = {
@@ -31334,6 +34311,13 @@ export namespace Prisma {
     connect?: TheoryMarksWhereUniqueInput
   }
 
+  export type MarkCreateNestedManyWithoutEnrollmentInput = {
+    create?: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput> | MarkCreateWithoutEnrollmentInput[] | MarkUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutEnrollmentInput | MarkCreateOrConnectWithoutEnrollmentInput[]
+    createMany?: MarkCreateManyEnrollmentInputEnvelope
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+  }
+
   export type LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput = {
     create?: XOR<LabMarksCreateWithoutEnrollmentInput, LabMarksUncheckedCreateWithoutEnrollmentInput>
     connectOrCreate?: LabMarksCreateOrConnectWithoutEnrollmentInput
@@ -31344,6 +34328,13 @@ export namespace Prisma {
     create?: XOR<TheoryMarksCreateWithoutEnrollmentInput, TheoryMarksUncheckedCreateWithoutEnrollmentInput>
     connectOrCreate?: TheoryMarksCreateOrConnectWithoutEnrollmentInput
     connect?: TheoryMarksWhereUniqueInput
+  }
+
+  export type MarkUncheckedCreateNestedManyWithoutEnrollmentInput = {
+    create?: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput> | MarkCreateWithoutEnrollmentInput[] | MarkUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutEnrollmentInput | MarkCreateOrConnectWithoutEnrollmentInput[]
+    createMany?: MarkCreateManyEnrollmentInputEnvelope
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
   }
 
   export type LabMarksUpdateOneWithoutEnrollmentNestedInput = {
@@ -31396,6 +34387,20 @@ export namespace Prisma {
     update?: XOR<XOR<TheoryMarksUpdateToOneWithWhereWithoutEnrollmentInput, TheoryMarksUpdateWithoutEnrollmentInput>, TheoryMarksUncheckedUpdateWithoutEnrollmentInput>
   }
 
+  export type MarkUpdateManyWithoutEnrollmentNestedInput = {
+    create?: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput> | MarkCreateWithoutEnrollmentInput[] | MarkUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutEnrollmentInput | MarkCreateOrConnectWithoutEnrollmentInput[]
+    upsert?: MarkUpsertWithWhereUniqueWithoutEnrollmentInput | MarkUpsertWithWhereUniqueWithoutEnrollmentInput[]
+    createMany?: MarkCreateManyEnrollmentInputEnvelope
+    set?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    disconnect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    delete?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    update?: MarkUpdateWithWhereUniqueWithoutEnrollmentInput | MarkUpdateWithWhereUniqueWithoutEnrollmentInput[]
+    updateMany?: MarkUpdateManyWithWhereWithoutEnrollmentInput | MarkUpdateManyWithWhereWithoutEnrollmentInput[]
+    deleteMany?: MarkScalarWhereInput | MarkScalarWhereInput[]
+  }
+
   export type LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput = {
     create?: XOR<LabMarksCreateWithoutEnrollmentInput, LabMarksUncheckedCreateWithoutEnrollmentInput>
     connectOrCreate?: LabMarksCreateOrConnectWithoutEnrollmentInput
@@ -31414,6 +34419,20 @@ export namespace Prisma {
     delete?: TheoryMarksWhereInput | boolean
     connect?: TheoryMarksWhereUniqueInput
     update?: XOR<XOR<TheoryMarksUpdateToOneWithWhereWithoutEnrollmentInput, TheoryMarksUpdateWithoutEnrollmentInput>, TheoryMarksUncheckedUpdateWithoutEnrollmentInput>
+  }
+
+  export type MarkUncheckedUpdateManyWithoutEnrollmentNestedInput = {
+    create?: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput> | MarkCreateWithoutEnrollmentInput[] | MarkUncheckedCreateWithoutEnrollmentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutEnrollmentInput | MarkCreateOrConnectWithoutEnrollmentInput[]
+    upsert?: MarkUpsertWithWhereUniqueWithoutEnrollmentInput | MarkUpsertWithWhereUniqueWithoutEnrollmentInput[]
+    createMany?: MarkCreateManyEnrollmentInputEnvelope
+    set?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    disconnect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    delete?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    update?: MarkUpdateWithWhereUniqueWithoutEnrollmentInput | MarkUpdateWithWhereUniqueWithoutEnrollmentInput[]
+    updateMany?: MarkUpdateManyWithWhereWithoutEnrollmentInput | MarkUpdateManyWithWhereWithoutEnrollmentInput[]
+    deleteMany?: MarkScalarWhereInput | MarkScalarWhereInput[]
   }
 
   export type CourseOfferingCreateNestedOneWithoutAttendancesInput = {
@@ -31786,6 +34805,98 @@ export namespace Prisma {
     deleteMany?: StudentScalarWhereInput | StudentScalarWhereInput[]
   }
 
+  export type CourseOfferingCreateNestedOneWithoutMarkComponentsInput = {
+    create?: XOR<CourseOfferingCreateWithoutMarkComponentsInput, CourseOfferingUncheckedCreateWithoutMarkComponentsInput>
+    connectOrCreate?: CourseOfferingCreateOrConnectWithoutMarkComponentsInput
+    connect?: CourseOfferingWhereUniqueInput
+  }
+
+  export type MarkCreateNestedManyWithoutComponentInput = {
+    create?: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput> | MarkCreateWithoutComponentInput[] | MarkUncheckedCreateWithoutComponentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutComponentInput | MarkCreateOrConnectWithoutComponentInput[]
+    createMany?: MarkCreateManyComponentInputEnvelope
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+  }
+
+  export type MarkUncheckedCreateNestedManyWithoutComponentInput = {
+    create?: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput> | MarkCreateWithoutComponentInput[] | MarkUncheckedCreateWithoutComponentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutComponentInput | MarkCreateOrConnectWithoutComponentInput[]
+    createMany?: MarkCreateManyComponentInputEnvelope
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+  }
+
+  export type FloatFieldUpdateOperationsInput = {
+    set?: number
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type CourseOfferingUpdateOneRequiredWithoutMarkComponentsNestedInput = {
+    create?: XOR<CourseOfferingCreateWithoutMarkComponentsInput, CourseOfferingUncheckedCreateWithoutMarkComponentsInput>
+    connectOrCreate?: CourseOfferingCreateOrConnectWithoutMarkComponentsInput
+    upsert?: CourseOfferingUpsertWithoutMarkComponentsInput
+    connect?: CourseOfferingWhereUniqueInput
+    update?: XOR<XOR<CourseOfferingUpdateToOneWithWhereWithoutMarkComponentsInput, CourseOfferingUpdateWithoutMarkComponentsInput>, CourseOfferingUncheckedUpdateWithoutMarkComponentsInput>
+  }
+
+  export type MarkUpdateManyWithoutComponentNestedInput = {
+    create?: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput> | MarkCreateWithoutComponentInput[] | MarkUncheckedCreateWithoutComponentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutComponentInput | MarkCreateOrConnectWithoutComponentInput[]
+    upsert?: MarkUpsertWithWhereUniqueWithoutComponentInput | MarkUpsertWithWhereUniqueWithoutComponentInput[]
+    createMany?: MarkCreateManyComponentInputEnvelope
+    set?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    disconnect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    delete?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    update?: MarkUpdateWithWhereUniqueWithoutComponentInput | MarkUpdateWithWhereUniqueWithoutComponentInput[]
+    updateMany?: MarkUpdateManyWithWhereWithoutComponentInput | MarkUpdateManyWithWhereWithoutComponentInput[]
+    deleteMany?: MarkScalarWhereInput | MarkScalarWhereInput[]
+  }
+
+  export type MarkUncheckedUpdateManyWithoutComponentNestedInput = {
+    create?: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput> | MarkCreateWithoutComponentInput[] | MarkUncheckedCreateWithoutComponentInput[]
+    connectOrCreate?: MarkCreateOrConnectWithoutComponentInput | MarkCreateOrConnectWithoutComponentInput[]
+    upsert?: MarkUpsertWithWhereUniqueWithoutComponentInput | MarkUpsertWithWhereUniqueWithoutComponentInput[]
+    createMany?: MarkCreateManyComponentInputEnvelope
+    set?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    disconnect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    delete?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    connect?: MarkWhereUniqueInput | MarkWhereUniqueInput[]
+    update?: MarkUpdateWithWhereUniqueWithoutComponentInput | MarkUpdateWithWhereUniqueWithoutComponentInput[]
+    updateMany?: MarkUpdateManyWithWhereWithoutComponentInput | MarkUpdateManyWithWhereWithoutComponentInput[]
+    deleteMany?: MarkScalarWhereInput | MarkScalarWhereInput[]
+  }
+
+  export type StudentEnrollmentCreateNestedOneWithoutMarksInput = {
+    create?: XOR<StudentEnrollmentCreateWithoutMarksInput, StudentEnrollmentUncheckedCreateWithoutMarksInput>
+    connectOrCreate?: StudentEnrollmentCreateOrConnectWithoutMarksInput
+    connect?: StudentEnrollmentWhereUniqueInput
+  }
+
+  export type MarkComponentCreateNestedOneWithoutMarksInput = {
+    create?: XOR<MarkComponentCreateWithoutMarksInput, MarkComponentUncheckedCreateWithoutMarksInput>
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutMarksInput
+    connect?: MarkComponentWhereUniqueInput
+  }
+
+  export type StudentEnrollmentUpdateOneRequiredWithoutMarksNestedInput = {
+    create?: XOR<StudentEnrollmentCreateWithoutMarksInput, StudentEnrollmentUncheckedCreateWithoutMarksInput>
+    connectOrCreate?: StudentEnrollmentCreateOrConnectWithoutMarksInput
+    upsert?: StudentEnrollmentUpsertWithoutMarksInput
+    connect?: StudentEnrollmentWhereUniqueInput
+    update?: XOR<XOR<StudentEnrollmentUpdateToOneWithWhereWithoutMarksInput, StudentEnrollmentUpdateWithoutMarksInput>, StudentEnrollmentUncheckedUpdateWithoutMarksInput>
+  }
+
+  export type MarkComponentUpdateOneRequiredWithoutMarksNestedInput = {
+    create?: XOR<MarkComponentCreateWithoutMarksInput, MarkComponentUncheckedCreateWithoutMarksInput>
+    connectOrCreate?: MarkComponentCreateOrConnectWithoutMarksInput
+    upsert?: MarkComponentUpsertWithoutMarksInput
+    connect?: MarkComponentWhereUniqueInput
+    update?: XOR<XOR<MarkComponentUpdateToOneWithWhereWithoutMarksInput, MarkComponentUpdateWithoutMarksInput>, MarkComponentUncheckedUpdateWithoutMarksInput>
+  }
+
   export type NestedUuidFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -32099,6 +35210,22 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedBoolNullableFilter<$PrismaModel>
     _max?: NestedBoolNullableFilter<$PrismaModel>
+  }
+
+  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel>
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+    _count?: NestedIntFilter<$PrismaModel>
+    _avg?: NestedFloatFilter<$PrismaModel>
+    _sum?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedFloatFilter<$PrismaModel>
+    _max?: NestedFloatFilter<$PrismaModel>
   }
 
   export type academic_yearsCreateWithoutCollegesInput = {
@@ -33126,6 +36253,7 @@ export namespace Prisma {
     offering?: CourseOfferingCreateNestedOneWithoutEnrollmentsInput
     academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
     theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateWithoutStudentInput = {
@@ -33135,6 +36263,7 @@ export namespace Prisma {
     year_id?: string | null
     labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
     theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentCreateOrConnectWithoutStudentInput = {
@@ -33486,6 +36615,7 @@ export namespace Prisma {
     sections?: sectionsCreateNestedOneWithoutCourse_offeringsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutTeacherInput = {
@@ -33496,6 +36626,7 @@ export namespace Prisma {
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutTeacherInput = {
@@ -33795,6 +36926,7 @@ export namespace Prisma {
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutCourseInput = {
@@ -33805,6 +36937,7 @@ export namespace Prisma {
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutCourseInput = {
@@ -34568,6 +37701,7 @@ export namespace Prisma {
     student?: StudentCreateNestedOneWithoutEnrollmentsInput
     academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
     theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateWithoutOfferingInput = {
@@ -34577,6 +37711,7 @@ export namespace Prisma {
     year_id?: string | null
     labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
     theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentCreateOrConnectWithoutOfferingInput = {
@@ -34586,6 +37721,34 @@ export namespace Prisma {
 
   export type StudentEnrollmentCreateManyOfferingInputEnvelope = {
     data: StudentEnrollmentCreateManyOfferingInput | StudentEnrollmentCreateManyOfferingInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type MarkComponentCreateWithoutOfferingInput = {
+    id?: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    marks?: MarkCreateNestedManyWithoutComponentInput
+  }
+
+  export type MarkComponentUncheckedCreateWithoutOfferingInput = {
+    id?: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    marks?: MarkUncheckedCreateNestedManyWithoutComponentInput
+  }
+
+  export type MarkComponentCreateOrConnectWithoutOfferingInput = {
+    where: MarkComponentWhereUniqueInput
+    create: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput>
+  }
+
+  export type MarkComponentCreateManyOfferingInputEnvelope = {
+    data: MarkComponentCreateManyOfferingInput | MarkComponentCreateManyOfferingInput[]
     skipDuplicates?: boolean
   }
 
@@ -34741,6 +37904,34 @@ export namespace Prisma {
     data: XOR<StudentEnrollmentUpdateManyMutationInput, StudentEnrollmentUncheckedUpdateManyWithoutOfferingInput>
   }
 
+  export type MarkComponentUpsertWithWhereUniqueWithoutOfferingInput = {
+    where: MarkComponentWhereUniqueInput
+    update: XOR<MarkComponentUpdateWithoutOfferingInput, MarkComponentUncheckedUpdateWithoutOfferingInput>
+    create: XOR<MarkComponentCreateWithoutOfferingInput, MarkComponentUncheckedCreateWithoutOfferingInput>
+  }
+
+  export type MarkComponentUpdateWithWhereUniqueWithoutOfferingInput = {
+    where: MarkComponentWhereUniqueInput
+    data: XOR<MarkComponentUpdateWithoutOfferingInput, MarkComponentUncheckedUpdateWithoutOfferingInput>
+  }
+
+  export type MarkComponentUpdateManyWithWhereWithoutOfferingInput = {
+    where: MarkComponentScalarWhereInput
+    data: XOR<MarkComponentUpdateManyMutationInput, MarkComponentUncheckedUpdateManyWithoutOfferingInput>
+  }
+
+  export type MarkComponentScalarWhereInput = {
+    AND?: MarkComponentScalarWhereInput | MarkComponentScalarWhereInput[]
+    OR?: MarkComponentScalarWhereInput[]
+    NOT?: MarkComponentScalarWhereInput | MarkComponentScalarWhereInput[]
+    id?: UuidFilter<"MarkComponent"> | string
+    offeringId?: UuidFilter<"MarkComponent"> | string
+    name?: StringFilter<"MarkComponent"> | string
+    maxMarks?: IntFilter<"MarkComponent"> | number
+    weightage?: FloatFilter<"MarkComponent"> | number
+    order?: IntFilter<"MarkComponent"> | number
+  }
+
   export type LabMarksCreateWithoutEnrollmentInput = {
     id?: string
     recordMarks?: number | null
@@ -34770,6 +37961,7 @@ export namespace Prisma {
     sections?: sectionsCreateNestedOneWithoutCourse_offeringsInput
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutEnrollmentsInput = {
@@ -34780,6 +37972,7 @@ export namespace Prisma {
     year_id?: string | null
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutEnrollmentsInput = {
@@ -34868,6 +38061,28 @@ export namespace Prisma {
     create: XOR<TheoryMarksCreateWithoutEnrollmentInput, TheoryMarksUncheckedCreateWithoutEnrollmentInput>
   }
 
+  export type MarkCreateWithoutEnrollmentInput = {
+    id?: string
+    score: number
+    component: MarkComponentCreateNestedOneWithoutMarksInput
+  }
+
+  export type MarkUncheckedCreateWithoutEnrollmentInput = {
+    id?: string
+    componentId: string
+    score: number
+  }
+
+  export type MarkCreateOrConnectWithoutEnrollmentInput = {
+    where: MarkWhereUniqueInput
+    create: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput>
+  }
+
+  export type MarkCreateManyEnrollmentInputEnvelope = {
+    data: MarkCreateManyEnrollmentInput | MarkCreateManyEnrollmentInput[]
+    skipDuplicates?: boolean
+  }
+
   export type LabMarksUpsertWithoutEnrollmentInput = {
     update: XOR<LabMarksUpdateWithoutEnrollmentInput, LabMarksUncheckedUpdateWithoutEnrollmentInput>
     create: XOR<LabMarksCreateWithoutEnrollmentInput, LabMarksUncheckedCreateWithoutEnrollmentInput>
@@ -34914,6 +38129,7 @@ export namespace Prisma {
     sections?: sectionsUpdateOneWithoutCourse_offeringsNestedInput
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutEnrollmentsInput = {
@@ -34924,6 +38140,7 @@ export namespace Prisma {
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type StudentUpsertWithoutEnrollmentsInput = {
@@ -35025,6 +38242,32 @@ export namespace Prisma {
     lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type MarkUpsertWithWhereUniqueWithoutEnrollmentInput = {
+    where: MarkWhereUniqueInput
+    update: XOR<MarkUpdateWithoutEnrollmentInput, MarkUncheckedUpdateWithoutEnrollmentInput>
+    create: XOR<MarkCreateWithoutEnrollmentInput, MarkUncheckedCreateWithoutEnrollmentInput>
+  }
+
+  export type MarkUpdateWithWhereUniqueWithoutEnrollmentInput = {
+    where: MarkWhereUniqueInput
+    data: XOR<MarkUpdateWithoutEnrollmentInput, MarkUncheckedUpdateWithoutEnrollmentInput>
+  }
+
+  export type MarkUpdateManyWithWhereWithoutEnrollmentInput = {
+    where: MarkScalarWhereInput
+    data: XOR<MarkUpdateManyMutationInput, MarkUncheckedUpdateManyWithoutEnrollmentInput>
+  }
+
+  export type MarkScalarWhereInput = {
+    AND?: MarkScalarWhereInput | MarkScalarWhereInput[]
+    OR?: MarkScalarWhereInput[]
+    NOT?: MarkScalarWhereInput | MarkScalarWhereInput[]
+    id?: UuidFilter<"Mark"> | string
+    enrollmentId?: UuidFilter<"Mark"> | string
+    componentId?: UuidFilter<"Mark"> | string
+    score?: IntFilter<"Mark"> | number
+  }
+
   export type CourseOfferingCreateWithoutAttendancesInput = {
     id?: string
     semester?: number | null
@@ -35033,6 +38276,7 @@ export namespace Prisma {
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutAttendancesInput = {
@@ -35043,6 +38287,7 @@ export namespace Prisma {
     year_id?: string | null
     semester?: number | null
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutAttendancesInput = {
@@ -35112,6 +38357,7 @@ export namespace Prisma {
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutAttendancesInput = {
@@ -35122,6 +38368,7 @@ export namespace Prisma {
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type TeacherUpsertWithoutAttendancesInput = {
@@ -35294,6 +38541,7 @@ export namespace Prisma {
     offering?: CourseOfferingCreateNestedOneWithoutEnrollmentsInput
     student?: StudentCreateNestedOneWithoutEnrollmentsInput
     academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateWithoutTheoryMarksInput = {
@@ -35303,6 +38551,7 @@ export namespace Prisma {
     attemptNumber?: number | null
     year_id?: string | null
     labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentCreateOrConnectWithoutTheoryMarksInput = {
@@ -35328,6 +38577,7 @@ export namespace Prisma {
     offering?: CourseOfferingUpdateOneWithoutEnrollmentsNestedInput
     student?: StudentUpdateOneWithoutEnrollmentsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateWithoutTheoryMarksInput = {
@@ -35337,6 +38587,7 @@ export namespace Prisma {
     attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentCreateWithoutLabMarksInput = {
@@ -35346,6 +38597,7 @@ export namespace Prisma {
     student?: StudentCreateNestedOneWithoutEnrollmentsInput
     academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
     theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateWithoutLabMarksInput = {
@@ -35355,6 +38607,7 @@ export namespace Prisma {
     attemptNumber?: number | null
     year_id?: string | null
     theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentCreateOrConnectWithoutLabMarksInput = {
@@ -35380,6 +38633,7 @@ export namespace Prisma {
     student?: StudentUpdateOneWithoutEnrollmentsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
     theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateWithoutLabMarksInput = {
@@ -35389,6 +38643,7 @@ export namespace Prisma {
     attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type UserCreateWithoutAdminInput = {
@@ -35580,6 +38835,7 @@ export namespace Prisma {
     sections?: sectionsCreateNestedOneWithoutCourse_offeringsInput
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutAcademic_yearsInput = {
@@ -35590,6 +38846,7 @@ export namespace Prisma {
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutAcademic_yearsInput = {
@@ -35609,6 +38866,7 @@ export namespace Prisma {
     offering?: CourseOfferingCreateNestedOneWithoutEnrollmentsInput
     student?: StudentCreateNestedOneWithoutEnrollmentsInput
     theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentUncheckedCreateWithoutAcademic_yearsInput = {
@@ -35618,6 +38876,7 @@ export namespace Prisma {
     attemptNumber?: number | null
     labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
     theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    marks?: MarkUncheckedCreateNestedManyWithoutEnrollmentInput
   }
 
   export type StudentEnrollmentCreateOrConnectWithoutAcademic_yearsInput = {
@@ -35705,6 +38964,7 @@ export namespace Prisma {
     teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
     academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
     enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingUncheckedCreateWithoutSectionsInput = {
@@ -35715,6 +38975,7 @@ export namespace Prisma {
     semester?: number | null
     attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
     enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+    markComponents?: MarkComponentUncheckedCreateNestedManyWithoutOfferingInput
   }
 
   export type CourseOfferingCreateOrConnectWithoutSectionsInput = {
@@ -35855,6 +39116,212 @@ export namespace Prisma {
   export type StudentUpdateManyWithWhereWithoutSectionsInput = {
     where: StudentScalarWhereInput
     data: XOR<StudentUpdateManyMutationInput, StudentUncheckedUpdateManyWithoutSectionsInput>
+  }
+
+  export type CourseOfferingCreateWithoutMarkComponentsInput = {
+    id?: string
+    semester?: number | null
+    attendances?: AttendanceCreateNestedManyWithoutOfferingInput
+    course: CourseCreateNestedOneWithoutCourseOfferingsInput
+    sections?: sectionsCreateNestedOneWithoutCourse_offeringsInput
+    teacher?: TeacherCreateNestedOneWithoutCourseOfferingsInput
+    academic_years?: academic_yearsCreateNestedOneWithoutCourse_offeringsInput
+    enrollments?: StudentEnrollmentCreateNestedManyWithoutOfferingInput
+  }
+
+  export type CourseOfferingUncheckedCreateWithoutMarkComponentsInput = {
+    id?: string
+    courseId: string
+    teacherId?: string | null
+    section_id?: string | null
+    year_id?: string | null
+    semester?: number | null
+    attendances?: AttendanceUncheckedCreateNestedManyWithoutOfferingInput
+    enrollments?: StudentEnrollmentUncheckedCreateNestedManyWithoutOfferingInput
+  }
+
+  export type CourseOfferingCreateOrConnectWithoutMarkComponentsInput = {
+    where: CourseOfferingWhereUniqueInput
+    create: XOR<CourseOfferingCreateWithoutMarkComponentsInput, CourseOfferingUncheckedCreateWithoutMarkComponentsInput>
+  }
+
+  export type MarkCreateWithoutComponentInput = {
+    id?: string
+    score: number
+    enrollment: StudentEnrollmentCreateNestedOneWithoutMarksInput
+  }
+
+  export type MarkUncheckedCreateWithoutComponentInput = {
+    id?: string
+    enrollmentId: string
+    score: number
+  }
+
+  export type MarkCreateOrConnectWithoutComponentInput = {
+    where: MarkWhereUniqueInput
+    create: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput>
+  }
+
+  export type MarkCreateManyComponentInputEnvelope = {
+    data: MarkCreateManyComponentInput | MarkCreateManyComponentInput[]
+    skipDuplicates?: boolean
+  }
+
+  export type CourseOfferingUpsertWithoutMarkComponentsInput = {
+    update: XOR<CourseOfferingUpdateWithoutMarkComponentsInput, CourseOfferingUncheckedUpdateWithoutMarkComponentsInput>
+    create: XOR<CourseOfferingCreateWithoutMarkComponentsInput, CourseOfferingUncheckedCreateWithoutMarkComponentsInput>
+    where?: CourseOfferingWhereInput
+  }
+
+  export type CourseOfferingUpdateToOneWithWhereWithoutMarkComponentsInput = {
+    where?: CourseOfferingWhereInput
+    data: XOR<CourseOfferingUpdateWithoutMarkComponentsInput, CourseOfferingUncheckedUpdateWithoutMarkComponentsInput>
+  }
+
+  export type CourseOfferingUpdateWithoutMarkComponentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    semester?: NullableIntFieldUpdateOperationsInput | number | null
+    attendances?: AttendanceUpdateManyWithoutOfferingNestedInput
+    course?: CourseUpdateOneRequiredWithoutCourseOfferingsNestedInput
+    sections?: sectionsUpdateOneWithoutCourse_offeringsNestedInput
+    teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
+    academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
+    enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+  }
+
+  export type CourseOfferingUncheckedUpdateWithoutMarkComponentsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    courseId?: StringFieldUpdateOperationsInput | string
+    teacherId?: NullableStringFieldUpdateOperationsInput | string | null
+    section_id?: NullableStringFieldUpdateOperationsInput | string | null
+    year_id?: NullableStringFieldUpdateOperationsInput | string | null
+    semester?: NullableIntFieldUpdateOperationsInput | number | null
+    attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
+    enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+  }
+
+  export type MarkUpsertWithWhereUniqueWithoutComponentInput = {
+    where: MarkWhereUniqueInput
+    update: XOR<MarkUpdateWithoutComponentInput, MarkUncheckedUpdateWithoutComponentInput>
+    create: XOR<MarkCreateWithoutComponentInput, MarkUncheckedCreateWithoutComponentInput>
+  }
+
+  export type MarkUpdateWithWhereUniqueWithoutComponentInput = {
+    where: MarkWhereUniqueInput
+    data: XOR<MarkUpdateWithoutComponentInput, MarkUncheckedUpdateWithoutComponentInput>
+  }
+
+  export type MarkUpdateManyWithWhereWithoutComponentInput = {
+    where: MarkScalarWhereInput
+    data: XOR<MarkUpdateManyMutationInput, MarkUncheckedUpdateManyWithoutComponentInput>
+  }
+
+  export type StudentEnrollmentCreateWithoutMarksInput = {
+    id?: string
+    attemptNumber?: number | null
+    labMarks?: LabMarksCreateNestedOneWithoutEnrollmentInput
+    offering?: CourseOfferingCreateNestedOneWithoutEnrollmentsInput
+    student?: StudentCreateNestedOneWithoutEnrollmentsInput
+    academic_years?: academic_yearsCreateNestedOneWithoutStudent_enrollmentsInput
+    theoryMarks?: TheoryMarksCreateNestedOneWithoutEnrollmentInput
+  }
+
+  export type StudentEnrollmentUncheckedCreateWithoutMarksInput = {
+    id?: string
+    studentId?: string | null
+    offeringId?: string | null
+    attemptNumber?: number | null
+    year_id?: string | null
+    labMarks?: LabMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+    theoryMarks?: TheoryMarksUncheckedCreateNestedOneWithoutEnrollmentInput
+  }
+
+  export type StudentEnrollmentCreateOrConnectWithoutMarksInput = {
+    where: StudentEnrollmentWhereUniqueInput
+    create: XOR<StudentEnrollmentCreateWithoutMarksInput, StudentEnrollmentUncheckedCreateWithoutMarksInput>
+  }
+
+  export type MarkComponentCreateWithoutMarksInput = {
+    id?: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+    offering: CourseOfferingCreateNestedOneWithoutMarkComponentsInput
+  }
+
+  export type MarkComponentUncheckedCreateWithoutMarksInput = {
+    id?: string
+    offeringId: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+  }
+
+  export type MarkComponentCreateOrConnectWithoutMarksInput = {
+    where: MarkComponentWhereUniqueInput
+    create: XOR<MarkComponentCreateWithoutMarksInput, MarkComponentUncheckedCreateWithoutMarksInput>
+  }
+
+  export type StudentEnrollmentUpsertWithoutMarksInput = {
+    update: XOR<StudentEnrollmentUpdateWithoutMarksInput, StudentEnrollmentUncheckedUpdateWithoutMarksInput>
+    create: XOR<StudentEnrollmentCreateWithoutMarksInput, StudentEnrollmentUncheckedCreateWithoutMarksInput>
+    where?: StudentEnrollmentWhereInput
+  }
+
+  export type StudentEnrollmentUpdateToOneWithWhereWithoutMarksInput = {
+    where?: StudentEnrollmentWhereInput
+    data: XOR<StudentEnrollmentUpdateWithoutMarksInput, StudentEnrollmentUncheckedUpdateWithoutMarksInput>
+  }
+
+  export type StudentEnrollmentUpdateWithoutMarksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    labMarks?: LabMarksUpdateOneWithoutEnrollmentNestedInput
+    offering?: CourseOfferingUpdateOneWithoutEnrollmentsNestedInput
+    student?: StudentUpdateOneWithoutEnrollmentsNestedInput
+    academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
+    theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+  }
+
+  export type StudentEnrollmentUncheckedUpdateWithoutMarksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    studentId?: NullableStringFieldUpdateOperationsInput | string | null
+    offeringId?: NullableStringFieldUpdateOperationsInput | string | null
+    attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
+    year_id?: NullableStringFieldUpdateOperationsInput | string | null
+    labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+  }
+
+  export type MarkComponentUpsertWithoutMarksInput = {
+    update: XOR<MarkComponentUpdateWithoutMarksInput, MarkComponentUncheckedUpdateWithoutMarksInput>
+    create: XOR<MarkComponentCreateWithoutMarksInput, MarkComponentUncheckedCreateWithoutMarksInput>
+    where?: MarkComponentWhereInput
+  }
+
+  export type MarkComponentUpdateToOneWithWhereWithoutMarksInput = {
+    where?: MarkComponentWhereInput
+    data: XOR<MarkComponentUpdateWithoutMarksInput, MarkComponentUncheckedUpdateWithoutMarksInput>
+  }
+
+  export type MarkComponentUpdateWithoutMarksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+    offering?: CourseOfferingUpdateOneRequiredWithoutMarkComponentsNestedInput
+  }
+
+  export type MarkComponentUncheckedUpdateWithoutMarksInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    offeringId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
   }
 
   export type academic_yearsCreateManyCollegesInput = {
@@ -36331,6 +39798,7 @@ export namespace Prisma {
     offering?: CourseOfferingUpdateOneWithoutEnrollmentsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
     theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateWithoutStudentInput = {
@@ -36340,6 +39808,7 @@ export namespace Prisma {
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
     theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateManyWithoutStudentInput = {
@@ -36403,6 +39872,7 @@ export namespace Prisma {
     sections?: sectionsUpdateOneWithoutCourse_offeringsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutTeacherInput = {
@@ -36413,6 +39883,7 @@ export namespace Prisma {
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateManyWithoutTeacherInput = {
@@ -36460,6 +39931,7 @@ export namespace Prisma {
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutCourseInput = {
@@ -36470,6 +39942,7 @@ export namespace Prisma {
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateManyWithoutCourseInput = {
@@ -36527,6 +40000,14 @@ export namespace Prisma {
     year_id?: string | null
   }
 
+  export type MarkComponentCreateManyOfferingInput = {
+    id?: string
+    name: string
+    maxMarks: number
+    weightage: number
+    order: number
+  }
+
   export type AttendanceUpdateWithoutOfferingInput = {
     id?: StringFieldUpdateOperationsInput | string
     classDate?: DateTimeFieldUpdateOperationsInput | Date | string
@@ -36563,6 +40044,7 @@ export namespace Prisma {
     student?: StudentUpdateOneWithoutEnrollmentsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutStudent_enrollmentsNestedInput
     theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateWithoutOfferingInput = {
@@ -36572,6 +40054,7 @@ export namespace Prisma {
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
     labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
     theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateManyWithoutOfferingInput = {
@@ -36579,6 +40062,56 @@ export namespace Prisma {
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
     attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
     year_id?: NullableStringFieldUpdateOperationsInput | string | null
+  }
+
+  export type MarkComponentUpdateWithoutOfferingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+    marks?: MarkUpdateManyWithoutComponentNestedInput
+  }
+
+  export type MarkComponentUncheckedUpdateWithoutOfferingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+    marks?: MarkUncheckedUpdateManyWithoutComponentNestedInput
+  }
+
+  export type MarkComponentUncheckedUpdateManyWithoutOfferingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    maxMarks?: IntFieldUpdateOperationsInput | number
+    weightage?: FloatFieldUpdateOperationsInput | number
+    order?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkCreateManyEnrollmentInput = {
+    id?: string
+    componentId: string
+    score: number
+  }
+
+  export type MarkUpdateWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    component?: MarkComponentUpdateOneRequiredWithoutMarksNestedInput
+  }
+
+  export type MarkUncheckedUpdateWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    componentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkUncheckedUpdateManyWithoutEnrollmentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    componentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
   }
 
   export type AttendanceRecordCreateManyAttendanceInput = {
@@ -36628,6 +40161,7 @@ export namespace Prisma {
     sections?: sectionsUpdateOneWithoutCourse_offeringsNestedInput
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutAcademic_yearsInput = {
@@ -36638,6 +40172,7 @@ export namespace Prisma {
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateManyWithoutAcademic_yearsInput = {
@@ -36655,6 +40190,7 @@ export namespace Prisma {
     offering?: CourseOfferingUpdateOneWithoutEnrollmentsNestedInput
     student?: StudentUpdateOneWithoutEnrollmentsNestedInput
     theoryMarks?: TheoryMarksUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateWithoutAcademic_yearsInput = {
@@ -36664,6 +40200,7 @@ export namespace Prisma {
     attemptNumber?: NullableIntFieldUpdateOperationsInput | number | null
     labMarks?: LabMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
     theoryMarks?: TheoryMarksUncheckedUpdateOneWithoutEnrollmentNestedInput
+    marks?: MarkUncheckedUpdateManyWithoutEnrollmentNestedInput
   }
 
   export type StudentEnrollmentUncheckedUpdateManyWithoutAcademic_yearsInput = {
@@ -36699,6 +40236,7 @@ export namespace Prisma {
     teacher?: TeacherUpdateOneWithoutCourseOfferingsNestedInput
     academic_years?: academic_yearsUpdateOneWithoutCourse_offeringsNestedInput
     enrollments?: StudentEnrollmentUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateWithoutSectionsInput = {
@@ -36709,6 +40247,7 @@ export namespace Prisma {
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     attendances?: AttendanceUncheckedUpdateManyWithoutOfferingNestedInput
     enrollments?: StudentEnrollmentUncheckedUpdateManyWithoutOfferingNestedInput
+    markComponents?: MarkComponentUncheckedUpdateManyWithoutOfferingNestedInput
   }
 
   export type CourseOfferingUncheckedUpdateManyWithoutSectionsInput = {
@@ -36751,6 +40290,30 @@ export namespace Prisma {
     usn?: StringFieldUpdateOperationsInput | string
     semester?: NullableIntFieldUpdateOperationsInput | number | null
     batchYear?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkCreateManyComponentInput = {
+    id?: string
+    enrollmentId: string
+    score: number
+  }
+
+  export type MarkUpdateWithoutComponentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+    enrollment?: StudentEnrollmentUpdateOneRequiredWithoutMarksNestedInput
+  }
+
+  export type MarkUncheckedUpdateWithoutComponentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
+  }
+
+  export type MarkUncheckedUpdateManyWithoutComponentInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    enrollmentId?: StringFieldUpdateOperationsInput | string
+    score?: IntFieldUpdateOperationsInput | number
   }
 
 
