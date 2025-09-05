@@ -233,27 +233,6 @@ exports.Prisma.AttendanceRecordScalarFieldEnum = {
   status: 'status'
 };
 
-exports.Prisma.TheoryMarksScalarFieldEnum = {
-  id: 'id',
-  enrollmentId: 'enrollmentId',
-  mse1Marks: 'mse1Marks',
-  mse2Marks: 'mse2Marks',
-  mse3Marks: 'mse3Marks',
-  task1Marks: 'task1Marks',
-  task2Marks: 'task2Marks',
-  task3Marks: 'task3Marks',
-  lastUpdatedAt: 'lastUpdatedAt'
-};
-
-exports.Prisma.LabMarksScalarFieldEnum = {
-  id: 'id',
-  enrollmentId: 'enrollmentId',
-  recordMarks: 'recordMarks',
-  continuousEvaluationMarks: 'continuousEvaluationMarks',
-  labMseMarks: 'labMseMarks',
-  lastUpdatedAt: 'lastUpdatedAt'
-};
-
 exports.Prisma.AdminScalarFieldEnum = {
   id: 'id',
   userId: 'userId'
@@ -277,6 +256,21 @@ exports.Prisma.SectionsScalarFieldEnum = {
   section_id: 'section_id',
   department_id: 'department_id',
   section_name: 'section_name'
+};
+
+exports.Prisma.TestComponentScalarFieldEnum = {
+  id: 'id',
+  courseOfferingId: 'courseOfferingId',
+  name: 'name',
+  maxMarks: 'maxMarks',
+  weightage: 'weightage'
+};
+
+exports.Prisma.StudentMarkScalarFieldEnum = {
+  id: 'id',
+  enrollmentId: 'enrollmentId',
+  testComponentId: 'testComponentId',
+  marksObtained: 'marksObtained'
 };
 
 exports.Prisma.SortOrder = {
@@ -308,7 +302,8 @@ exports.course_type = exports.$Enums.course_type = {
 
 exports.attendance_status = exports.$Enums.attendance_status = {
   present: 'present',
-  absent: 'absent'
+  absent: 'absent',
+  not: 'not'
 };
 
 exports.Prisma.ModelName = {
@@ -326,12 +321,12 @@ exports.Prisma.ModelName = {
   StudentEnrollment: 'StudentEnrollment',
   Attendance: 'Attendance',
   AttendanceRecord: 'AttendanceRecord',
-  TheoryMarks: 'TheoryMarks',
-  LabMarks: 'LabMarks',
   Admin: 'Admin',
   ReportViewer: 'ReportViewer',
   academic_years: 'academic_years',
-  sections: 'sections'
+  sections: 'sections',
+  TestComponent: 'TestComponent',
+  StudentMark: 'StudentMark'
 };
 
 /**

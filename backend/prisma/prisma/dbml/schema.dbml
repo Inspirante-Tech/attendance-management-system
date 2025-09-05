@@ -161,6 +161,7 @@ Table course_offerings {
   teacher teachers
   academic_years academic_years
   enrollments student_enrollments [not null]
+  testComponents test_components [not null]
 }
 
 Table student_enrollments {
@@ -169,11 +170,10 @@ Table student_enrollments {
   offeringId String
   attemptNumber Int [default: 1]
   year_id String
-  labMarks lab_marks
   offering course_offerings
   student students
   academic_years academic_years
-  theoryMarks theory_marks
+  studentMarks student_marks [not null]
 }
 
 Table attendance {
@@ -196,29 +196,6 @@ Table attendance_records {
   status attendance_status
   attendance attendance
   student students
-}
-
-Table theory_marks {
-  id String [pk]
-  enrollmentId String [unique, not null]
-  mse1Marks Int
-  mse2Marks Int
-  mse3Marks Int
-  task1Marks Int
-  task2Marks Int
-  task3Marks Int
-  lastUpdatedAt DateTime [default: `now()`]
-  enrollment student_enrollments [not null]
-}
-
-Table lab_marks {
-  id String [pk]
-  enrollmentId String [unique, not null]
-  recordMarks Int
-  continuousEvaluationMarks Int
-  labMseMarks Int
-  lastUpdatedAt DateTime [default: `now()`]
-  enrollment student_enrollments [not null]
 }
 
 Table admins {
@@ -262,9 +239,33 @@ Table sections {
   }
 }
 
+Table test_components {
+  id String [pk]
+  courseOfferingId String [not null]
+  name String [not null]
+  maxMarks Int [not null]
+  weightage Int [not null, default: 100]
+  courseOffering course_offerings [not null]
+  studentMarks student_marks [not null]
+}
+
+Table student_marks {
+  id String [pk]
+  enrollmentId String [not null]
+  testComponentId String [not null]
+  marksObtained Int
+  enrollment student_enrollments [not null]
+  testComponent test_components [not null]
+
+  indexes {
+    (enrollmentId, testComponentId) [unique]
+  }
+}
+
 Enum attendance_status {
   present
   absent
+  not
 }
 
 Enum course_type {
@@ -336,10 +337,6 @@ Ref: attendance_records.attendanceId > attendance.id [delete: Cascade]
 
 Ref: attendance_records.studentId > students.id [delete: Cascade]
 
-Ref: theory_marks.enrollmentId - student_enrollments.id [delete: Cascade]
-
-Ref: lab_marks.enrollmentId - student_enrollments.id [delete: Cascade]
-
 Ref: admins.userId - users.id [delete: Cascade]
 
 Ref: report_viewers.userId - users.id [delete: Cascade]
@@ -347,3 +344,9 @@ Ref: report_viewers.userId - users.id [delete: Cascade]
 Ref: academic_years.college_id > colleges.id [delete: Cascade]
 
 Ref: sections.department_id > departments.id [delete: Cascade]
+
+Ref: test_components.courseOfferingId > course_offerings.id [delete: Cascade]
+
+Ref: student_marks.enrollmentId > student_enrollments.id [delete: Cascade]
+
+Ref: student_marks.testComponentId > test_components.id [delete: Cascade]

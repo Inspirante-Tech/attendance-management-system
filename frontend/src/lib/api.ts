@@ -149,6 +149,28 @@ async getStudentMarks(userId: string): Promise<StudentMarksResponse> {
 
 // Admin API functions
 export const adminApi = {
+
+  //for imports
+  async getImportStatus() {
+  return apiRequest<any>('/api/admin/import-status')
+},
+// Import management
+async importTable(stepId: string, file: File): Promise<any> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  return apiRequest<any>(`/api/admin/import/${stepId}`, {
+    method: "POST",
+    body: formData
+  })
+},
+
+async clearDatabase(): Promise<any> {
+  return apiRequest<any>('/api/admin/clear-database', {
+    method: "POST"
+  })
+},
+
   // User management
   async getAllUsers(): Promise<any> {
     return apiRequest<any>('/api/users')

@@ -116,7 +116,7 @@ CREATE TABLE attendance_records (
 );
 
 -- Theory Marks Table
-CREATE TABLE theory_marks (
+CREATE TABLE theory_marks101 (
     id SERIAL PRIMARY KEY,
     enrollment_id INTEGER NOT NULL REFERENCES enrollments(id),
     marks INTEGER

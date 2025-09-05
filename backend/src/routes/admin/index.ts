@@ -10,13 +10,13 @@ import debugRoutes from './debugRoutes';
 const router = Router();
 
 console.log('=== ADMIN ROUTES MODULE LOADED ===');
-
+router.use('/', importRoutes);
 // Apply authentication middleware to all admin routes
 router.use(authenticateToken);
 router.use(requireAdmin);
 
 // Mount all admin route modules
-router.use('/', importRoutes);
+
 router.use('/', marksRoutes);
 router.use('/', courseRoutes);
 router.use('/', attendanceRoutes);
