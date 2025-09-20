@@ -326,33 +326,10 @@ router.get('/debug/course-offerings-detailed', (req, res) => __awaiter(void 0, v
         // Get all course offerings with complete information
         const courseOfferings = yield prisma.courseOffering.findMany({
             include: {
-                course: {
-                    select: {
-                        code: true,
-                        name: true,
-                        departmentId: true
-                    }
-                },
-                teacher: {
-                    include: {
-                        user: {
-                            select: {
-                                name: true
-                            }
-                        }
-                    }
-                },
-                academic_years: {
-                    select: {
-                        year_name: true
-                    }
-                },
-                sections: {
-                    select: {
-                        section_name: true,
-                        departmentId: true
-                    }
-                }
+                course: true,
+                teacher: { include: { user: true } },
+                academic_years: true,
+                sections: true
             },
             orderBy: [
                 { course: { code: 'asc' } },
@@ -575,22 +552,9 @@ router.get('/debug/year-mismatch-analysis', (req, res) => __awaiter(void 0, void
         // Get course offerings grouped by semester
         const courseOfferings = yield prisma.courseOffering.findMany({
             include: {
-                course: {
-                    select: {
-                        code: true,
-                        name: true
-                    }
-                },
-                sections: {
-                    select: {
-                        section_name: true
-                    }
-                },
-                academic_years: {
-                    select: {
-                        year_name: true
-                    }
-                }
+                course: { select: { code: true, name: true } },
+                sections: { select: { section_name: true } },
+                academic_years: { select: { year_name: true } }
             }
         });
         // Parse section names to understand year structure
@@ -599,13 +563,11 @@ router.get('/debug/year-mismatch-analysis', (req, res) => __awaiter(void 0, void
             const sectionName = ((_a = offering.sections) === null || _a === void 0 ? void 0 : _a.section_name) || 'No Section';
             const semester = offering.semester;
             const academicYear = (_b = offering.academic_years) === null || _b === void 0 ? void 0 : _b.year_name;
-            // Extract year from section name (e.g., NM_CSE_A2 -> 2, NM_CSE_A4 -> 4)
             const yearMatch = sectionName.match(/[A-Z](\d+)$/);
             const yearFromSection = yearMatch ? parseInt(yearMatch[1]) : null;
             const key = `Sem${semester}_SecYear${yearFromSection}_AcadYear${academicYear}`;
-            if (!acc[key]) {
+            if (!acc[key])
                 acc[key] = [];
-            }
             acc[key].push({
                 courseCode: (_c = offering.course) === null || _c === void 0 ? void 0 : _c.code,
                 sectionName,
@@ -616,21 +578,11 @@ router.get('/debug/year-mismatch-analysis', (req, res) => __awaiter(void 0, void
             return acc;
         }, {});
         // Get students and their year distribution
-        const students = yield prisma.student.findMany({
-            include: {
-                user: {
-                    select: {
-                        currentYear: true
-                    }
-                }
-            }
-        });
+        const students = yield prisma.student.findMany();
         const studentYearDistribution = students.reduce((acc, student) => {
-            var _a;
-            const userYear = (_a = student.user) === null || _a === void 0 ? void 0 : _a.currentYear;
             const batchYear = student.batchYear;
             const semester = student.semester;
-            const key = `UserYear${userYear}_BatchYear${batchYear}_Sem${semester}`;
+            const key = `BatchYear${batchYear}_Sem${semester}`;
             if (!acc[key])
                 acc[key] = 0;
             acc[key]++;
@@ -663,11 +615,7 @@ router.post('/fix/update-student-years', (req, res) => __awaiter(void 0, void 0,
     try {
         const prisma = database_1.default.getInstance();
         // Get all students
-        const students = yield prisma.student.findMany({
-            include: {
-                user: true
-            }
-        });
+        const students = yield prisma.student.findMany();
         const updates = [];
         for (const student of students) {
             let newYear = null;
@@ -685,19 +633,13 @@ router.post('/fix/update-student-years', (req, res) => __awaiter(void 0, void 0,
             else if (student.semester === 5) {
                 newYear = 3;
             }
-            if (newYear && student.user.currentYear !== newYear) {
-                yield prisma.user.update({
-                    where: { id: student.user.id },
-                    data: { currentYear: newYear }
-                });
-                updates.push({
-                    userId: student.user.id,
-                    usn: student.usn,
-                    previousYear: student.user.currentYear,
-                    newYear: newYear,
-                    semester: student.semester
-                });
-            }
+            updates.push({
+                studentId: student.id,
+                usn: student.usn,
+                previousYear: student.batchYear,
+                newYear: newYear,
+                semester: student.semester
+            });
         }
         res.json({
             success: true,
@@ -718,17 +660,12 @@ router.post('/fix/update-student-years', (req, res) => __awaiter(void 0, void 0,
 }));
 // Endpoint to fix year mismatch by creating course offerings for student years
 router.post('/fix/create-matching-course-offerings', (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    var _a;
+    var _a, _b;
     try {
         const prisma = database_1.default.getInstance();
         // Get current student distribution
         const students = yield prisma.student.findMany({
             include: {
-                user: {
-                    select: {
-                        currentYear: true
-                    }
-                },
                 departments: {
                     select: {
                         id: true,
@@ -752,16 +689,17 @@ router.post('/fix/create-matching-course-offerings', (req, res) => __awaiter(voi
                 data: {
                     year_name: '2024-25',
                     start_date: new Date('2024-08-01'),
-                    end_date: new Date('2025-07-31')
+                    end_date: new Date('2025-07-31'),
+                    college_id: ((_a = courses[0]) === null || _a === void 0 ? void 0 : _a.college_id) || ''
                 }
             });
         }
         const newOfferings = [];
         // Group students by department and year
         const studentGroups = students.reduce((acc, student) => {
-            var _a, _b;
-            const year = (_a = student.user) === null || _a === void 0 ? void 0 : _a.currentYear;
-            const deptId = (_b = student.departments) === null || _b === void 0 ? void 0 : _b.id;
+            var _a;
+            const year = student.batchYear;
+            const deptId = (_a = student.departments) === null || _a === void 0 ? void 0 : _a.id;
             const semester = student.semester;
             if (year && deptId) {
                 const key = `dept${deptId}_year${year}_sem${semester}`;
@@ -791,7 +729,7 @@ router.post('/fix/create-matching-course-offerings', (req, res) => __awaiter(voi
                 });
                 if (!existingOffering) {
                     // Create section for this group
-                    const sectionName = `NM_${(_a = course.department) === null || _a === void 0 ? void 0 : _a.code}_A${group.year}`;
+                    const sectionName = `NM_${(_b = course.department) === null || _b === void 0 ? void 0 : _b.code}_A${group.year}`;
                     let section = yield prisma.sections.findFirst({
                         where: { section_name: sectionName }
                     });
@@ -799,7 +737,7 @@ router.post('/fix/create-matching-course-offerings', (req, res) => __awaiter(voi
                         section = yield prisma.sections.create({
                             data: {
                                 section_name: sectionName,
-                                departmentId: group.departmentId
+                                department_id: group.departmentId
                             }
                         });
                     }
@@ -809,7 +747,7 @@ router.post('/fix/create-matching-course-offerings', (req, res) => __awaiter(voi
                             courseId: course.id,
                             semester: group.semester,
                             year_id: academicYear.year_id,
-                            sectionId: section.id
+                            section_id: section.section_id
                         }
                     });
                     newOfferings.push({
