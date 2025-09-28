@@ -263,7 +263,8 @@ exports.Prisma.TestComponentScalarFieldEnum = {
   courseOfferingId: 'courseOfferingId',
   name: 'name',
   maxMarks: 'maxMarks',
-  weightage: 'weightage'
+  weightage: 'weightage',
+  type: 'type'
 };
 
 exports.Prisma.StudentMarkScalarFieldEnum = {
@@ -304,6 +305,11 @@ exports.attendance_status = exports.$Enums.attendance_status = {
   present: 'present',
   absent: 'absent',
   not: 'not'
+};
+
+exports.test_type = exports.$Enums.test_type = {
+  theory: 'theory',
+  lab: 'lab'
 };
 
 exports.Prisma.ModelName = {

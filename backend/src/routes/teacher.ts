@@ -700,129 +700,129 @@ router.get('/courses/:offeringId/statistics', authenticateToken, async (req: Aut
     }
 });
 
-// Update student marks (teachers can only update marks for their assigned courses)
-router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    const { enrollmentId } = req.params;
-    const markData = req.body;
+// // Update student marks (teachers can only update marks for their assigned courses)
+// router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+//     const { enrollmentId } = req.params;
+//     const markData = req.body;
 
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
-        }
+//     try {
+//         const userId = req.user?.id;
+//         if (!userId) {
+//             return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+//         }
 
-        const prisma = DatabaseService.getInstance();
+//         const prisma = DatabaseService.getInstance();
 
-        // Get teacher info
-        const teacher = await prisma.teacher.findUnique({
-            where: { userId }
-        });
+//         // Get teacher info
+//         const teacher = await prisma.teacher.findUnique({
+//             where: { userId }
+//         });
 
-        if (!teacher) {
-            return res.status(403).json({ status: 'error', message: 'Teacher not found' });
-        }
+//         if (!teacher) {
+//             return res.status(403).json({ status: 'error', message: 'Teacher not found' });
+//         }
 
-        // Check if enrollment exists and verify teacher has access to this course
-        const enrollment = await prisma.studentEnrollment.findUnique({
-            where: { id: enrollmentId },
-            include: {
-                offering: {
-                    include: {
-                        teacher: true
-                    }
-                }
-            }
-        });
+//         // Check if enrollment exists and verify teacher has access to this course
+//         const enrollment = await prisma.studentEnrollment.findUnique({
+//             where: { id: enrollmentId },
+//             include: {
+//                 offering: {
+//                     include: {
+//                         teacher: true
+//                     }
+//                 }
+//             }
+//         });
 
-        if (!enrollment) {
-            return res.status(404).json({
-                status: 'error',
-                error: 'Enrollment not found'
-            });
-        }
+//         if (!enrollment) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 error: 'Enrollment not found'
+//             });
+//         }
 
-        // Verify teacher has access to this course
-        if (!enrollment.offering || enrollment.offering.teacherId !== teacher.id) {
-            return res.status(403).json({
-                status: 'error',
-                error: 'Access denied - you can only update marks for your assigned courses'
-            });
-        }
+//         // Verify teacher has access to this course
+//         if (!enrollment.offering || enrollment.offering.teacherId !== teacher.id) {
+//             return res.status(403).json({
+//                 status: 'error',
+//                 error: 'Access denied - you can only update marks for your assigned courses'
+//             });
+//         }
 
-        // Determine if this is theory or lab marks update
-        const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
-        const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
+//         // Determine if this is theory or lab marks update
+//         const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
+//         const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
 
-        if (isTheoryUpdate) {
-            // Update theory marks
-            const theoryMarkData: any = {};
-            if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
-            if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
-            if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
-            if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
-            if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
-            if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
+//         if (isTheoryUpdate) {
+//             // Update theory marks
+//             const theoryMarkData: any = {};
+//             if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
+//             if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
+//             if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
+//             if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
+//             if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
+//             if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
 
-            // Get current marks to check MSE3 eligibility
-            const currentMarks = await prisma.theoryMarks.findUnique({
-                where: { enrollmentId }
-            });
+//             // Get current marks to check MSE3 eligibility
+//             const currentMarks = await prisma.theoryMarks.findUnique({
+//                 where: { enrollmentId }
+//             });
 
-            // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
-            const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
-            const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
+//             // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
+//             const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
+//             const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
 
-            // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
-            if ((mse1 + mse2) >= 20) {
-                // If MSE1 + MSE2 >= 20, MSE3 must be null
-                theoryMarkData.mse3Marks = null;
-            }
+//             // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
+//             if ((mse1 + mse2) >= 20) {
+//                 // If MSE1 + MSE2 >= 20, MSE3 must be null
+//                 theoryMarkData.mse3Marks = null;
+//             }
 
-            theoryMarkData.lastUpdatedAt = new Date();
+//             theoryMarkData.lastUpdatedAt = new Date();
 
-            await prisma.theoryMarks.upsert({
-                where: { enrollmentId },
-                update: theoryMarkData,
-                create: {
-                    enrollmentId,
-                    ...theoryMarkData
-                }
-            });
-        }
+//             await prisma.theoryMarks.upsert({
+//                 where: { enrollmentId },
+//                 update: theoryMarkData,
+//                 create: {
+//                     enrollmentId,
+//                     ...theoryMarkData
+//                 }
+//             });
+//         }
 
-        if (isLabUpdate) {
-            // Update lab marks
-            const labMarkData: any = {};
-            if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
-            if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
-            if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
+//         if (isLabUpdate) {
+//             // Update lab marks
+//             const labMarkData: any = {};
+//             if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
+//             if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
+//             if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
 
-            labMarkData.lastUpdatedAt = new Date();
+//             labMarkData.lastUpdatedAt = new Date();
 
-            await prisma.labMarks.upsert({
-                where: { enrollmentId },
-                update: labMarkData,
-                create: {
-                    enrollmentId,
-                    ...labMarkData
-                }
-            });
-        }
+//             await prisma.labMarks.upsert({
+//                 where: { enrollmentId },
+//                 update: labMarkData,
+//                 create: {
+//                     enrollmentId,
+//                     ...labMarkData
+//                 }
+//             });
+//         }
 
-        res.json({
-            status: 'success',
-            message: 'Marks updated successfully'
-        });
+//         res.json({
+//             status: 'success',
+//             message: 'Marks updated successfully'
+//         });
 
-    } catch (error) {
-        console.error('Error updating marks:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to update marks',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
-});
+//     } catch (error) {
+//         console.error('Error updating marks:', error);
+//         res.status(500).json({
+//             status: 'error',
+//             message: 'Failed to update marks',
+//             error: error instanceof Error ? error.message : 'Unknown error'
+//         });
+//     }
+// });
 
 // Get marks for students in teacher's courses
 router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) => {
@@ -896,8 +896,7 @@ router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) =
                         }
                     }
                 },
-                theoryMarks: true,
-                labMarks: true
+                studentMarks:true,
             }
         });
 
@@ -1896,6 +1895,62 @@ router.get('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
   }
 });
 
+//to update student marks for a specific test component
+router.put('/teacher/marks/:enrollmentId', async (req, res) => {
+    const prisma = DatabaseService.getInstance();
+  const { enrollmentId } = req.params;
+  const { testComponentId, marksObtained } = req.body;
+
+  if (!testComponentId) {
+    return res.status(400).json({ status: 'error', message: 'testComponentId is required' });
+  }
+
+  try {
+    // Check if the student mark already exists
+    const existingMark = await prisma.studentMark.findUnique({
+      where: {
+        enrollmentId_testComponentId: {
+          enrollmentId,
+          testComponentId
+        }
+      }
+    });
+
+    let updatedMark;
+    if (existingMark) {
+      // Update existing mark
+      updatedMark = await prisma.studentMark.update({
+        where: {
+          enrollmentId_testComponentId: {
+            enrollmentId,
+            testComponentId
+          }
+        },
+        data: {
+          marksObtained
+        }
+      });
+    } else {
+      // Create a new mark if it doesn't exist
+      updatedMark = await prisma.studentMark.create({
+        data: {
+          enrollmentId,
+          testComponentId,
+          marksObtained
+        }
+      });
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Marks updated successfully',
+      data: updatedMark
+    });
+  } catch (error) {
+    console.error('Error updating student marks:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update marks' });
+  }
+});
 
 
 export default router;

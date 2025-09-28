@@ -118,7 +118,15 @@ export type StudentMark = $Result.DefaultSelection<Prisma.$StudentMarkPayload>
  * Enums
  */
 export namespace $Enums {
-  export const attendance_status: {
+  export const test_type: {
+  theory: 'theory',
+  lab: 'lab'
+};
+
+export type test_type = (typeof test_type)[keyof typeof test_type]
+
+
+export const attendance_status: {
   present: 'present',
   absent: 'absent',
   not: 'not'
@@ -146,6 +154,10 @@ export const user_role: {
 export type user_role = (typeof user_role)[keyof typeof user_role]
 
 }
+
+export type test_type = $Enums.test_type
+
+export const test_type: typeof $Enums.test_type
 
 export type attendance_status = $Enums.attendance_status
 
@@ -23712,6 +23724,7 @@ export namespace Prisma {
     name: string | null
     maxMarks: number | null
     weightage: number | null
+    type: $Enums.test_type | null
   }
 
   export type TestComponentMaxAggregateOutputType = {
@@ -23720,6 +23733,7 @@ export namespace Prisma {
     name: string | null
     maxMarks: number | null
     weightage: number | null
+    type: $Enums.test_type | null
   }
 
   export type TestComponentCountAggregateOutputType = {
@@ -23728,6 +23742,7 @@ export namespace Prisma {
     name: number
     maxMarks: number
     weightage: number
+    type: number
     _all: number
   }
 
@@ -23748,6 +23763,7 @@ export namespace Prisma {
     name?: true
     maxMarks?: true
     weightage?: true
+    type?: true
   }
 
   export type TestComponentMaxAggregateInputType = {
@@ -23756,6 +23772,7 @@ export namespace Prisma {
     name?: true
     maxMarks?: true
     weightage?: true
+    type?: true
   }
 
   export type TestComponentCountAggregateInputType = {
@@ -23764,6 +23781,7 @@ export namespace Prisma {
     name?: true
     maxMarks?: true
     weightage?: true
+    type?: true
     _all?: true
   }
 
@@ -23859,6 +23877,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage: number
+    type: $Enums.test_type
     _count: TestComponentCountAggregateOutputType | null
     _avg: TestComponentAvgAggregateOutputType | null
     _sum: TestComponentSumAggregateOutputType | null
@@ -23886,6 +23905,7 @@ export namespace Prisma {
     name?: boolean
     maxMarks?: boolean
     weightage?: boolean
+    type?: boolean
     courseOffering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
     studentMarks?: boolean | TestComponent$studentMarksArgs<ExtArgs>
     _count?: boolean | TestComponentCountOutputTypeDefaultArgs<ExtArgs>
@@ -23897,6 +23917,7 @@ export namespace Prisma {
     name?: boolean
     maxMarks?: boolean
     weightage?: boolean
+    type?: boolean
     courseOffering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["testComponent"]>
 
@@ -23906,6 +23927,7 @@ export namespace Prisma {
     name?: boolean
     maxMarks?: boolean
     weightage?: boolean
+    type?: boolean
     courseOffering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["testComponent"]>
 
@@ -23915,9 +23937,10 @@ export namespace Prisma {
     name?: boolean
     maxMarks?: boolean
     weightage?: boolean
+    type?: boolean
   }
 
-  export type TestComponentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "courseOfferingId" | "name" | "maxMarks" | "weightage", ExtArgs["result"]["testComponent"]>
+  export type TestComponentOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "courseOfferingId" | "name" | "maxMarks" | "weightage" | "type", ExtArgs["result"]["testComponent"]>
   export type TestComponentInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     courseOffering?: boolean | CourseOfferingDefaultArgs<ExtArgs>
     studentMarks?: boolean | TestComponent$studentMarksArgs<ExtArgs>
@@ -23942,6 +23965,7 @@ export namespace Prisma {
       name: string
       maxMarks: number
       weightage: number
+      type: $Enums.test_type
     }, ExtArgs["result"]["testComponent"]>
     composites: {}
   }
@@ -24372,6 +24396,7 @@ export namespace Prisma {
     readonly name: FieldRef<"TestComponent", 'String'>
     readonly maxMarks: FieldRef<"TestComponent", 'Int'>
     readonly weightage: FieldRef<"TestComponent", 'Int'>
+    readonly type: FieldRef<"TestComponent", 'test_type'>
   }
     
 
@@ -26108,7 +26133,8 @@ export namespace Prisma {
     courseOfferingId: 'courseOfferingId',
     name: 'name',
     maxMarks: 'maxMarks',
-    weightage: 'weightage'
+    weightage: 'weightage',
+    type: 'type'
   };
 
   export type TestComponentScalarFieldEnum = (typeof TestComponentScalarFieldEnum)[keyof typeof TestComponentScalarFieldEnum]
@@ -26241,6 +26267,20 @@ export namespace Prisma {
    * Reference to a field of type 'attendance_status[]'
    */
   export type ListEnumattendance_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'attendance_status[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'test_type'
+   */
+  export type Enumtest_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'test_type'>
+    
+
+
+  /**
+   * Reference to a field of type 'test_type[]'
+   */
+  export type ListEnumtest_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'test_type[]'>
     
 
 
@@ -27393,6 +27433,7 @@ export namespace Prisma {
     name?: StringFilter<"TestComponent"> | string
     maxMarks?: IntFilter<"TestComponent"> | number
     weightage?: IntFilter<"TestComponent"> | number
+    type?: Enumtest_typeFilter<"TestComponent"> | $Enums.test_type
     courseOffering?: XOR<CourseOfferingScalarRelationFilter, CourseOfferingWhereInput>
     studentMarks?: StudentMarkListRelationFilter
   }
@@ -27403,6 +27444,7 @@ export namespace Prisma {
     name?: SortOrder
     maxMarks?: SortOrder
     weightage?: SortOrder
+    type?: SortOrder
     courseOffering?: CourseOfferingOrderByWithRelationInput
     studentMarks?: StudentMarkOrderByRelationAggregateInput
   }
@@ -27416,6 +27458,7 @@ export namespace Prisma {
     name?: StringFilter<"TestComponent"> | string
     maxMarks?: IntFilter<"TestComponent"> | number
     weightage?: IntFilter<"TestComponent"> | number
+    type?: Enumtest_typeFilter<"TestComponent"> | $Enums.test_type
     courseOffering?: XOR<CourseOfferingScalarRelationFilter, CourseOfferingWhereInput>
     studentMarks?: StudentMarkListRelationFilter
   }, "id">
@@ -27426,6 +27469,7 @@ export namespace Prisma {
     name?: SortOrder
     maxMarks?: SortOrder
     weightage?: SortOrder
+    type?: SortOrder
     _count?: TestComponentCountOrderByAggregateInput
     _avg?: TestComponentAvgOrderByAggregateInput
     _max?: TestComponentMaxOrderByAggregateInput
@@ -27442,6 +27486,7 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"TestComponent"> | string
     maxMarks?: IntWithAggregatesFilter<"TestComponent"> | number
     weightage?: IntWithAggregatesFilter<"TestComponent"> | number
+    type?: Enumtest_typeWithAggregatesFilter<"TestComponent"> | $Enums.test_type
   }
 
   export type StudentMarkWhereInput = {
@@ -28576,6 +28621,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
     courseOffering: CourseOfferingCreateNestedOneWithoutTestComponentsInput
     studentMarks?: StudentMarkCreateNestedManyWithoutTestComponentInput
   }
@@ -28586,6 +28632,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
     studentMarks?: StudentMarkUncheckedCreateNestedManyWithoutTestComponentInput
   }
 
@@ -28594,6 +28641,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
     courseOffering?: CourseOfferingUpdateOneRequiredWithoutTestComponentsNestedInput
     studentMarks?: StudentMarkUpdateManyWithoutTestComponentNestedInput
   }
@@ -28604,6 +28652,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
     studentMarks?: StudentMarkUncheckedUpdateManyWithoutTestComponentNestedInput
   }
 
@@ -28613,6 +28662,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
   }
 
   export type TestComponentUpdateManyMutationInput = {
@@ -28620,6 +28670,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
   }
 
   export type TestComponentUncheckedUpdateManyInput = {
@@ -28628,6 +28679,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
   }
 
   export type StudentMarkCreateInput = {
@@ -29724,6 +29776,13 @@ export namespace Prisma {
     section_name?: SortOrder
   }
 
+  export type Enumtest_typeFilter<$PrismaModel = never> = {
+    equals?: $Enums.test_type | Enumtest_typeFieldRefInput<$PrismaModel>
+    in?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    not?: NestedEnumtest_typeFilter<$PrismaModel> | $Enums.test_type
+  }
+
   export type CourseOfferingScalarRelationFilter = {
     is?: CourseOfferingWhereInput
     isNot?: CourseOfferingWhereInput
@@ -29735,6 +29794,7 @@ export namespace Prisma {
     name?: SortOrder
     maxMarks?: SortOrder
     weightage?: SortOrder
+    type?: SortOrder
   }
 
   export type TestComponentAvgOrderByAggregateInput = {
@@ -29748,6 +29808,7 @@ export namespace Prisma {
     name?: SortOrder
     maxMarks?: SortOrder
     weightage?: SortOrder
+    type?: SortOrder
   }
 
   export type TestComponentMinOrderByAggregateInput = {
@@ -29756,11 +29817,22 @@ export namespace Prisma {
     name?: SortOrder
     maxMarks?: SortOrder
     weightage?: SortOrder
+    type?: SortOrder
   }
 
   export type TestComponentSumOrderByAggregateInput = {
     maxMarks?: SortOrder
     weightage?: SortOrder
+  }
+
+  export type Enumtest_typeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.test_type | Enumtest_typeFieldRefInput<$PrismaModel>
+    in?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    not?: NestedEnumtest_typeWithAggregatesFilter<$PrismaModel> | $Enums.test_type
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumtest_typeFilter<$PrismaModel>
+    _max?: NestedEnumtest_typeFilter<$PrismaModel>
   }
 
   export type StudentEnrollmentScalarRelationFilter = {
@@ -31745,6 +31817,10 @@ export namespace Prisma {
     connect?: StudentMarkWhereUniqueInput | StudentMarkWhereUniqueInput[]
   }
 
+  export type Enumtest_typeFieldUpdateOperationsInput = {
+    set?: $Enums.test_type
+  }
+
   export type CourseOfferingUpdateOneRequiredWithoutTestComponentsNestedInput = {
     create?: XOR<CourseOfferingCreateWithoutTestComponentsInput, CourseOfferingUncheckedCreateWithoutTestComponentsInput>
     connectOrCreate?: CourseOfferingCreateOrConnectWithoutTestComponentsInput
@@ -32124,20 +32200,21 @@ export namespace Prisma {
     _max?: NestedBoolNullableFilter<$PrismaModel>
   }
 
-  export type NestedFloatWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel>
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel>
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatWithAggregatesFilter<$PrismaModel> | number
+  export type NestedEnumtest_typeFilter<$PrismaModel = never> = {
+    equals?: $Enums.test_type | Enumtest_typeFieldRefInput<$PrismaModel>
+    in?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    not?: NestedEnumtest_typeFilter<$PrismaModel> | $Enums.test_type
+  }
+
+  export type NestedEnumtest_typeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.test_type | Enumtest_typeFieldRefInput<$PrismaModel>
+    in?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    notIn?: $Enums.test_type[] | ListEnumtest_typeFieldRefInput<$PrismaModel>
+    not?: NestedEnumtest_typeWithAggregatesFilter<$PrismaModel> | $Enums.test_type
     _count?: NestedIntFilter<$PrismaModel>
-    _avg?: NestedFloatFilter<$PrismaModel>
-    _sum?: NestedFloatFilter<$PrismaModel>
-    _min?: NestedFloatFilter<$PrismaModel>
-    _max?: NestedFloatFilter<$PrismaModel>
+    _min?: NestedEnumtest_typeFilter<$PrismaModel>
+    _max?: NestedEnumtest_typeFilter<$PrismaModel>
   }
 
   export type academic_yearsCreateWithoutCollegesInput = {
@@ -34633,6 +34710,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
     studentMarks?: StudentMarkCreateNestedManyWithoutTestComponentInput
   }
 
@@ -34641,6 +34719,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
     studentMarks?: StudentMarkUncheckedCreateNestedManyWithoutTestComponentInput
   }
 
@@ -34831,6 +34910,7 @@ export namespace Prisma {
     name?: StringFilter<"TestComponent"> | string
     maxMarks?: IntFilter<"TestComponent"> | number
     weightage?: IntFilter<"TestComponent"> | number
+    type?: Enumtest_typeFilter<"TestComponent"> | $Enums.test_type
   }
 
   export type CourseOfferingCreateWithoutEnrollmentsInput = {
@@ -35919,6 +35999,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
     courseOffering: CourseOfferingCreateNestedOneWithoutTestComponentsInput
   }
 
@@ -35928,6 +36009,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
   }
 
   export type TestComponentCreateOrConnectWithoutStudentMarksInput = {
@@ -35978,6 +36060,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
     courseOffering?: CourseOfferingUpdateOneRequiredWithoutTestComponentsNestedInput
   }
 
@@ -35987,6 +36070,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
   }
 
   export type academic_yearsCreateManyCollegesInput = {
@@ -36666,6 +36750,7 @@ export namespace Prisma {
     name: string
     maxMarks: number
     weightage?: number
+    type?: $Enums.test_type
   }
 
   export type AttendanceUpdateWithoutOfferingInput = {
@@ -36725,6 +36810,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
     studentMarks?: StudentMarkUpdateManyWithoutTestComponentNestedInput
   }
 
@@ -36733,6 +36819,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
     studentMarks?: StudentMarkUncheckedUpdateManyWithoutTestComponentNestedInput
   }
 
@@ -36741,6 +36828,7 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     maxMarks?: IntFieldUpdateOperationsInput | number
     weightage?: IntFieldUpdateOperationsInput | number
+    type?: Enumtest_typeFieldUpdateOperationsInput | $Enums.test_type
   }
 
   export type StudentMarkCreateManyEnrollmentInput = {

@@ -403,6 +403,7 @@ export default function TeacherDashboard() {
 
           {selectedYear && selectedDepartment && selectedCourse && selectedSection && !courseStatsLoading && (
             <CourseManagement
+                teacherId={dashboardData.teacher.id}
               courseOffering={selectedCourse}
               selectedYear={selectedYear}
               selectedDepartment={selectedDepartment}

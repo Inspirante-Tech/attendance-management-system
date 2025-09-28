@@ -42,8 +42,7 @@ let teacherRoutes;
 try {
   teacherRoutes = require('./routes/teacher').default;
   console.log('=== Teacher routes imported successfully ===');
-  console.log('=== Teacher routes type:', typeof teacherRoutes);
-  console.log('=== Teacher routes is function:', typeof teacherRoutes === 'function');
+
 } catch (error) {
   console.error('=== Error importing teacher routes ===', error);
 }

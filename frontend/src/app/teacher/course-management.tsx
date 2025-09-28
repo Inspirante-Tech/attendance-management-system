@@ -5,7 +5,7 @@ import { AttendanceMarking } from './attendance-marking'
 import { AttendanceAnalytics } from './attendance-analytics'
 import { TheoryMarksManagement } from './theory-marks'
 import { LabMarksManagement } from './lab-marks'
-import TeacherMarksAttendanceManagement from './marks-attendance-management'
+import TeacherMarksAttendanceManagement from './TeacherMarksAttendanceManagement'
 import {
   Users,
   BarChart3,
@@ -17,6 +17,7 @@ import {
 import { Course, Section } from './dropdown-navigation'
 
 interface CourseManagementProps {
+  teacherId: string
   courseOffering: Course
   selectedYear: string
   selectedDepartment: string
@@ -29,9 +30,11 @@ export function CourseManagement({
   selectedYear,
   selectedDepartment,
   selectedSection,
-  courses = []
+  courses = [],
+  teacherId: teacherId,
 }: CourseManagementProps) {
   // Use course component flags from the data, with fallbacks
+  console.log("Teacher ID in CourseManagement:", teacherId)
   const hasTheoryComponent = courseOffering.has_theory_component !== false // Default to true if undefined
   const hasLabComponent = courseOffering.has_lab_component === true
 
@@ -123,7 +126,8 @@ export function CourseManagement({
         <TabsContent value="manage-all">
           <TeacherMarksAttendanceManagement
             courses={courses}
-            selectedCourseId={courseOffering.offering_id}
+            teacherId={teacherId}
+            selectedCourseId={courseOffering.course_id}
             initialMode="marks"
           />
         </TabsContent>

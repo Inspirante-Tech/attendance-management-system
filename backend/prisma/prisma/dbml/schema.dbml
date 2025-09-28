@@ -247,6 +247,7 @@ Table test_components {
   weightage Int [not null, default: 100]
   courseOffering course_offerings [not null]
   studentMarks student_marks [not null]
+  type test_type [not null, default: 'theory']
 }
 
 Table student_marks {
@@ -260,6 +261,11 @@ Table student_marks {
   indexes {
     (enrollmentId, testComponentId) [unique]
   }
+}
+
+Enum test_type {
+  theory
+  lab
 }
 
 Enum attendance_status {

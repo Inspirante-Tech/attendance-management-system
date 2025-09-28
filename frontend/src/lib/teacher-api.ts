@@ -143,6 +143,56 @@ export interface StudentAttendanceAnalytics {
         attendancePercentage: number;
     };
 }
+export interface StudentTestMark {
+  testId: string;
+  testName: string;
+  type: 'theory' | 'lab';
+  maxMarks: number;
+  weightage: number;
+  marksObtained: number | null;
+}
+
+export interface StudentMarks {
+  enrollmentId: string;
+  student: {
+    id: string;
+    name: string;
+    usn: string;
+    email?: string;
+  };
+  theoryMarks: StudentTestMark[];
+  labMarks: StudentTestMark[];
+}
+
+// Single mark entry (one component like MSE, Project, Lab, etc.)
+export type StudentMarkComponent = {
+  componentId: string
+  componentName: string
+  type: "theory" | "lab" | string   // restrict if you know all possible types
+  obtainedMarks: number
+  maxMarks: number
+  weightage: number
+}
+
+// A student with marks across multiple components
+export type StudentWithMarks = {
+  studentId: string
+  usn: string
+  studentName: string
+  studentEmail: string
+  marks: StudentMarkComponent[]
+}
+
+// Full API response
+export type CourseStudentMarksResponse = {
+  status: string
+  offeringId: string
+  courseId: string
+  teacherId: string
+  students: StudentWithMarks[]
+}
+
+
 
 // API Functions
 export class TeacherAPI {
@@ -401,29 +451,29 @@ export class TeacherAPI {
     }
 
     // Update student marks (teacher-specific endpoint)
-    static async updateStudentMark(enrollmentId: string, field: string, value: number | null): Promise<{
-        status: 'success' | 'error';
-        message?: string;
-    }> {
-        const response = await fetch(`${API_BASE_URL}/teacher/marks/${enrollmentId}`, {
-            method: 'PUT',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ [field]: value }),
-        });
+    // static async updateStudentMark(enrollmentId: string, field: string, value: number | null): Promise<{
+    //     status: 'success' | 'error';
+    //     message?: string;
+    // }> {
+    //     const response = await fetch(`${API_BASE_URL}/teacher/marks/${enrollmentId}`, {
+    //         method: 'PUT',
+    //         headers: getAuthHeaders(),
+    //         body: JSON.stringify({ [field]: value }),
+    //     });
 
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText}`);
-        }
+    //     if (!response.ok) {
+    //         const errorText = await response.text();
+    //         throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText}`);
+    //     }
 
-        const result = await response.json();
+    //     const result = await response.json();
 
-        if (result.status !== 'success') {
-            throw new Error(result.message || 'Failed to update marks');
-        }
+    //     if (result.status !== 'success') {
+    //         throw new Error(result.message || 'Failed to update marks');
+    //     }
 
-        return result;
-    }
+    //     return result;
+    // }
 
     // Get marks for students in teacher's courses
     static async getStudentMarks(courseId?: string, studentUsn?: string): Promise<{
@@ -565,4 +615,136 @@ export class TeacherAPI {
 
         return await response.json();
     }
+    // Get test components for a course
+    static async getCourseTestComponents(courseId: string, teacherId: string) {
+    const response = await fetch(`${API_BASE_URL}/teacher/course/${courseId}/teacher/${teacherId}/components`, {
+        method: 'GET',
+        headers: getAuthHeaders()
+    });
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.status !== 'success') {
+        throw new Error(result.error || 'Failed to fetch test components');
+    }
+
+    return result;
+}
+
+  // Get student marks for a specific course taught by that teacher
+// static async getCourseStudentMarks(courseId: string, teacherId: string): Promise<CourseStudentMarksResponse> {
+//   const response = await fetch(`${API_BASE_URL}/teacher/course/${courseId}/teacher/${teacherId}/marks`, {
+//     method: 'GET',
+//     headers: getAuthHeaders(),
+//   });
+
+//   if (!response.ok) {
+//     const errorData = await response.json().catch(() => ({}));
+//     throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+//   }
+
+//   const result = await response.json();
+//   if (result.status !== 'success') {
+//     throw new Error(result.error || 'Failed to fetch student marks');
+//   }
+
+//   // Transform raw data into separated theory/lab marks
+//   return result.data.map((enrollment: CourseStudentMarksResponse) => {
+//     const theoryMarks: StudentTestMark[] = [];
+//     const labMarks: StudentTestMark[] = [];
+
+//     enrollment.students.forEach((mark: StudentWithMarks) => {
+//       const testMark: StudentTestMark = {
+//         testId: mark.studentId,
+//         testName: mark.marks,
+//         type: mark.testComponent.type,
+//         maxMarks: mark.testComponent.maxMarks,
+//         weightage: mark.testComponent.weightage,
+//         marksObtained: mark.marksObtained
+//       };
+//       if (mark.testComponent.type === 'theory') theoryMarks.push(testMark);
+//       else labMarks.push(testMark);
+//     });
+
+//     return {
+//       enrollmentId: enrollment.id,
+//       student: {
+//         id: enrollment.student.id,
+//         name: enrollment.student.user.name,
+//         usn: enrollment.student.usn,
+//         email: enrollment.student.user.email
+//       },
+//       theoryMarks,
+//       labMarks
+//     };
+//   });
+// }
+
+static async getCourseStudentMarks(courseId: string, teacherId: string): Promise<CourseStudentMarksResponse> {
+  const response = await fetch(`${API_BASE_URL}/teacher/course/${courseId}/teacher/${teacherId}/marks`, {
+    method: 'GET',
+    headers: getAuthHeaders(),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+
+  const result = await response.json();
+
+  if (result.status !== 'success') {
+    throw new Error(result.error || 'Failed to fetch student marks');
+  }
+
+  // Map API response to our typed structure
+  const students: StudentWithMarks[] = result.students.map((s: any) => ({
+    studentId: s.studentId,
+    usn: s.usn,
+    studentName: s.studentName,
+    studentEmail: s.studentEmail,
+    marks: s.marks.map((m: any): StudentMarkComponent => ({
+      componentId: m.componentId,
+      componentName: m.componentName,
+      type: m.type,
+      obtainedMarks: m.obtainedMarks ?? null,
+      maxMarks: m.maxMarks,
+      weightage: m.weightage
+    }))
+  }));
+
+  return {
+    status: result.status,
+    offeringId: result.offeringId,
+    courseId: result.courseId,
+    teacherId: result.teacherId,
+    students
+  };
+}
+
+
+//to update student marks for a specific test component
+static async updateStudentMark(studentMarkId: string, marksObtained: number | null) {
+  const response = await fetch(`${API_BASE_URL}/teacher/marks/${studentMarkId}`, {
+    method: 'PUT',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ marksObtained }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`API request failed: ${response.status} ${response.statusText}. ${errorText}`);
+  }
+
+  const result = await response.json();
+  if (result.status !== 'success') throw new Error(result.message || 'Failed to update marks');
+
+  return result;
+}
+
 }

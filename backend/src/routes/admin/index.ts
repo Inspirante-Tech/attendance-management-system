@@ -1,6 +1,6 @@
 // src/routes/admin/index.ts
 import { Router } from 'express';
-import { authenticateToken, requireAdmin, requireTeacherOrAdmin } from '../../middleware/auth';
+import { authenticateToken, requireAdmin, requireTeacher, requireTeacherOrAdmin } from '../../middleware/auth';
 import importRoutes from './importRoutes';
 import marksRoutes from './marksRoutes';
 import courseRoutes from './courseRoutes';
@@ -19,7 +19,7 @@ router.use(authenticateToken);
 router.use('/assigned-courses', requireTeacherOrAdmin);
 router.use('/attendance', requireTeacherOrAdmin);
 router.use('/marks', requireTeacherOrAdmin);
-
+router.use('/course', requireTeacher);
 // Apply admin-only middleware to remaining routes
 router.use(requireAdmin);
 
