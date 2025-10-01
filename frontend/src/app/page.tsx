@@ -43,16 +43,9 @@ export default function Home() {
       <div className="container mx-auto px-4 py-16">
         {/* Header Section */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full mb-6 shadow-lg">
-            <span className="text-2xl text-white font-bold">ERP</span>
-          </div>
           <h1 className="text-5xl font-bold text-slate-800 mb-4 tracking-tight">
             College ERP System
           </h1>
-          <p className="text-xl text-slate-600 max-w-2xl mx-auto leading-relaxed">
-            A comprehensive educational resource platform designed to streamline
-            academic operations and enhance institutional efficiency
-          </p>
         </div>
 
         {/* Login Portals Grid */}
@@ -109,25 +102,6 @@ export default function Home() {
                 </div>
               </Link>
             ))}
-          </div>
-        </div>
-
-        {/* Footer Section */}
-        <div className="text-center mt-16">
-          <div className="inline-flex items-center space-x-2 text-slate-500 text-sm">
-            <svg
-              className="w-4 h-4"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-              />
-            </svg>
           </div>
         </div>
       </div>

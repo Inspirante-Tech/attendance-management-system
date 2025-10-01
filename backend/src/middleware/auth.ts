@@ -3,7 +3,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import DatabaseService from '../lib/database';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt';
 
 export interface AuthenticatedUser {
   id: string;
@@ -33,7 +33,7 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
 
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as any;
-    
+
     // Get fresh user data from database
     const prisma = DatabaseService.getInstance();
     const user = await prisma.user.findUnique({
@@ -72,7 +72,7 @@ export const authenticateToken = async (req: AuthenticatedRequest, res: Response
         code: 'TOKEN_EXPIRED'
       });
     }
-    
+
     if (error instanceof jwt.JsonWebTokenError) {
       return res.status(401).json({
         status: 'error',
@@ -135,9 +135,9 @@ export const requireAnalytics = (req: AuthenticatedRequest, res: Response, next:
   }
 
   // Analytics access for admin or users with analytics role
-  const hasAnalyticsAccess = req.user.roles.includes('admin') || 
-                            req.user.roles.includes('analytics') ||
-                            req.user.roles.includes('teacher'); // Teachers can view limited analytics
+  const hasAnalyticsAccess = req.user.roles.includes('admin') ||
+    req.user.roles.includes('analytics') ||
+    req.user.roles.includes('teacher'); // Teachers can view limited analytics
 
   if (!hasAnalyticsAccess) {
     return res.status(403).json({

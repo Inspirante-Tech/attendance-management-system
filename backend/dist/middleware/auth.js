@@ -15,7 +15,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.JWT_SECRET = exports.optionalAuth = exports.requireAnalytics = exports.requireTeacherOrAdmin = exports.requireStudent = exports.requireTeacher = exports.requireAdmin = exports.requireRole = exports.authenticateToken = void 0;
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const database_1 = __importDefault(require("../lib/database"));
-const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-this-in-production';
+const JWT_SECRET = process.env.JWT_SECRET || 'dev_jwt';
 exports.JWT_SECRET = JWT_SECRET;
 // Middleware to verify JWT token
 const authenticateToken = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
