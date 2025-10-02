@@ -16,7 +16,6 @@ model College {
   code                       String                    @unique @map("college_code") @db.VarChar(20)
   logoUrl                    String?                   @map("logo_url")
   academic_years             academic_years[]
-  courses                    Course[]
   department_elective_groups DepartmentElectiveGroup[]
   departments                Department[]
   students                   Student[]
@@ -108,20 +107,18 @@ model Teacher {
 
 model Course {
   id                         String                      @id @default(dbgenerated("uuid_generate_v4()")) @map("course_id") @db.Uuid
-  college_id                 String                      @db.Uuid
   code                       String                      @map("course_code") @db.VarChar(20)
   name                       String                      @map("course_name") @db.VarChar(100)
-  departmentId               String?                     @map("department_id") @db.Uuid
+  departmentId               String                      @map("department_id") @db.Uuid
   type                       course_type?                @map("course_type")
   hasTheoryComponent         Boolean                     @default(true) @map("has_theory_component")
   hasLabComponent            Boolean                     @default(false) @map("has_lab_component")
   courseElectiveGroupMembers CourseElectiveGroupMember[]
   courseOfferings            CourseOffering[]
-  colleges                   College                     @relation(fields: [college_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  department                 Department?                 @relation(fields: [departmentId], references: [id], onUpdate: NoAction)
+  department                 Department                  @relation(fields: [departmentId], references: [id], onUpdate: NoAction)
   openElectiveRestrictions   OpenElectiveRestriction[]
 
-  @@unique([college_id, code])
+  @@unique([departmentId, code])
   @@map("courses")
 }
 
@@ -290,6 +287,7 @@ model sections {
 enum attendance_status {
   present
   absent
+  unmarked
 }
 
 enum course_type {

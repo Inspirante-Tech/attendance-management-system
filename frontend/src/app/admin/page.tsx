@@ -72,7 +72,7 @@ export default function AdminDashboard() {
               )}
             </div>
             <div className="flex items-center space-x-4">
-              <a 
+              <a
                 href="/analytics"
                 className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center space-x-2"
               >
@@ -85,10 +85,10 @@ export default function AdminDashboard() {
             </div>
           </div>
 
-          {/* Connection Status */}
+          {/* Connection Status
           <div className="bg-white rounded-lg shadow p-4">
             <ConnectionStatus />
-          </div>
+          </div> */}
 
           {/* Main Content */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
@@ -105,14 +105,14 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="courses">
-              <CourseManagement 
+              <CourseManagement
                 onNavigateToUsers={handleNavigateToUsers}
                 initialFilters={courseFilters}
               />
             </TabsContent>
 
             <TabsContent value="departments">
-              <DepartmentManagement 
+              <DepartmentManagement
                 onNavigateToUsers={handleNavigateToUsers}
                 onNavigateToCourses={handleNavigateToCourses}
                 initialFilters={departmentFilters}
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
             </TabsContent>
 
             <TabsContent value="colleges">
-              <CollegeManagement 
+              <CollegeManagement
                 onNavigateToUsers={handleNavigateToUsers}
                 onNavigateToDepartments={handleNavigateToDepartments}
               />
@@ -146,15 +146,15 @@ function ConnectionStatus() {
     try {
       const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000'
       console.log('ConnectionStatus: Checking backend at:', API_BASE_URL)
-      
+
       const response = await fetch(`${API_BASE_URL}/api/health`, {
         method: 'GET',
         credentials: 'include'
       })
-      
+
       console.log('ConnectionStatus: Response status:', response.status)
       console.log('ConnectionStatus: Response headers:', Object.fromEntries(response.headers.entries()))
-      
+
       if (response.ok) {
         const data = await response.json()
         console.log('ConnectionStatus: Health check successful:', data)
@@ -198,8 +198,8 @@ function ConnectionStatus() {
       <div className="flex items-center space-x-2">
         <span>{getStatusIcon()}</span>
         <span className={`font-medium ${getStatusColor()}`}>
-          Backend: {backendStatus === 'checking' ? 'Checking...' : 
-                   backendStatus === 'connected' ? 'Connected' : 'Disconnected'}
+          Backend: {backendStatus === 'checking' ? 'Checking...' :
+            backendStatus === 'connected' ? 'Connected' : 'Disconnected'}
         </span>
         {lastChecked && (
           <span className="text-sm text-gray-500">
@@ -207,13 +207,13 @@ function ConnectionStatus() {
           </span>
         )}
       </div>
-      
+
       {backendStatus === 'disconnected' && (
         <div className="text-sm text-red-600">
           Make sure the backend server is running on port 4000
         </div>
       )}
-      
+
       <button
         onClick={checkBackendConnection}
         className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"

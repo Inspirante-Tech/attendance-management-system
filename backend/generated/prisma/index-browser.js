@@ -170,7 +170,6 @@ exports.Prisma.TeacherScalarFieldEnum = {
 
 exports.Prisma.CourseScalarFieldEnum = {
   id: 'id',
-  college_id: 'college_id',
   code: 'code',
   name: 'name',
   departmentId: 'departmentId',
@@ -308,7 +307,8 @@ exports.course_type = exports.$Enums.course_type = {
 
 exports.attendance_status = exports.$Enums.attendance_status = {
   present: 'present',
-  absent: 'absent'
+  absent: 'absent',
+  unmarked: 'unmarked'
 };
 
 exports.Prisma.ModelName = {
