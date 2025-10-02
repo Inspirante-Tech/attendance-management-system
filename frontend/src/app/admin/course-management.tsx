@@ -108,7 +108,8 @@ const getCourseYear = (course: Course): string => {
 
 export default function CourseManagement({ onNavigateToUsers, initialFilters }: CourseManagementProps) {
   const [courses, setCourses] = useState<Course[]>([])
-  const [departments, setDepartments] = useState<{ id: string; code: string; name: string }[]>([])
+  const [departments, setDepartments] = useState<{ id: string; code: string; name: string; college_id: string; college_name?: string }[]>([])
+  const [colleges, setColleges] = useState<{ id: string; code: string; name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -119,6 +120,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   const [newCourse, setNewCourse] = useState({
     code: '',
     name: '',
+    college: '',
     department: '',
     year: '1', // Add year field with default value
     type: 'core' as 'core' | 'department_elective' | 'open_elective',
@@ -182,12 +184,14 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         setLoading(true)
         setError(null)
 
-        // Fetch both courses and departments using the new course management endpoint
-        const [coursesResponse, departmentsResponse] = await Promise.all([
+        // Fetch courses, departments, and colleges using the new course management endpoint
+        const [coursesResponse, departmentsResponse, collegesResponse] = await Promise.all([
           adminApi.getCourseManagement(),
-          adminApi.getAllDepartments()
+          adminApi.getAllDepartments(),
+          adminApi.getAllColleges()
         ])
         console.log(coursesResponse)
+        console.log('Colleges response:', collegesResponse)
         if (coursesResponse.status === 'success') {
           // Transform API data to match our Course interface
           const transformedCourses: Course[] = coursesResponse.data.map((course: any) => ({
@@ -222,7 +226,16 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           setDepartments(departmentsResponse.data.map((dept: any) => ({
             id: dept.id,
             code: dept.code,
-            name: dept.name
+            name: dept.name,
+            college_id: dept.college_id
+          })))
+        }
+
+        if (collegesResponse.status === 'success') {
+          setColleges(collegesResponse.data.map((college: any) => ({
+            id: college.id,
+            code: college.code,
+            name: college.name
           })))
         }
       } catch (err) {
@@ -294,9 +307,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     setError(null)
     const fetchData = async () => {
       try {
-        const [coursesResponse, departmentsResponse] = await Promise.all([
+        const [coursesResponse, departmentsResponse, collegesResponse] = await Promise.all([
           adminApi.getAllCourses(),
-          adminApi.getAllDepartments()
+          adminApi.getAllDepartments(),
+          adminApi.getAllColleges()
         ])
 
         if (coursesResponse.status === 'success') {
@@ -330,7 +344,17 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           setDepartments(departmentsResponse.data.map((dept: any) => ({
             id: dept.id,
             code: dept.code,
-            name: dept.name
+            name: dept.name,
+            college_id: dept.college_id,
+            college_name: dept.colleges?.name || ''
+          })))
+        }
+
+        if (collegesResponse.status === 'success') {
+          setColleges(collegesResponse.data.map((college: any) => ({
+            id: college.id,
+            code: college.code,
+            name: college.name
           })))
         }
       } catch (err) {
@@ -463,7 +487,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   // Add new course
   const handleAddCourse = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newCourse.code.trim() && newCourse.name.trim() && newCourse.department && newCourse.year) {
+    if (newCourse.code.trim() && newCourse.name.trim() && newCourse.college && newCourse.department && newCourse.year) {
       try {
         const response = await adminApi.createCourse({
           code: newCourse.code.trim(),
@@ -501,6 +525,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           setNewCourse({
             code: '',
             name: '',
+            college: '',
             department: '',
             year: '1',
             type: 'core',
@@ -899,8 +924,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${course.type === 'core' ? 'bg-blue-100 text-blue-800' :
-                          course.type === 'department_elective' ? 'bg-green-100 text-green-800' :
-                            'bg-purple-100 text-purple-800'
+                        course.type === 'department_elective' ? 'bg-green-100 text-green-800' :
+                          'bg-purple-100 text-purple-800'
                         }`}>
                         {course.type.replace('_', ' ')}
                       </span>
@@ -1037,6 +1062,21 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   />
                 </div>
                 <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
+                  <select
+                    className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    title="Select College"
+                    value={newCourse.college}
+                    onChange={(e) => setNewCourse(prev => ({ ...prev, college: e.target.value, department: '' }))}
+                    required
+                  >
+                    <option value="">Select College</option>
+                    {colleges.map(college => (
+                      <option key={college.id} value={college.id}>{college.name} ({college.code})</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Department</label>
                   <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
@@ -1044,12 +1084,28 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     value={newCourse.department}
                     onChange={(e) => setNewCourse(prev => ({ ...prev, department: e.target.value }))}
                     required
+                    disabled={!newCourse.college}
                   >
                     <option value="">Select Department</option>
-                    {allDepartments.map(dept => (
-                      <option key={dept} value={dept}>{dept}</option>
-                    ))}
+                    {(() => {
+                      console.log('All departments with college_id:', departments.map(d => ({
+                        name: d.name,
+                        college_id: d.college_id,
+                        college_name: d.college_name
+                      })))
+                      console.log('Selected college:', newCourse.college, typeof newCourse.college)
+                      const filtered = departments.filter(dept => dept.college_id === newCourse.college)
+                      console.log('Filtered departments:', filtered)
+                      return filtered.map(dept => (
+                        <option key={dept.id} value={dept.code}>
+                          {dept.name} ({dept.code}) {dept.college_name && `- ${dept.college_name}`}
+                        </option>
+                      ))
+                    })()}
                   </select>
+                  {!newCourse.college && (
+                    <p className="text-xs text-gray-500 mt-1">Please select a college first</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
@@ -1090,30 +1146,34 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     <div className="border rounded-md p-3 bg-gray-50 max-h-40 overflow-y-auto">
                       {departments.length === 0 ? (
                         <p className="text-gray-500 text-sm">Loading departments...</p>
+                      ) : !newCourse.college ? (
+                        <p className="text-gray-500 text-sm">Please select a college first</p>
                       ) : (
-                        departments.map(dept => (
-                          <label key={dept.id} className="flex items-center text-gray-900 mb-2">
-                            <input
-                              type="checkbox"
-                              className="mr-2"
-                              checked={newCourse.restrictedDepartments.includes(dept.code)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setNewCourse(prev => ({
-                                    ...prev,
-                                    restrictedDepartments: [...prev.restrictedDepartments, dept.code]
-                                  }))
-                                } else {
-                                  setNewCourse(prev => ({
-                                    ...prev,
-                                    restrictedDepartments: prev.restrictedDepartments.filter(code => code !== dept.code)
-                                  }))
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{dept.name} ({dept.code})</span>
-                          </label>
-                        ))
+                        departments
+                          .filter(dept => dept.college_id === newCourse.college)
+                          .map(dept => (
+                            <label key={dept.id} className="flex items-center text-gray-900 mb-2">
+                              <input
+                                type="checkbox"
+                                className="mr-2"
+                                checked={newCourse.restrictedDepartments.includes(dept.code)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setNewCourse(prev => ({
+                                      ...prev,
+                                      restrictedDepartments: [...prev.restrictedDepartments, dept.code]
+                                    }))
+                                  } else {
+                                    setNewCourse(prev => ({
+                                      ...prev,
+                                      restrictedDepartments: prev.restrictedDepartments.filter(code => code !== dept.code)
+                                    }))
+                                  }
+                                }}
+                              />
+                              <span className="text-sm">{dept.name} ({dept.code})</span>
+                            </label>
+                          ))
                       )}
                     </div>
                     {newCourse.restrictedDepartments.length === 0 ? (
@@ -1154,6 +1214,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     setNewCourse({
                       code: '',
                       name: '',
+                      college: '',
                       department: '',
                       year: '1',
                       type: 'core',
@@ -1246,30 +1307,34 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     <div className="border rounded-md p-3 bg-gray-50 max-h-40 overflow-y-auto">
                       {departments.length === 0 ? (
                         <p className="text-gray-500 text-sm">Loading departments...</p>
+                      ) : !editingCourse?.department.college.name ? (
+                        <p className="text-gray-500 text-sm">College information not available</p>
                       ) : (
-                        departments.map(dept => (
-                          <label key={dept.id} className="flex items-center text-gray-900 mb-2">
-                            <input
-                              type="checkbox"
-                              className="mr-2"
-                              checked={editFormData.restrictedDepartments.includes(dept.code)}
-                              onChange={(e) => {
-                                if (e.target.checked) {
-                                  setEditFormData(prev => ({
-                                    ...prev,
-                                    restrictedDepartments: [...prev.restrictedDepartments, dept.code]
-                                  }))
-                                } else {
-                                  setEditFormData(prev => ({
-                                    ...prev,
-                                    restrictedDepartments: prev.restrictedDepartments.filter(code => code !== dept.code)
-                                  }))
-                                }
-                              }}
-                            />
-                            <span className="text-sm">{dept.name} ({dept.code})</span>
-                          </label>
-                        ))
+                        departments
+                          .filter(dept => dept.college_name === editingCourse.department.college.name)
+                          .map(dept => (
+                            <label key={dept.id} className="flex items-center text-gray-900 mb-2">
+                              <input
+                                type="checkbox"
+                                className="mr-2"
+                                checked={editFormData.restrictedDepartments.includes(dept.code)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setEditFormData(prev => ({
+                                      ...prev,
+                                      restrictedDepartments: [...prev.restrictedDepartments, dept.code]
+                                    }))
+                                  } else {
+                                    setEditFormData(prev => ({
+                                      ...prev,
+                                      restrictedDepartments: prev.restrictedDepartments.filter(code => code !== dept.code)
+                                    }))
+                                  }
+                                }}
+                              />
+                              <span className="text-sm">{dept.name} ({dept.code})</span>
+                            </label>
+                          ))
                       )}
                     </div>
                     {editFormData.restrictedDepartments.length === 0 ? (
