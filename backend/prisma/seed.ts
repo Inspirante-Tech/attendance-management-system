@@ -1,4 +1,4 @@
-import { PrismaClient } from '../generated/prisma';
+import { PrismaClient, Department } from '../generated/prisma';
 import { hash } from 'bcryptjs';
 
 const prisma = new PrismaClient();
@@ -64,7 +64,7 @@ async function seed() {
             { name: 'Mechanical Engineering', code: 'ME' },
             { name: 'Civil Engineering', code: 'CE' },
             { name: 'Electronics and Communication Engineering', code: 'EC' }
-        ];
+        ] as const;
 
         const [nmamitDepts, nmitDepts] = await Promise.all([
             Promise.all(
@@ -91,14 +91,96 @@ async function seed() {
             )
         ]);
 
-        console.log('Creating sections...');
-        const sectionNames = ['A', 'B', 'C'];
+        console.log('Creating courses...');
+        type CourseType = 'core' | 'department_elective' | 'open_elective';
+        interface CourseData {
+            code: string;
+            name: string;
+            type: CourseType;
+        }
+
+        const departmentCourses: Record<string, CourseData[]> = {
+            'CS': [
+                { code: 'CS201', name: 'Data Structures and Algorithms', type: 'core' },
+                { code: 'CS202', name: 'Operating Systems', type: 'core' },
+                { code: 'CS203', name: 'Database Management Systems', type: 'core' },
+                { code: 'CS204', name: 'Computer Networks', type: 'core' },
+                { code: 'CS205', name: 'Machine Learning', type: 'department_elective' }
+            ],
+            'IS': [
+                { code: 'IS201', name: 'Information Systems', type: 'core' },
+                { code: 'IS202', name: 'Software Engineering', type: 'core' },
+                { code: 'IS203', name: 'Web Technologies', type: 'core' },
+                { code: 'IS204', name: 'Data Analytics', type: 'core' },
+                { code: 'IS205', name: 'Cloud Computing', type: 'department_elective' }
+            ],
+            'ME': [
+                { code: 'ME201', name: 'Thermodynamics', type: 'core' },
+                { code: 'ME202', name: 'Fluid Mechanics', type: 'core' },
+                { code: 'ME203', name: 'Machine Design', type: 'core' },
+                { code: 'ME204', name: 'Heat Transfer', type: 'core' },
+                { code: 'ME205', name: 'Robotics', type: 'department_elective' }
+            ],
+            'CE': [
+                { code: 'CE201', name: 'Structural Engineering', type: 'core' },
+                { code: 'CE202', name: 'Geotechnical Engineering', type: 'core' },
+                { code: 'CE203', name: 'Transportation Engineering', type: 'core' },
+                { code: 'CE204', name: 'Environmental Engineering', type: 'core' },
+                { code: 'CE205', name: 'Construction Management', type: 'department_elective' }
+            ],
+            'EC': [
+                { code: 'EC201', name: 'Digital Electronics', type: 'core' },
+                { code: 'EC202', name: 'Analog Circuits', type: 'core' },
+                { code: 'EC203', name: 'Communication Systems', type: 'core' },
+                { code: 'EC204', name: 'Microprocessors', type: 'core' },
+                { code: 'EC205', name: 'VLSI Design', type: 'department_elective' }
+            ]
+        };
+
+        // Create courses for each department in both colleges
         const allDepts = [...nmamitDepts, ...nmitDepts];
-        const deptSections = [];
+        
+        for (const dept of allDepts) {
+            const courses = departmentCourses[dept.code!];
+            if (!courses) continue;
+
+            await Promise.all(
+                courses.map(course =>
+                    prisma.course.create({
+                        data: {
+                            code: course.code,
+                            name: course.name,
+                            departmentId: dept.id,
+                            type: course.type,
+                            hasTheoryComponent: true,
+                            hasLabComponent: course.code.endsWith('L')
+                        }
+                    })
+                )
+            );
+        }
+
+        console.log('Creating sections...');
+        const deptSectionMapping: Record<string, string[]> = {
+            'CS': ['A', 'B', 'C'],
+            'IS': ['D', 'E', 'F'],
+            'ME': ['G', 'H', 'I'],
+            'CE': ['J', 'K', 'L'],
+            'EC': ['M', 'N', 'O']
+        };
+
+        type DeptWithSections = {
+            dept: Department;
+            sections: { section_id: string; section_name: string; department_id: string; }[];
+        };
+
+        const deptSections: DeptWithSections[] = [];
 
         for (const dept of allDepts) {
+            if (!dept.code || !deptSectionMapping[dept.code]) continue;
+
             const sections = await Promise.all(
-                sectionNames.map(name =>
+                deptSectionMapping[dept.code].map(name =>
                     prisma.sections.create({
                         data: {
                             section_name: name,
