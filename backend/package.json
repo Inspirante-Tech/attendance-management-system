@@ -17,6 +17,9 @@
     "create-demo-users": "ts-node scripts/create-demo-users.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "keywords": [],
   "author": "",
   "license": "ISC",
