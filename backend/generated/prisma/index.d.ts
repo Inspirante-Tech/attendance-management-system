@@ -10121,8 +10121,18 @@ export namespace Prisma {
 
   export type AggregateCourse = {
     _count: CourseCountAggregateOutputType | null
+    _avg: CourseAvgAggregateOutputType | null
+    _sum: CourseSumAggregateOutputType | null
     _min: CourseMinAggregateOutputType | null
     _max: CourseMaxAggregateOutputType | null
+  }
+
+  export type CourseAvgAggregateOutputType = {
+    year: number | null
+  }
+
+  export type CourseSumAggregateOutputType = {
+    year: number | null
   }
 
   export type CourseMinAggregateOutputType = {
@@ -10130,6 +10140,7 @@ export namespace Prisma {
     code: string | null
     name: string | null
     departmentId: string | null
+    year: number | null
     type: $Enums.course_type | null
     hasTheoryComponent: boolean | null
     hasLabComponent: boolean | null
@@ -10140,6 +10151,7 @@ export namespace Prisma {
     code: string | null
     name: string | null
     departmentId: string | null
+    year: number | null
     type: $Enums.course_type | null
     hasTheoryComponent: boolean | null
     hasLabComponent: boolean | null
@@ -10150,6 +10162,7 @@ export namespace Prisma {
     code: number
     name: number
     departmentId: number
+    year: number
     type: number
     hasTheoryComponent: number
     hasLabComponent: number
@@ -10157,11 +10170,20 @@ export namespace Prisma {
   }
 
 
+  export type CourseAvgAggregateInputType = {
+    year?: true
+  }
+
+  export type CourseSumAggregateInputType = {
+    year?: true
+  }
+
   export type CourseMinAggregateInputType = {
     id?: true
     code?: true
     name?: true
     departmentId?: true
+    year?: true
     type?: true
     hasTheoryComponent?: true
     hasLabComponent?: true
@@ -10172,6 +10194,7 @@ export namespace Prisma {
     code?: true
     name?: true
     departmentId?: true
+    year?: true
     type?: true
     hasTheoryComponent?: true
     hasLabComponent?: true
@@ -10182,6 +10205,7 @@ export namespace Prisma {
     code?: true
     name?: true
     departmentId?: true
+    year?: true
     type?: true
     hasTheoryComponent?: true
     hasLabComponent?: true
@@ -10226,6 +10250,18 @@ export namespace Prisma {
     /**
      * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
      * 
+     * Select which fields to average
+    **/
+    _avg?: CourseAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: CourseSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
      * Select which fields to find the minimum value
     **/
     _min?: CourseMinAggregateInputType
@@ -10256,6 +10292,8 @@ export namespace Prisma {
     take?: number
     skip?: number
     _count?: CourseCountAggregateInputType | true
+    _avg?: CourseAvgAggregateInputType
+    _sum?: CourseSumAggregateInputType
     _min?: CourseMinAggregateInputType
     _max?: CourseMaxAggregateInputType
   }
@@ -10265,10 +10303,13 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year: number | null
     type: $Enums.course_type | null
     hasTheoryComponent: boolean
     hasLabComponent: boolean
     _count: CourseCountAggregateOutputType | null
+    _avg: CourseAvgAggregateOutputType | null
+    _sum: CourseSumAggregateOutputType | null
     _min: CourseMinAggregateOutputType | null
     _max: CourseMaxAggregateOutputType | null
   }
@@ -10292,6 +10333,7 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     departmentId?: boolean
+    year?: boolean
     type?: boolean
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -10307,6 +10349,7 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     departmentId?: boolean
+    year?: boolean
     type?: boolean
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -10318,6 +10361,7 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     departmentId?: boolean
+    year?: boolean
     type?: boolean
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -10329,12 +10373,13 @@ export namespace Prisma {
     code?: boolean
     name?: boolean
     departmentId?: boolean
+    year?: boolean
     type?: boolean
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
   }
 
-  export type CourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "departmentId" | "type" | "hasTheoryComponent" | "hasLabComponent", ExtArgs["result"]["course"]>
+  export type CourseOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "code" | "name" | "departmentId" | "year" | "type" | "hasTheoryComponent" | "hasLabComponent", ExtArgs["result"]["course"]>
   export type CourseInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     courseElectiveGroupMembers?: boolean | Course$courseElectiveGroupMembersArgs<ExtArgs>
     courseOfferings?: boolean | Course$courseOfferingsArgs<ExtArgs>
@@ -10362,6 +10407,7 @@ export namespace Prisma {
       code: string
       name: string
       departmentId: string
+      year: number | null
       type: $Enums.course_type | null
       hasTheoryComponent: boolean
       hasLabComponent: boolean
@@ -10796,6 +10842,7 @@ export namespace Prisma {
     readonly code: FieldRef<"Course", 'String'>
     readonly name: FieldRef<"Course", 'String'>
     readonly departmentId: FieldRef<"Course", 'String'>
+    readonly year: FieldRef<"Course", 'Int'>
     readonly type: FieldRef<"Course", 'course_type'>
     readonly hasTheoryComponent: FieldRef<"Course", 'Boolean'>
     readonly hasLabComponent: FieldRef<"Course", 'Boolean'>
@@ -25877,6 +25924,7 @@ export namespace Prisma {
     code: 'code',
     name: 'name',
     departmentId: 'departmentId',
+    year: 'year',
     type: 'type',
     hasTheoryComponent: 'hasTheoryComponent',
     hasLabComponent: 'hasLabComponent'
@@ -26573,6 +26621,7 @@ export namespace Prisma {
     code?: StringFilter<"Course"> | string
     name?: StringFilter<"Course"> | string
     departmentId?: UuidFilter<"Course"> | string
+    year?: IntNullableFilter<"Course"> | number | null
     type?: Enumcourse_typeNullableFilter<"Course"> | $Enums.course_type | null
     hasTheoryComponent?: BoolFilter<"Course"> | boolean
     hasLabComponent?: BoolFilter<"Course"> | boolean
@@ -26587,6 +26636,7 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     departmentId?: SortOrder
+    year?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     hasTheoryComponent?: SortOrder
     hasLabComponent?: SortOrder
@@ -26605,6 +26655,7 @@ export namespace Prisma {
     code?: StringFilter<"Course"> | string
     name?: StringFilter<"Course"> | string
     departmentId?: UuidFilter<"Course"> | string
+    year?: IntNullableFilter<"Course"> | number | null
     type?: Enumcourse_typeNullableFilter<"Course"> | $Enums.course_type | null
     hasTheoryComponent?: BoolFilter<"Course"> | boolean
     hasLabComponent?: BoolFilter<"Course"> | boolean
@@ -26619,12 +26670,15 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     departmentId?: SortOrder
+    year?: SortOrderInput | SortOrder
     type?: SortOrderInput | SortOrder
     hasTheoryComponent?: SortOrder
     hasLabComponent?: SortOrder
     _count?: CourseCountOrderByAggregateInput
+    _avg?: CourseAvgOrderByAggregateInput
     _max?: CourseMaxOrderByAggregateInput
     _min?: CourseMinOrderByAggregateInput
+    _sum?: CourseSumOrderByAggregateInput
   }
 
   export type CourseScalarWhereWithAggregatesInput = {
@@ -26635,6 +26689,7 @@ export namespace Prisma {
     code?: StringWithAggregatesFilter<"Course"> | string
     name?: StringWithAggregatesFilter<"Course"> | string
     departmentId?: UuidWithAggregatesFilter<"Course"> | string
+    year?: IntNullableWithAggregatesFilter<"Course"> | number | null
     type?: Enumcourse_typeNullableWithAggregatesFilter<"Course"> | $Enums.course_type | null
     hasTheoryComponent?: BoolWithAggregatesFilter<"Course"> | boolean
     hasLabComponent?: BoolWithAggregatesFilter<"Course"> | boolean
@@ -27823,6 +27878,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -27837,6 +27893,7 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -27849,6 +27906,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -27863,6 +27921,7 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     departmentId?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -27876,6 +27935,7 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -27885,6 +27945,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -27895,6 +27956,7 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     departmentId?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -29215,9 +29277,14 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     departmentId?: SortOrder
+    year?: SortOrder
     type?: SortOrder
     hasTheoryComponent?: SortOrder
     hasLabComponent?: SortOrder
+  }
+
+  export type CourseAvgOrderByAggregateInput = {
+    year?: SortOrder
   }
 
   export type CourseMaxOrderByAggregateInput = {
@@ -29225,6 +29292,7 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     departmentId?: SortOrder
+    year?: SortOrder
     type?: SortOrder
     hasTheoryComponent?: SortOrder
     hasLabComponent?: SortOrder
@@ -29235,9 +29303,14 @@ export namespace Prisma {
     code?: SortOrder
     name?: SortOrder
     departmentId?: SortOrder
+    year?: SortOrder
     type?: SortOrder
     hasTheoryComponent?: SortOrder
     hasLabComponent?: SortOrder
+  }
+
+  export type CourseSumOrderByAggregateInput = {
+    year?: SortOrder
   }
 
   export type Enumcourse_typeNullableWithAggregatesFilter<$PrismaModel = never> = {
@@ -32227,6 +32300,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -32239,6 +32313,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -32440,6 +32515,7 @@ export namespace Prisma {
     code?: StringFilter<"Course"> | string
     name?: StringFilter<"Course"> | string
     departmentId?: UuidFilter<"Course"> | string
+    year?: IntNullableFilter<"Course"> | number | null
     type?: Enumcourse_typeNullableFilter<"Course"> | $Enums.course_type | null
     hasTheoryComponent?: BoolFilter<"Course"> | boolean
     hasLabComponent?: BoolFilter<"Course"> | boolean
@@ -33884,6 +33960,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -33897,6 +33974,7 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -33947,6 +34025,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -33960,6 +34039,7 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     departmentId?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -34000,6 +34080,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -34013,6 +34094,7 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -34069,6 +34151,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -34082,6 +34165,7 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     departmentId?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -34158,6 +34242,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -34171,6 +34256,7 @@ export namespace Prisma {
     code: string
     name: string
     departmentId: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -34307,6 +34393,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -34320,6 +34407,7 @@ export namespace Prisma {
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
     departmentId?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -35720,6 +35808,7 @@ export namespace Prisma {
     id?: string
     code: string
     name: string
+    year?: number | null
     type?: $Enums.course_type | null
     hasTheoryComponent?: boolean
     hasLabComponent?: boolean
@@ -35763,6 +35852,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -35775,6 +35865,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean
@@ -35787,6 +35878,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     code?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
+    year?: NullableIntFieldUpdateOperationsInput | number | null
     type?: NullableEnumcourse_typeFieldUpdateOperationsInput | $Enums.course_type | null
     hasTheoryComponent?: BoolFieldUpdateOperationsInput | boolean
     hasLabComponent?: BoolFieldUpdateOperationsInput | boolean

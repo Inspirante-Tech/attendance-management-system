@@ -4,10 +4,10 @@ import { useState, useEffect } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
+import {
+  Plus,
+  Search,
+  Edit,
   Trash2,
   Building2,
   Users,
@@ -52,13 +52,13 @@ interface Department {
   }
 }
 
-export default function DepartmentManagement({ 
-  onNavigateToUsers, 
-  onNavigateToCourses, 
-  initialFilters 
+export default function DepartmentManagement({
+  onNavigateToUsers,
+  onNavigateToCourses,
+  initialFilters
 }: DepartmentManagementProps) {
   const [departments, setDepartments] = useState<Department[]>([])
-  const [colleges, setColleges] = useState<{code: string, name: string}[]>([])
+  const [colleges, setColleges] = useState<{ code: string, name: string }[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
@@ -69,7 +69,7 @@ export default function DepartmentManagement({
     code: '',
     college: ''
   })
-  
+
   // Edit functionality state
   const [editingDepartment, setEditingDepartment] = useState<Department | null>(null)
   const [showEditForm, setShowEditForm] = useState(false)
@@ -78,15 +78,15 @@ export default function DepartmentManagement({
     code: '',
     college: ''
   })
-  
+
   // Section management state (department-specific)
-  const [sections, setSections] = useState<{[key: string]: string[]}>({
+  const [sections, setSections] = useState<{ [key: string]: string[] }>({
     '1': [],
     '2': [],
     '3': [],
     '4': []
   })
-  const [newSectionNames, setNewSectionNames] = useState<{[key: string]: string}>({
+  const [newSectionNames, setNewSectionNames] = useState<{ [key: string]: string }>({
     '1': '',
     '2': '',
     '3': '',
@@ -106,13 +106,13 @@ export default function DepartmentManagement({
       try {
         setLoading(true)
         setError(null)
-        
+
         // Fetch both departments and colleges
         const [departmentsResponse, collegesResponse] = await Promise.all([
           adminApi.getAllDepartments(),
           adminApi.getAllColleges()
         ])
-        
+
         if (departmentsResponse.status === 'success') {
           // Transform API data to match our Department interface
           const transformedDepartments: Department[] = departmentsResponse.data.map((dept: unknown) => ({
@@ -134,7 +134,7 @@ export default function DepartmentManagement({
               sections: (dept as any).sections?.length || 0
             }
           }))
-          
+
           setDepartments(transformedDepartments)
         } else {
           setError(departmentsResponse.error || 'Failed to fetch departments')
@@ -152,7 +152,8 @@ export default function DepartmentManagement({
         setError(err instanceof Error ? err.message : 'An error occurred while fetching data')
       } finally {
         setLoading(false)
-      }    }
+      }
+    }
     fetchData()
   }, [])
 
@@ -166,8 +167,8 @@ export default function DepartmentManagement({
   // Get filtered departments
   const filteredDepartments = departments.filter(dept => {
     const matchesSearch = dept.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         dept.college.name.toLowerCase().includes(searchTerm.toLowerCase())
+      dept.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      dept.college.name.toLowerCase().includes(searchTerm.toLowerCase())
 
     if (!matchesSearch) return false
 
@@ -185,7 +186,7 @@ export default function DepartmentManagement({
     const fetchDepartments = async () => {
       try {
         const response = await adminApi.getAllDepartments()
-        
+
         if (response.status === 'success') {
           const transformedDepartments: Department[] = response.data.map((dept: any) => ({
             id: dept.id,
@@ -206,7 +207,7 @@ export default function DepartmentManagement({
               sections: dept.sections?.length || 0
             }
           }))
-          
+
           setDepartments(transformedDepartments)
         } else {
           setError(response.error || 'Failed to fetch departments')
@@ -231,7 +232,7 @@ export default function DepartmentManagement({
           code: newDepartment.code.trim(),
           college: newDepartment.college
         })
-        
+
         if (response.status === 'success') {
           // Add the new department to the list
           const newDept: Department = {
@@ -253,7 +254,7 @@ export default function DepartmentManagement({
               sections: 0
             }
           }
-          
+
           setDepartments(prev => [...prev, newDept])
           setNewDepartment({ name: '', code: '', college: '' })
           setShowAddForm(false)
@@ -278,15 +279,15 @@ export default function DepartmentManagement({
       code: department.code,
       college: department.college.code
     })
-    
+
     // Load existing sections grouped by year
-    const sectionsByYear: {[key: string]: string[]} = {
+    const sectionsByYear: { [key: string]: string[] } = {
       '1': [],
       '2': [],
       '3': [],
       '4': []
     }
-    
+
     // Group sections by year (extract year from section name if possible)
     department.sections.forEach((section: { section_name?: string; name?: string }) => {
       const sectionName = section.section_name || section.name
@@ -299,7 +300,7 @@ export default function DepartmentManagement({
         }
       }
     })
-    
+
     setSections(sectionsByYear)
     setNewSectionNames({ '1': '', '2': '', '3': '', '4': '' })
     setShowEditForm(true)
@@ -313,7 +314,7 @@ export default function DepartmentManagement({
     try {
       // Flatten sections into a single array for the backend
       // Include year information in the section name
-      const allSections = Object.entries(sections).flatMap(([year, sectionList]) => 
+      const allSections = Object.entries(sections).flatMap(([year, sectionList]) =>
         sectionList.map(sectionName => ({
           name: `${year}${sectionName}`
         }))
@@ -325,10 +326,10 @@ export default function DepartmentManagement({
         college: editFormData.college,
         sections: allSections
       })
-      
+
       if (response.status === 'success') {
-        setDepartments(prev => prev.map(dept => 
-          dept.id === editingDepartment.id 
+        setDepartments(prev => prev.map(dept =>
+          dept.id === editingDepartment.id
             ? { ...dept, name: editFormData.name, code: editFormData.code, college: { ...dept.college, code: editFormData.college } }
             : dept
         ))
@@ -384,7 +385,7 @@ export default function DepartmentManagement({
               .filter(([, count]) => (count as number) > 0)
               .map(([type, count]) => `${count} ${type}`)
               .join(', ')
-            
+
             // Offer force delete option
             const forceDelete = confirm(
               `Cannot delete department: ${errorMsg}\n\nDependencies found: ${depDetails}\n\n` +
@@ -393,7 +394,7 @@ export default function DepartmentManagement({
               `⚠️ THIS WILL PERMANENTLY DELETE ALL RELATED RECORDS ⚠️\n\n` +
               `Click Cancel to abort the deletion.`
             )
-            
+
             if (forceDelete) {
               await forceDeleteDepartment(departmentId)
             }
@@ -486,7 +487,7 @@ export default function DepartmentManagement({
               />
             </div>
           </div>
-          
+
           <select
             value={selectedCollege}
             onChange={(e) => setSelectedCollege(e.target.value)}
@@ -516,7 +517,7 @@ export default function DepartmentManagement({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -530,7 +531,7 @@ export default function DepartmentManagement({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -544,7 +545,7 @@ export default function DepartmentManagement({
             </div>
           </CardContent>
         </Card>
-        
+
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -599,7 +600,7 @@ export default function DepartmentManagement({
                       </div>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <button 
+                      <button
                         onClick={() => onNavigateToUsers?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
                       >
@@ -607,7 +608,7 @@ export default function DepartmentManagement({
                       </button>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <button 
+                      <button
                         onClick={() => onNavigateToUsers?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
                       >
@@ -615,7 +616,7 @@ export default function DepartmentManagement({
                       </button>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
-                      <button 
+                      <button
                         onClick={() => onNavigateToCourses?.({ department: dept.code })}
                         className="text-blue-600 hover:underline"
                       >
@@ -627,12 +628,12 @@ export default function DepartmentManagement({
                         {(() => {
                           // Get all section names
                           const sectionNames = dept.sections
-                            .map((section: { section_name?: string; name?: string }) => 
+                            .map((section: { section_name?: string; name?: string }) =>
                               section.section_name || section.name
                             )
                             .filter((name): name is string => !!name)
                             .sort()
-                          
+
                           return sectionNames.length > 0 ? sectionNames.join(', ') : 'No sections'
                         })()}
                       </div>
@@ -664,7 +665,7 @@ export default function DepartmentManagement({
               <form onSubmit={handleAddDepartment} className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Department Name</label>
-                  <Input 
+                  <Input
                     placeholder="e.g., Computer Science and Engineering"
                     value={newDepartment.name}
                     onChange={(e) => setNewDepartment(prev => ({ ...prev, name: e.target.value }))}
@@ -674,7 +675,7 @@ export default function DepartmentManagement({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">Department Code</label>
-                  <Input 
+                  <Input
                     placeholder="e.g., CSE"
                     value={newDepartment.code}
                     onChange={(e) => setNewDepartment(prev => ({ ...prev, code: e.target.value.toUpperCase() }))}
@@ -684,7 +685,7 @@ export default function DepartmentManagement({
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-900 mb-1">College</label>
-                  <select 
+                  <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     title="Select College"
                     value={newDepartment.college}
@@ -760,7 +761,7 @@ export default function DepartmentManagement({
                     ))}
                   </select>
                 </div>
-                
+
                 {/* Section Management */}
                 <div className="border-t pt-4">
                   <h3 className="text-lg font-semibold text-gray-900 mb-3">Section Management</h3>
@@ -774,7 +775,7 @@ export default function DepartmentManagement({
                           <h4 className="font-medium text-gray-900">Year {year}</h4>
                           <span className="text-sm text-gray-600">{sections[year]?.length || 0} sections</span>
                         </div>
-                        
+
                         {/* Existing sections */}
                         <div className="flex flex-wrap gap-2 mb-2">
                           {sections[year]?.map((section, index) => (
@@ -790,7 +791,7 @@ export default function DepartmentManagement({
                             </div>
                           ))}
                         </div>
-                        
+
                         {/* Add new section */}
                         <div className="flex gap-2">
                           <Input
@@ -818,7 +819,7 @@ export default function DepartmentManagement({
                     ))}
                   </div>
                 </div>
-                
+
                 <div className="flex gap-2 pt-4">
                   <Button type="submit" className="flex-1">
                     Update Department

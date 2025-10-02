@@ -505,10 +505,10 @@ router.get('/course-management', async (req, res) => {
       // For the UI, we want to show if ANY offering has a teacher, and who that teacher is
       const primaryTeacher = offeringsWithTeachers.length > 0 ? offeringsWithTeachers[0].teacher : null;
 
-      // Calculate the course year based on semester using the mapping:
-      // Semesters 1,2 = Year 1; 3,4 = Year 2; 5,6 = Year 3; 7,8 = Year 4
-      let courseYear = 1; // Default to 1st year
-      if (course.courseOfferings.length > 0) {
+      // Use the year from the database if available, otherwise calculate from semester
+      let courseYear = course.year || 1; // Use database year or default to 1st year
+      if (!course.year && course.courseOfferings.length > 0) {
+        // Fallback: Calculate based on semester if year is not set
         const firstSemester = course.courseOfferings[0].semester;
         if (firstSemester) {
           courseYear = Math.ceil(firstSemester / 2);

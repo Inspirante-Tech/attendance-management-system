@@ -173,6 +173,7 @@ exports.Prisma.CourseScalarFieldEnum = {
   code: 'code',
   name: 'name',
   departmentId: 'departmentId',
+  year: 'year',
   type: 'type',
   hasTheoryComponent: 'hasTheoryComponent',
   hasLabComponent: 'hasLabComponent'

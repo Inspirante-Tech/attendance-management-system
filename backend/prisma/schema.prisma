@@ -110,6 +110,7 @@ model Course {
   code                       String                      @map("course_code") @db.VarChar(20)
   name                       String                      @map("course_name") @db.VarChar(100)
   departmentId               String                      @map("department_id") @db.Uuid
+  year                       Int?                        @map("year")
   type                       course_type?                @map("course_type")
   hasTheoryComponent         Boolean                     @default(true) @map("has_theory_component")
   hasLabComponent            Boolean                     @default(false) @map("has_lab_component")

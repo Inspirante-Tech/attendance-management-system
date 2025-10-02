@@ -325,6 +325,7 @@ router.post('/', async (req, res) => {
         name: name.trim(),
         code: finalCode,
         departmentId: departmentRecord.id,
+        year: yearNum, // Add year field
         type: type || 'core',
         hasTheoryComponent: req.body.hasTheoryComponent ?? true,
         hasLabComponent: req.body.hasLabComponent ?? false
@@ -471,23 +472,12 @@ router.put('/:id', async (req, res) => {
       });
     }
 
-    // Prepare the final code first
+    // Prepare the final code
     let finalCode = code.toUpperCase().trim();
 
-    // If year is provided, ensure the course code embeds the year information
-    if (yearNum) {
-      // If the code doesn't already contain the year pattern, modify it
-      if (!finalCode.match(/^[A-Z]{2,4}[1-4][0-9]{2,3}$/)) {
-        // Extract department prefix (first 2-4 letters)
-        const deptPrefix = (departmentRecord.code || 'DEPT').substring(0, Math.min(4, (departmentRecord.code || 'DEPT').length));
-        // Create a pattern like CS3XX where 3 is the year
-        const codeNumber = finalCode.match(/\d+$/) ? finalCode.match(/\d+$/)[0] : '01';
-        finalCode = `${deptPrefix}${yearNum}${codeNumber.padStart(2, '0')}`;
-      } else {
-        // Replace the year digit in existing pattern
-        finalCode = finalCode.replace(/^([A-Z]{2,4})[1-4]/, `$1${yearNum}`);
-      }
-    }
+    // Don't automatically modify the course code during updates
+    // The course code should be manually set by the user if they want to change it
+    // The year field is now independent from the course code
 
     // Check if the final course code already exists (excluding current course)
     const codeConflict = await prisma.course.findFirst({
@@ -512,6 +502,7 @@ router.put('/:id', async (req, res) => {
         name: name.trim(),
         code: finalCode,
         departmentId: departmentRecord.id,
+        year: yearNum, // Add year field to update
         type: type || 'core',
         hasTheoryComponent: req.body.hasTheoryComponent ?? true,
         hasLabComponent: req.body.hasLabComponent ?? false

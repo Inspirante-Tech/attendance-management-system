@@ -833,7 +833,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 placeholder="Search courses..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="pl-10 text-black"
               />
             </div>
           </div>
@@ -1157,10 +1157,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   )}
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Course Year</label>
                   <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    title="Select Batch Year"
+                    title="Select Course Year"
                     value={newCourse.year}
                     onChange={(e) => setNewCourse(prev => ({ ...prev, year: e.target.value }))}
                     required
@@ -1286,10 +1286,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
             <div className="p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Edit Course</h2>
+              <h2 className="text-xl font-bold text-black mb-4">Edit Course</h2>
               <form onSubmit={handleEditSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Course Code</label>
+                  <label className="block text-sm font-medium text-black mb-1">Course Code</label>
                   <Input
                     placeholder="e.g., CS301"
                     value={editFormData.code}
@@ -1297,7 +1297,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Course Name</label>
+                  <label className="block text-sm font-medium text-black mb-1">Course Name</label>
                   <Input
                     placeholder="e.g., Data Structures"
                     value={editFormData.name}
@@ -1319,12 +1319,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
+                  <label className="block text-sm font-medium text-gray-900 mb-1">Course Year</label>
                   <select
                     className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={editFormData.year}
                     onChange={(e) => setEditFormData({ ...editFormData, year: e.target.value })}
-                    title="Select Batch Year"
+                    title="Select Course Year"
                   >
                     <option value="1">1st Year</option>
                     <option value="2">2nd Year</option>
@@ -1452,7 +1452,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       <p><strong>Enrollment Rules:</strong></p>
                       {enrollmentData.course.type === 'open_elective' && (
                         <ul className="list-disc list-inside ml-2">
-                          <li>Open to all students of the selected batch year</li>
+                          <li>Open to all students of the selected academic year</li>
                           {enrollmentData.course.restrictions.length > 0 && (
                             <li>
                               Restricted departments: {enrollmentData.course.restrictions.map((r: { departmentCode: string }) => r.departmentCode).join(', ')}
@@ -1463,13 +1463,13 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       {enrollmentData.course.type === 'department_elective' && (
                         <ul className="list-disc list-inside ml-2">
                           <li>Only students from {enrollmentData.course.department?.name} department</li>
-                          <li>Students of the selected batch year</li>
+                          <li>Students of the selected academic year</li>
                         </ul>
                       )}
                       {enrollmentData.course.type === 'core' && (
                         <ul className="list-disc list-inside ml-2">
                           <li><strong>Mandatory enrollment:</strong> All students from {enrollmentData.course.department?.name} department</li>
-                          <li>Students of the selected batch year will be automatically enrolled</li>
+                          <li>Students of the selected academic year will be automatically enrolled</li>
                         </ul>
                       )}
                     </div>
@@ -1554,12 +1554,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
               {showManualSelection && (
                 <form onSubmit={handleEnrollmentSubmit} className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium text-gray-900 mb-1">Batch Year</label>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Academic Year</label>
                     <select
                       className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
                       value={enrollmentYear}
                       onChange={(e) => setEnrollmentYear(e.target.value)}
-                      title="Select Batch Year"
+                      title="Select Academic Year"
                     >
                       <option value="2024">2024</option>
                       <option value="2025">2025</option>
@@ -1593,7 +1593,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         </div>
                       ) : eligibleStudents.length === 0 ? (
                         <p className="text-gray-500 text-sm py-4 text-center">
-                          No eligible students found for this course and batch year/semester combination.
+                          No eligible students found for this course and academic year/semester combination.
                         </p>
                       ) : selectedCourse.type === 'core' ? (
                         /* For core courses, show all students as automatically selected */
@@ -1714,7 +1714,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     <Button
                       type="submit"
                       className="flex-1"
-                      disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0)}
+                      disabled={enrollmentLoading || (selectedCourse.type !== 'core' && selectedStudents.length === 0 && !selectedTeacher && !selectedSection)}
                     >
                       {enrollmentLoading ? 'Saving...' : 'Save'}
                     </Button>
