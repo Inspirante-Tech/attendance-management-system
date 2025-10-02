@@ -19,7 +19,7 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
     }
 
     const prisma = DatabaseService.getInstance();
-    
+
     // Get course details
     const course = await prisma.course.findUnique({
       where: { id: courseId },
@@ -48,23 +48,23 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
     // Build query conditions based on course type
     const yearNumber = parseInt(year as string);
     const semesterNumber = parseInt(semester as string);
-    
+
     // Convert semester to year using proper mapping:
     // Semester 1,2 = Year 1; Semester 3,4 = Year 2; Semester 5,6 = Year 3; Semester 7,8 = Year 4
     const courseYear = Math.ceil(semesterNumber / 2);
-    
+
     // Students are stored with batchYear which represents their academic year
     // We need to find students whose current year matches the course year
     const batchYear: number = courseYear;
     const absoluteSemester: number = semesterNumber;
-    
+
     // Build student where conditions
     let studentWhereConditions: any = {
       batchYear: batchYear,
-      college_id: course.college_id,
+      college_id: course.department.college_id,
       semester: absoluteSemester
     };
-    
+
     // Apply course-specific filters
     if (course.type === 'core' || course.type === 'department_elective') {
       if (course.departmentId) {
@@ -78,7 +78,7 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
         };
       }
     }
-    
+
     // Get students who are NOT already enrolled in this course for this semester
     const eligibleStudents = await prisma.student.findMany({
       where: {
@@ -102,7 +102,7 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
         { usn: 'asc' }
       ]
     });
-    
+
     const transformedStudents = eligibleStudents.map((student: any) => ({
       id: student.id,
       name: student.user.name,
@@ -120,7 +120,7 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
         name: student.sections.section_name
       } : null
     }));
-    
+
     res.json({
       status: 'success',
       data: {
@@ -161,13 +161,13 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
 router.post('/courses/:courseId/enroll-students', async (req, res) => {
   try {
     const { courseId } = req.params;
-    const { studentIds, year, semester, teacherId } = req.body;
+    const { studentIds, year, semester, teacherId, sectionId } = req.body;
 
-    // Only error if both studentIds is empty and no teacherId is provided
-    if ((!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) && !teacherId) {
+    // Only error if both studentIds is empty and no teacherId/sectionId is provided
+    if ((!studentIds || !Array.isArray(studentIds) || studentIds.length === 0) && !teacherId && !sectionId) {
       res.status(400).json({
         status: 'error',
-        error: 'At least one student or a teacher assignment is required'
+        error: 'At least one student, teacher assignment, or section assignment is required'
       });
       return;
     }
@@ -214,9 +214,9 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
     // Get or create academic year
     const yearNumber = parseInt(year);
     let academicYear = await prisma.academic_years.findFirst({
-      where: { 
+      where: {
         year_name: `${yearNumber}-${(yearNumber + 1).toString().slice(-2)}`,
-        college_id: course.college_id
+        college_id: course.department.college_id
       }
     });
 
@@ -224,7 +224,7 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
       academicYear = await prisma.academic_years.create({
         data: {
           year_name: `${yearNumber}-${(yearNumber + 1).toString().slice(-2)}`,
-          college_id: course.college_id,
+          college_id: course.department.college_id,
           start_date: new Date(`${yearNumber}-06-01`),
           end_date: new Date(`${yearNumber + 1}-05-31`),
           is_active: true
@@ -247,15 +247,26 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
           courseId: courseId,
           semester: parseInt(semester),
           year_id: academicYear.year_id,
-          teacherId: resolvedTeacherId || null
+          teacherId: resolvedTeacherId || null,
+          section_id: sectionId || null
         }
       });
-    } else if (resolvedTeacherId && courseOffering.teacherId !== resolvedTeacherId) {
-      // Update teacher if provided and different
-      courseOffering = await prisma.courseOffering.update({
-        where: { id: courseOffering.id },
-        data: { teacherId: resolvedTeacherId }
-      });
+    } else {
+      // Update teacher and/or section if provided and different
+      const needsUpdate =
+        (resolvedTeacherId && courseOffering.teacherId !== resolvedTeacherId) ||
+        (sectionId && courseOffering.section_id !== sectionId);
+
+      if (needsUpdate) {
+        const updateData: any = {};
+        if (resolvedTeacherId) updateData.teacherId = resolvedTeacherId;
+        if (sectionId) updateData.section_id = sectionId;
+
+        courseOffering = await prisma.courseOffering.update({
+          where: { id: courseOffering.id },
+          data: updateData
+        });
+      }
     }
 
 
@@ -292,10 +303,10 @@ router.post('/courses/:courseId/enroll-students', async (req, res) => {
 
           return { studentId, status: 'enrolled' };
         } catch (error) {
-          return { 
-            studentId, 
-            status: 'error', 
-            error: error instanceof Error ? error.message : 'Unknown error' 
+          return {
+            studentId,
+            status: 'error',
+            error: error instanceof Error ? error.message : 'Unknown error'
           };
         }
       });
@@ -451,7 +462,7 @@ router.get('/courses/:courseId/enrollments', async (req, res) => {
 router.get('/course-management', async (req, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    
+
     const courses = await prisma.course.findMany({
       include: {
         department: {
@@ -490,10 +501,10 @@ router.get('/course-management', async (req, res) => {
       // Group offerings by section to find which ones have teachers assigned
       const offeringsWithTeachers = course.courseOfferings.filter(o => o.teacherId);
       const offeringsWithoutTeachers = course.courseOfferings.filter(o => !o.teacherId);
-      
+
       // For the UI, we want to show if ANY offering has a teacher, and who that teacher is
       const primaryTeacher = offeringsWithTeachers.length > 0 ? offeringsWithTeachers[0].teacher : null;
-      
+
       // Calculate the course year based on semester using the mapping:
       // Semesters 1,2 = Year 1; 3,4 = Year 2; 5,6 = Year 3; 7,8 = Year 4
       let courseYear = 1; // Default to 1st year
@@ -503,7 +514,7 @@ router.get('/course-management', async (req, res) => {
           courseYear = Math.ceil(firstSemester / 2);
         }
       }
-      
+
       return {
         id: course.id,
         code: course.code,
@@ -566,7 +577,7 @@ router.get('/course-management', async (req, res) => {
 router.post('/auto-assign-teachers', async (req, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    
+
     // Get all course offerings without teachers
     const offeringsWithoutTeachers = await prisma.courseOffering.findMany({
       where: {
@@ -609,11 +620,11 @@ router.post('/auto-assign-teachers', async (req, res) => {
       const departmentId = offering.course?.departmentId;
       if (departmentId && teachersByDepartment[departmentId]) {
         const availableTeachers = teachersByDepartment[departmentId];
-        
+
         // Simple round-robin assignment - can be made more sophisticated
         const teacherIndex = assignedCount % availableTeachers.length;
         const selectedTeacher = availableTeachers[teacherIndex];
-        
+
         // Update the course offering with teacher assignment
         await prisma.courseOffering.update({
           where: { id: offering.id },

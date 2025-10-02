@@ -153,6 +153,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   const [enrollmentSemester, setEnrollmentSemester] = useState('1')
   const [selectedTeacher, setSelectedTeacher] = useState('')
   const [teachers, setTeachers] = useState<any[]>([])
+  const [selectedSection, setSelectedSection] = useState('')
+  const [sections, setSections] = useState<any[]>([])
   const [enrollmentLoading, setEnrollmentLoading] = useState(false)
 
   // CSV Upload state
@@ -552,14 +554,31 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     setSelectedCourse(course)
     setShowEnrollmentModal(true)
     setSelectedStudents([]) // Clear previous selections
+    setSelectedSection('') // Clear previous section selection
 
     try {
       setEnrollmentLoading(true)
 
-      // Fetch teachers first
-      const teachersResponse = await adminApi.getUsersByRole('teacher')
+      // Fetch teachers and departments in parallel
+      const [teachersResponse, departmentsResponse] = await Promise.all([
+        adminApi.getUsersByRole('teacher'),
+        adminApi.getAllDepartments()
+      ])
+
       if (teachersResponse.status === 'success') {
-        setTeachers(teachersResponse.data)
+        // Filter teachers to only show those from the course's college
+        // Teachers from API have nested structure: teacher.colleges.code
+        const filteredTeachers = teachersResponse.data.filter((user: any) =>
+          user.teacher?.colleges?.code === course.department.college.code
+        )
+
+        // Transform to add collegeCode at the top level for easier access
+        const transformedTeachers = filteredTeachers.map((user: any) => ({
+          ...user,
+          collegeCode: user.teacher?.colleges?.code
+        }))
+
+        setTeachers(transformedTeachers)
 
         // Pre-select teacher AFTER teachers are loaded
         if (course.teacherAssigned && course.teacher) {
@@ -567,6 +586,30 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         } else {
           setSelectedTeacher('')
         }
+      }
+
+      if (departmentsResponse.status === 'success') {
+        // Get course's department to find its sections
+        const courseDept = departmentsResponse.data.find((dept: any) =>
+          dept.code === course.department.code &&
+          dept.colleges?.code === course.department.college.code
+        )
+
+        // Get all sections from all departments in the same college
+        const allSections: any[] = []
+        departmentsResponse.data.forEach((dept: any) => {
+          if (dept.colleges?.code === course.department.college.code && dept.sections) {
+            dept.sections.forEach((section: any) => {
+              allSections.push({
+                ...section,
+                departmentName: dept.name,
+                departmentCode: dept.code
+              })
+            })
+          }
+        })
+
+        setSections(allSections)
       }
 
       // Fetch eligible students
@@ -618,8 +661,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       : selectedStudents
 
     // Only require students for electives if no teacher is selected
-    if (studentsToEnroll.length === 0 && !selectedTeacher) {
-      alert('Please select at least one student or assign a teacher')
+    if (studentsToEnroll.length === 0 && !selectedTeacher && !selectedSection) {
+      alert('Please select at least one student, assign a teacher, or assign a section')
       return
     }
 
@@ -630,7 +673,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
         studentsToEnroll,
         enrollmentYear,
         enrollmentSemester,
-        selectedTeacher || undefined
+        selectedTeacher || undefined,
+        selectedSection || undefined
       )
 
       if (response.status === 'success') {
@@ -1021,7 +1065,12 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                           <Trash2 className="h-4 w-4" />
                         </Button>
                         {/* student assignment */}
-                        <Button size="sm" variant="outline" title='Assign students'>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          title='Assign students'
+                          onClick={() => openEnrollmentModal(course)}
+                        >
                           <UserPlus size={16} strokeWidth={2} />
                         </Button>
                       </div>
@@ -1637,6 +1686,27 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         </option>
                       ))}
                     </select>
+                  </div>
+
+                  {/* Section Selection */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-900 mb-1">Assign Section (Optional)</label>
+                    <select
+                      className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      value={selectedSection}
+                      onChange={(e) => setSelectedSection(e.target.value)}
+                      title="Select Section"
+                    >
+                      <option value="">Select Section</option>
+                      {sections.map(section => (
+                        <option key={section.section_id} value={section.section_id}>
+                          {section.section_name} - {section.departmentName} ({section.departmentCode})
+                        </option>
+                      ))}
+                    </select>
+                    {sections.length === 0 && (
+                      <p className="text-xs text-gray-500 mt-1">No sections available</p>
+                    )}
                   </div>
 
                   {/* Action Buttons */}

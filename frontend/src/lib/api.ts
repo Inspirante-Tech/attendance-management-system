@@ -455,14 +455,15 @@ export const adminApi = {
     return apiRequest<{ status: string; data: CourseEnrollmentData }>(`/api/admin/courses/${courseId}/eligible-students?${params.toString()}`)
   },
 
-  async enrollStudents(courseId: string, studentIds: string[], year: string, semester: string, teacherId?: string): Promise<{ status: string; data: EnrollmentResult }> {
+  async enrollStudents(courseId: string, studentIds: string[], year: string, semester: string, teacherId?: string, sectionId?: string): Promise<{ status: string; data: EnrollmentResult }> {
     return apiRequest<{ status: string; data: EnrollmentResult }>(`/api/admin/courses/${courseId}/enroll-students`, {
       method: 'POST',
       body: JSON.stringify({
         studentIds,
         year,
         semester,
-        teacherId
+        teacherId,
+        sectionId
       })
     })
   },
