@@ -76,6 +76,7 @@ export interface CourseOffering {
         name: string;
     } | null;
     academicYear: string;
+    semester: number;
     enrolledStudents: number;
     students: Array<{
         id: string;

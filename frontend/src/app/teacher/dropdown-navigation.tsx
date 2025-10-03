@@ -12,6 +12,15 @@ import {
 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
 
+// Helper function to convert semester to year string
+function semesterToYear(semester: number): string {
+  if (semester <= 0) return 'Unknown'
+  if (semester <= 2) return '1st Year'
+  if (semester <= 4) return '2nd Year'
+  if (semester <= 6) return '3rd Year'
+  return '4th Year'
+}
+
 // Types for the navigation data
 interface Year {
   year: string
@@ -48,6 +57,8 @@ export interface Course {
   has_lab_component?: boolean
   offering_id?: string
   academic_year?: string
+  semester?: number
+  yearOfStudy?: string
 }
 
 export interface Section {
@@ -202,7 +213,7 @@ export function DropdownNavigation({
           course_id: courseOffering.course.id,
           course_code: courseOffering.course.code,
           course_name: courseOffering.course.name,
-          department_id: courseOffering.course.department,
+          department_id: courseOffering.course.department, // This is department code from backend
           total_students: courseOffering.enrolledStudents,
           classes_completed: 25, // Mock - TODO: Get from attendance history
           total_classes: 40, // Mock - TODO: Get from academic calendar
@@ -212,17 +223,33 @@ export function DropdownNavigation({
           has_theory_component: courseOffering.course.hasTheoryComponent,
           has_lab_component: courseOffering.course.hasLabComponent,
           offering_id: courseOffering.offeringId,
-          academic_year: courseOffering.academicYear
+          academic_year: courseOffering.academicYear,
+          semester: courseOffering.semester || 0,
+          yearOfStudy: semesterToYear(courseOffering.semester || 0)
         }))
 
-        // Filter by department if one is selected
-        if (selectedDepartment) {
-          setCourses(transformedCourses.filter((course: Course) =>
-            course.department_id === selectedDepartment
-          ))
-        } else {
-          setCourses(transformedCourses)
+        // Filter by year and department
+        let filteredCourses = transformedCourses
+
+        // Filter by selected year if one is chosen
+        if (selectedYear) {
+          filteredCourses = filteredCourses.filter((course: Course) =>
+            course.yearOfStudy === selectedYear
+          )
         }
+
+        // Filter by department if one is selected
+        // selectedDepartment is the UUID, need to match against department code
+        if (selectedDepartment) {
+          const selectedDept = departments.find(d => d.department_id === selectedDepartment)
+          if (selectedDept) {
+            filteredCourses = filteredCourses.filter((course: Course) =>
+              course.department_id === selectedDept.department_code
+            )
+          }
+        }
+
+        setCourses(filteredCourses)
       } else {
         // Fallback to admin API if no teacher courses available
         const allCoursesData = await adminApi.getAllCourses()
@@ -255,7 +282,7 @@ export function DropdownNavigation({
     } finally {
       setLoading(prev => ({ ...prev, courses: false }))
     }
-  }, [selectedDepartment, teacherCourses])
+  }, [selectedDepartment, selectedYear, teacherCourses])
 
   const loadSections = useCallback(async () => {
     if (!selectedCourse) return
@@ -310,9 +337,9 @@ export function DropdownNavigation({
     }
   }, [selectedCourse, teacherCourses])
 
-  // Load courses when department changes or when we have teacher courses
+  // Load courses when year, department changes or when we have teacher courses
   useEffect(() => {
-    if (selectedDepartment || teacherCourses.length > 0) {
+    if ((selectedYear || selectedDepartment) || teacherCourses.length > 0) {
       loadCourses()
     } else {
       setCourses([])
@@ -352,13 +379,99 @@ export function DropdownNavigation({
     <Card className="w-full relative z-50">
       <CardContent className="p-3 sm:p-6">
         <div className="flex flex-col lg:flex-row gap-3 lg:gap-4">
-          {/* Course Dropdown - First for teachers */}
+          {/* Year of Study Dropdown - First */}
+          <div ref={yearRef} className="relative flex-1">
+            <Button
+              variant={selectedYear ? "default" : "outline"}
+              className={`w-full justify-between h-auto p-3 sm:p-4 ${selectedYear ? 'bg-emerald-600 hover:bg-emerald-700' : ''
+                }`}
+              onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
+            >
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <div className="text-left min-w-0">
+                  <div className="font-medium text-sm sm:text-base truncate">
+                    {selectedYear || 'Year of Study'}
+                  </div>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${yearDropdownOpen ? 'rotate-180' : ''
+                }`} />
+            </Button>
+
+            {yearDropdownOpen && (
+              <div className="absolute top-full mt-2 w-full min-w-[200px] max-w-[300px] bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
+                <div className="p-2 max-h-60 overflow-y-auto">
+                  {years.map((year) => (
+                    <button
+                      key={year.year}
+                      className="w-full text-left p-2 sm:p-3 rounded-md hover:bg-gray-50 transition-colors"
+                      onClick={() => handleYearSelect(year.year)}
+                    >
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">{year.year}</div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Department Dropdown - Second */}
+          <div ref={deptRef} className="relative flex-1">
+            <Button
+              variant={selectedDepartment ? "default" : "outline"}
+              className={`w-full justify-between h-auto p-3 sm:p-4 ${selectedDepartment ? 'bg-emerald-600 hover:bg-emerald-700' : ''
+                } ${!selectedYear ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => selectedYear && setDeptDropdownOpen(!deptDropdownOpen)}
+              disabled={!selectedYear}
+            >
+              <div className="flex items-center space-x-2 sm:space-x-3">
+                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
+                <div className="text-left min-w-0">
+                  <div className="font-medium text-sm sm:text-base truncate">
+                    {selectedDepartment ?
+                      `${departments.find(d => d.department_id === selectedDepartment)?.short_name || selectedDepartment}`
+                      : 'Department'
+                    }
+                  </div>
+                </div>
+              </div>
+              <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${deptDropdownOpen ? 'rotate-180' : ''
+                }`} />
+            </Button>
+
+            {deptDropdownOpen && selectedYear && (
+              <div className="absolute top-full mt-2 w-full min-w-[300px] max-w-[400px] bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
+                <div className="p-2 max-h-60 overflow-y-auto">
+                  {departments.length > 0 ? departments.map((dept) => (
+                    <button
+                      key={dept.department_id}
+                      className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
+                      onClick={() => handleDepartmentSelect(dept.department_id)}
+                    >
+                      <div className="font-medium text-gray-900">{dept.short_name}: {dept.department_name}</div>
+                      {dept.college_name && (
+                        <div className="text-xs text-gray-500 mt-1">{dept.college_code} - {dept.college_name}</div>
+                      )}
+                    </button>
+                  )) : (
+                    <div className="p-2 sm:p-3 text-center text-gray-500 text-xs sm:text-sm">
+                      No departments available
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Course Dropdown - Third */}
           <div ref={courseRef} className="relative flex-1">
             <Button
               variant={selectedCourse ? "default" : "outline"}
               className={`w-full justify-between h-auto p-3 sm:p-4 ${selectedCourse ? 'bg-emerald-600 hover:bg-emerald-700' : ''
-                }`}
-              onClick={() => setCourseDropdownOpen(!courseDropdownOpen)}
+                } ${!selectedDepartment ? 'opacity-50 cursor-not-allowed' : ''}`}
+              onClick={() => selectedDepartment && setCourseDropdownOpen(!courseDropdownOpen)}
+              disabled={!selectedDepartment}
             >
               <div className="flex items-center space-x-2 sm:space-x-3">
                 <BookOpen className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
@@ -372,7 +485,7 @@ export function DropdownNavigation({
                 }`} />
             </Button>
 
-            {courseDropdownOpen && (
+            {courseDropdownOpen && selectedDepartment && (
               <div className="absolute top-full mt-2 w-full min-w-[300px] max-w-[500px] bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
                 <div className="p-2 max-h-60 overflow-y-auto">
                   {courses.length > 0 ? (
@@ -387,7 +500,7 @@ export function DropdownNavigation({
                               onClick={() => handleCourseSelect(course)}
                             >
                               <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{course.course_code}: {course.course_name}</div>
-                              <div className="text-xs text-gray-500">{course.academic_year} • {course.total_students} students</div>
+                              <div className="text-xs text-gray-500">{course.yearOfStudy} • Sem {course.semester} • {course.total_students} students</div>
                             </button>
                           ))}
                           {courses.filter(course => course.is_open_elective).length > 0 && (
@@ -409,7 +522,7 @@ export function DropdownNavigation({
                               onClick={() => handleCourseSelect(course)}
                             >
                               <div className="font-medium text-gray-900 text-sm sm:text-base truncate">{course.course_code}: {course.course_name}</div>
-                              <div className="text-xs text-gray-500">{course.academic_year} • {course.total_students} students</div>
+                              <div className="text-xs text-gray-500">{course.yearOfStudy} • Sem {course.semester} • {course.total_students} students</div>
                             </button>
                           ))}
                         </>
@@ -417,7 +530,7 @@ export function DropdownNavigation({
                     </>
                   ) : (
                     <div className="p-2 sm:p-3 text-center text-gray-500 text-xs sm:text-sm">
-                      No courses assigned
+                      {selectedYear ? 'No courses assigned for this year' : 'Select a year first'}
                     </div>
                   )}
                 </div>
@@ -425,7 +538,7 @@ export function DropdownNavigation({
             )}
           </div>
 
-          {/* Section Dropdown - Second for teachers */}
+          {/* Section Dropdown - Fourth */}
           <div ref={sectionRef} className="relative flex-1">
             <Button
               variant={selectedSection ? "default" : "outline"}
@@ -468,86 +581,6 @@ export function DropdownNavigation({
                       No sections available
                     </div>
                   )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Year Dropdown - Optional/Info for teachers */}
-          <div ref={yearRef} className="relative flex-1">
-            <Button
-              variant={selectedYear ? "default" : "outline"}
-              className={`w-full justify-between h-auto p-3 sm:p-4 ${selectedYear ? 'bg-emerald-600 hover:bg-emerald-700' : ''
-                }`}
-              onClick={() => setYearDropdownOpen(!yearDropdownOpen)}
-            >
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <GraduationCap className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <div className="text-left min-w-0">
-                  <div className="font-medium text-sm sm:text-base truncate">
-                    {selectedYear || selectedCourse?.academic_year || 'Academic Year'}
-                  </div>
-                </div>
-              </div>
-              <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${yearDropdownOpen ? 'rotate-180' : ''
-                }`} />
-            </Button>
-
-            {yearDropdownOpen && (
-              <div className="absolute top-full mt-2 w-full min-w-[200px] max-w-[300px] bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
-                <div className="p-2 max-h-60 overflow-y-auto">
-                  {years.map((year) => (
-                    <button
-                      key={year.year}
-                      className="w-full text-left p-2 sm:p-3 rounded-md hover:bg-gray-50 transition-colors"
-                      onClick={() => handleYearSelect(year.year)}
-                    >
-                      <div className="font-medium text-gray-900 text-sm sm:text-base">{year.year}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Department Dropdown - Optional/Info for teachers */}
-          <div ref={deptRef} className="relative flex-1">
-            <Button
-              variant={selectedDepartment ? "default" : "outline"}
-              className={`w-full justify-between h-auto p-3 sm:p-4 ${selectedDepartment ? 'bg-emerald-600 hover:bg-emerald-700' : ''
-                }`}
-              onClick={() => setDeptDropdownOpen(!deptDropdownOpen)}
-            >
-              <div className="flex items-center space-x-2 sm:space-x-3">
-                <Building2 className="w-4 h-4 sm:w-5 sm:h-5 flex-shrink-0" />
-                <div className="text-left min-w-0">
-                  <div className="font-medium text-sm sm:text-base truncate">
-                    {selectedDepartment ?
-                      `${departments.find(d => d.department_id === selectedDepartment)?.short_name || selectedDepartment}`
-                      : selectedCourse?.department_id || 'Department'
-                    }
-                  </div>
-                </div>
-              </div>
-              <ChevronDown className={`w-4 h-4 transition-transform flex-shrink-0 ${deptDropdownOpen ? 'rotate-180' : ''
-                }`} />
-            </Button>
-
-            {deptDropdownOpen && (
-              <div className="absolute top-full mt-2 w-full min-w-[300px] max-w-[400px] bg-white border border-gray-200 rounded-lg shadow-lg z-[60]">
-                <div className="p-2 max-h-60 overflow-y-auto">
-                  {departments.map((dept) => (
-                    <button
-                      key={dept.department_id}
-                      className="w-full text-left p-3 rounded-md hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0"
-                      onClick={() => handleDepartmentSelect(dept.department_id)}
-                    >
-                      <div className="font-medium text-gray-900">{dept.short_name}: {dept.department_name}</div>
-                      {dept.college_name && (
-                        <div className="text-xs text-gray-500 mt-1">{dept.college_code} - {dept.college_name}</div>
-                      )}
-                    </button>
-                  ))}
                 </div>
               </div>
             )}

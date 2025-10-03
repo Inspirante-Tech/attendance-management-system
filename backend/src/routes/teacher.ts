@@ -240,13 +240,15 @@ router.get('/courses', authenticateToken, async (req: AuthenticatedRequest, res)
                 type: offering.course.type,
                 hasTheoryComponent: offering.course.hasTheoryComponent,
                 hasLabComponent: offering.course.hasLabComponent,
-                department: offering.course.department?.name || 'Unknown'
+                department: offering.course.department?.code || 'Unknown',
+                departmentName: offering.course.department?.name || 'Unknown'
             },
             section: offering.sections ? {
                 id: offering.sections.section_id,
                 name: offering.sections.section_name
             } : null,
             academicYear: offering.academic_years?.year_name || 'Unknown',
+            semester: offering.semester || 0,
             enrolledStudents: offering.enrollments.length,
             students: offering.enrollments.map(enrollment => ({
                 id: enrollment.student?.id || '',

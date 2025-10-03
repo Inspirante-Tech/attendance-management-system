@@ -75,6 +75,23 @@ export default function TeacherDashboard() {
     setSelectedSection(null)
   }
 
+  // Handle year selection - reset subsequent selections when year changes
+  const handleYearSelect = (year: string) => {
+    setSelectedYear(year)
+    // Clear all subsequent selections when year changes
+    setSelectedDepartment(null)
+    setSelectedCourse(null)
+    setSelectedSection(null)
+  }
+
+  // Handle department selection - reset course and section when department changes
+  const handleDepartmentSelect = (department: string) => {
+    setSelectedDepartment(department)
+    // Clear course and section selections when department changes
+    setSelectedCourse(null)
+    setSelectedSection(null)
+  }
+
   // Handle navigation from master search
   const handleSearchNavigation = async (result: {
     id: string
@@ -384,8 +401,8 @@ export default function TeacherDashboard() {
           selectedDepartment={selectedDepartment}
           selectedCourse={selectedCourse}
           selectedSection={selectedSection}
-          onYearSelect={setSelectedYear}
-          onDepartmentSelect={setSelectedDepartment}
+          onYearSelect={handleYearSelect}
+          onDepartmentSelect={handleDepartmentSelect}
           onCourseSelect={setSelectedCourse}
           onSectionSelect={setSelectedSection}
           courses={courses}
