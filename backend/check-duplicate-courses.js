@@ -1,77 +1,70 @@
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 
-async function checkDuplicateCourses() {
+async function checkDuplicates() {
   try {
-    console.log('\nÌ≥ö Checking for Duplicate Course Names\n');
+    console.log('\nÌ¥ç Checking for Duplicate Section Offerings\n');
     console.log('='.repeat(80) + '\n');
 
-    const colleges = await prisma.college.findMany();
-
-    for (const college of colleges) {
-      console.log(`\nÌøõÔ∏è  ${college.name} (${college.code})`);
-      console.log('‚îÄ'.repeat(80));
-
-      const csDept = await prisma.department.findFirst({
-        where: { code: 'CS', college_id: college.id }
-      });
-
-      if (!csDept) {
-        console.log('  No CS department\n');
-        continue;
-      }
-
-      const courses = await prisma.course.findMany({
-        where: { departmentId: csDept.id },
-        orderBy: { code: 'asc' }
-      });
-
-      console.log(`\n  Total Courses: ${courses.length}\n`);
-
-      // Group by name to find duplicates
-      const nameGroups = {};
-      courses.forEach(course => {
-        if (!nameGroups[course.name]) {
-          nameGroups[course.name] = [];
+    // Get all offerings grouped by course
+    const courses = await prisma.course.findMany({
+      where: { code: { in: ['CS301', 'CS202', 'CS203', 'CS204'] } },
+      include: {
+        department: {
+          include: { college: true }
         }
-        nameGroups[course.name].push(course);
-      });
+      }
+    });
 
-      // Show all courses
-      courses.forEach(course => {
-        const isDuplicate = nameGroups[course.name].length > 1;
-        const marker = isDuplicate ? '‚ö†Ô∏è  DUPLICATE' : '‚úì';
-        console.log(`  ${marker} ${course.code} - ${course.name}`);
-      });
+    for (const course of courses) {
+      console.log(`\nÌ≥ö ${course.code} - ${course.name}`);
+      console.log(`   College: ${course.department.college.name}`);
+      console.log(`   Department: ${course.department.name}\n`);
 
-      // Show duplicates summary
-      console.log('\n  Duplicate Names:');
-      let foundDuplicates = false;
-      Object.entries(nameGroups).forEach(([name, coursesWithName]) => {
-        if (coursesWithName.length > 1) {
-          foundDuplicates = true;
-          console.log(`\n    "${name}"`);
-          coursesWithName.forEach(c => {
-            console.log(`      - ${c.code} (ID: ${c.id.substring(0, 8)}...)`);
-          });
+      const offerings = await prisma.courseOffering.findMany({
+        where: {
+          courseId: course.id,
+          semester: 5
+        },
+        include: {
+          sections: true,
+          _count: { select: { enrollments: true } }
         }
       });
 
-      if (!foundDuplicates) {
-        console.log('    None');
-      }
+      console.log(`   Total offerings: ${offerings.length}`);
 
-      console.log('');
+      // Group by section
+      const bySectionName = {};
+      offerings.forEach(o => {
+        const sectionName = o.sections?.section_name || 'NULL';
+        if (!bySectionName[sectionName]) {
+          bySectionName[sectionName] = [];
+        }
+        bySectionName[sectionName].push(o);
+      });
+
+      // Show each section
+      Object.entries(bySectionName).forEach(([sectionName, offers]) => {
+        const status = offers.length > 1 ? '‚ùå DUPLICATE' : '‚úÖ';
+        console.log(`\n   ${status} Section ${sectionName}: ${offers.length} offering(s)`);
+        
+        offers.forEach((o, idx) => {
+          console.log(`      ${idx + 1}. Offering ID: ${o.id}`);
+          console.log(`         Students: ${o._count.enrollments}`);
+          console.log(`         Teacher: ${o.teacher_id || 'None'}`);
+          console.log(`         Section ID: ${o.section_id}`);
+        });
+      });
+
+      console.log('\n' + '-'.repeat(80));
     }
 
-    console.log('\n' + '='.repeat(80));
-    console.log('‚úÖ Check Complete\n');
-
   } catch (error) {
-    console.error('‚ùå Error:', error.message);
+    console.error('‚ùå Error:', error);
   } finally {
     await prisma.$disconnect();
   }
 }
 
-checkDuplicateCourses();
+checkDuplicates();

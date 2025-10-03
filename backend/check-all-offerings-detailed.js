@@ -1,55 +1,69 @@
 const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 
-async function checkAllOfferings() {
+async function checkAll() {
   try {
-    console.log('��� Checking All Course Offerings for NMAMIT CS\n');
+    console.log('\n�� DETAILED COURSE OFFERINGS CHECK\n');
+    console.log('='.repeat(80) + '\n');
 
-    const nmamit = await prisma.college.findFirst({ where: { code: 'NMAMIT' } });
-    const csDept = await prisma.department.findFirst({
-      where: { code: 'CS', college_id: nmamit.id }
-    });
-
-    // Get all CS301 offerings
-    const cs301 = await prisma.course.findFirst({
-      where: { code: 'CS301', departmentId: csDept.id }
-    });
-
-    const cs301Offerings = await prisma.courseOffering.findMany({
-      where: { courseId: cs301.id, semester: 5 },
+    // Get all semester 5 offerings
+    const offerings = await prisma.courseOffering.findMany({
+      where: { semester: 5 },
       include: {
+        courses: true,
         sections: true,
         _count: { select: { enrollments: true } }
-      }
+      },
+      orderBy: [
+        { courses: { code: 'asc' } },
+        { sections: { section_name: 'asc' } }
+      ]
     });
 
-    console.log(`CS301 Offerings: ${cs301Offerings.length}\n`);
-    cs301Offerings.forEach((o, idx) => {
-      console.log(`${idx + 1}. ${o.id.substring(0,8)}... Section ${o.sections?.section_name || 'NULL'}: ${o._count.enrollments} students`);
+    console.log(`Total Semester 5 Offerings: ${offerings.length}\n`);
+
+    // Group by course code
+    const byCourse = {};
+    offerings.forEach(o => {
+      const code = o.courses.code;
+      if (!byCourse[code]) byCourse[code] = [];
+      byCourse[code].push(o);
     });
 
-    // Get all other courses
-    console.log('\n\nAll Other CS Courses for Semester 5:\n');
-    const allCourses = await prisma.course.findMany({
-      where: { departmentId: csDept.id }
-    });
+    // Analyze each course
+    for (const [courseCode, courseOfferings] of Object.entries(byCourse)) {
+      console.log(`\n${'='.repeat(80)}`);
+      console.log(`��� ${courseCode} - ${courseOfferings[0].courses.name}`);
+      console.log('='.repeat(80));
+      console.log(`Total offerings: ${courseOfferings.length}\n`);
 
-    for (const course of allCourses) {
-      const offerings = await prisma.courseOffering.findMany({
-        where: { courseId: course.id, semester: 5 },
-        include: {
-          sections: true,
-          _count: { select: { enrollments: true } }
-        }
+      // Group by section
+      const bySection = {};
+      courseOfferings.forEach(o => {
+        const section = o.sections?.section_name || 'NULL';
+        if (!bySection[section]) bySection[section] = [];
+        bySection[section].push(o);
       });
 
-      if (offerings.length > 0) {
-        console.log(`\n${course.code} - ${course.name}:`);
-        offerings.forEach(o => {
-          console.log(`  Section ${o.sections?.section_name || 'NULL'}: ${o._count.enrollments} students`);
+      // Show details
+      Object.entries(bySection).forEach(([section, offers]) => {
+        const status = offers.length > 1 ? '❌ DUPLICATE' : '✅';
+        console.log(`${status} Section ${section}: ${offers.length} offering(s)`);
+        
+        offers.forEach((o, idx) => {
+          console.log(`\n   Offering #${idx + 1}:`);
+          console.log(`   ┌─ ID: ${o.id}`);
+          console.log(`   ├─ Section ID: ${o.section_id}`);
+          console.log(`   ├─ Students: ${o._count.enrollments}`);
+          console.log(`   ├─ Teacher: ${o.teacher_id || 'None'}`);
+          console.log(`   └─ Academic Year: ${o.academic_year_id}`);
         });
-      }
+        console.log('');
+      });
     }
+
+    console.log('\n' + '='.repeat(80));
+    console.log('✅ Check Complete\n');
 
   } catch (error) {
     console.error('❌ Error:', error.message);
@@ -58,4 +72,4 @@ async function checkAllOfferings() {
   }
 }
 
-checkAllOfferings();
+checkAll();

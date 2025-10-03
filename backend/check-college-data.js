@@ -1,74 +1,34 @@
-const { PrismaClient } = require("./generated/prisma");
+const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 
-async function checkCollegeData() {
-  try {
-    console.log("ðŸ›ï¸  Checking College Data\n");
-
-    // Get all colleges
-    const colleges = await prisma.college.findMany();
-    console.log("Colleges:");
-    colleges.forEach((c) => {
-      console.log(`  - ${c.name} (${c.code}): ID = ${c.id}`);
-    });
-    console.log("");
-
-    // Check CS department and its college
-    const csDept = await prisma.department.findFirst({
-      where: { code: "CS" },
-      include: {
-        colleges: true,
-      },
-    });
-
-    if (csDept) {
-      console.log("CS Department:");
-      console.log(`  Name: ${csDept.name}`);
-      console.log(`  Code: ${csDept.code}`);
-      console.log(
-        `  College: ${csDept.colleges?.name} (${csDept.colleges?.code})`
-      );
-      console.log(`  College ID: ${csDept.college_id}`);
-      console.log("");
-    }
-
-    // Check students by college
-    const students = await prisma.student.findMany({
-      where: {
-        semester: 5,
-        departments: {
-          code: "CS",
-        },
-      },
-      include: {
-        colleges: true,
-      },
-    });
-
-    console.log(`Total CS Students in Semester 5: ${students.length}\n`);
-
-    const byCollege = students.reduce((acc, s) => {
-      const collegeName = s.colleges?.name || "No College";
-      if (!acc[collegeName]) acc[collegeName] = [];
-      acc[collegeName].push(s);
-      return acc;
-    }, {});
-
-    console.log("Students by College:");
-    Object.keys(byCollege).forEach((college) => {
-      console.log(`  ${college}: ${byCollege[college].length} students`);
-      byCollege[college].slice(0, 3).forEach((s) => {
-        console.log(`    - ${s.usn}`);
-      });
-      if (byCollege[college].length > 3) {
-        console.log(`    ... and ${byCollege[college].length - 3} more`);
+async function checkData() {
+  const colleges = await prisma.college.findMany({
+    include: {
+      departments: {
+        where: { code: 'CS' },
+        include: {
+          sections: {
+            orderBy: { section_name: 'asc' }
+          }
+        }
       }
-    });
-  } catch (error) {
-    console.error("âŒ Error:", error.message);
-  } finally {
-    await prisma.$disconnect();
+    }
+  });
+
+  console.log('\ní³Š COLLEGE DATA:\n');
+  for (const college of colleges) {
+    console.log(`${college.name} (${college.code}):`);
+    for (const dept of college.departments) {
+      console.log(`  Department: ${dept.name} (${dept.code})`);
+      console.log(`  Sections:`);
+      dept.sections.forEach(s => {
+        console.log(`    ${s.section_name}: ${s.section_id.substring(0, 10)}...`);
+      });
+    }
+    console.log('');
   }
+
+  await prisma.$disconnect();
 }
 
-checkCollegeData();
+checkData();

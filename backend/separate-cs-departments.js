@@ -1,190 +1,118 @@
-const { PrismaClient } = require("./generated/prisma");
+const { PrismaClient } = require('./generated/prisma');
 const prisma = new PrismaClient();
 
-async function separateCSdepartments() {
-  try {
-    console.log("🏗️  Separating CS Departments by College\n");
+async function separateDepartments() {
+  console.log('\n��� SEPARATING CS301 OFFERINGS BY COLLEGE\n');
+  console.log('='.repeat(80) + '\n');
 
-    // Get colleges
-    const nmit = await prisma.college.findFirst({
-      where: { code: "NMIT" },
-    });
+  // Get both CS departments
+  const nmit = await prisma.college.findFirst({ where: { code: 'NMIT' } });
+  const nmamit = await prisma.college.findFirst({ where: { code: 'NMAMIT' } });
 
-    const nmamit = await prisma.college.findFirst({
-      where: { code: "NMAMIT" },
-    });
+  const nmitCS = await prisma.department.findFirst({
+    where: { code: 'CS', college_id: nmit.id }
+  });
 
-    console.log("Colleges:");
-    console.log(`  NMIT: ${nmit.id}`);
-    console.log(`  NMAMIT: ${nmamit.id}\n`);
+  const nmamitCS = await prisma.department.findFirst({
+    where: { code: 'CS', college_id: nmamit.id }
+  });
 
-    // Get current CS department
-    const currentCSDept = await prisma.department.findFirst({
-      where: { code: "CS" },
-    });
+  console.log(`NMIT CS Dept: ${nmitCS.id.substring(0, 10)}...`);
+  console.log(`NMAMIT CS Dept: ${nmamitCS.id.substring(0, 10)}...\n`);
 
-    console.log("Current CS Department:");
-    console.log(`  ID: ${currentCSDept.id}`);
-    console.log(`  Name: ${currentCSDept.name}`);
-    console.log(`  College: ${currentCSDept.college_id}\n`);
+  // Get CS301 courses for each department
+  const nmitCS301 = await prisma.course.findFirst({
+    where: { code: 'CS301', departmentId: nmitCS.id }
+  });
 
-    // Check if NMIT already has a CS department
-    const nmitCS = await prisma.department.findFirst({
-      where: {
-        code: "CS",
-        college_id: nmit.id,
-      },
-    });
+  const nmamitCS301 = await prisma.course.findFirst({
+    where: { code: 'CS301', departmentId: nmamitCS.id }
+  });
 
-    let nmitCSDept;
-
-    if (nmitCS) {
-      console.log("✓ NMIT already has a CS department\n");
-      nmitCSDept = nmitCS;
-    } else {
-      console.log("📝 Creating CS department for NMIT...\n");
-
-      nmitCSDept = await prisma.department.create({
-        data: {
-          name: "Computer Science and Engineering",
-          code: "CS",
-          college_id: nmit.id,
-        },
-      });
-
-      console.log(`✅ Created CS department for NMIT: ${nmitCSDept.id}\n`);
-    }
-
-    // Ensure NMAMIT CS department is correct
-    if (currentCSDept.college_id !== nmamit.id) {
-      console.log(
-        "📝 Updating existing CS department to belong to NMAMIT...\n"
-      );
-      await prisma.department.update({
-        where: { id: currentCSDept.id },
-        data: { college_id: nmamit.id },
-      });
-      console.log("✅ Updated CS department for NMAMIT\n");
-    }
-
-    // Get sections for both colleges
-    console.log("🔍 Checking sections...\n");
-
-    const allSections = await prisma.sections.findMany({
-      where: {
-        departments: { code: "CS" },
-      },
-      include: {
-        departments: {
-          include: {
-            colleges: true,
-          },
-        },
-      },
-    });
-
-    console.log(`Found ${allSections.length} CS sections\n`);
-
-    // Group sections by college
-    const nmamitSections = allSections.filter(
-      (s) => s.departments.college_id === nmamit.id
-    );
-    const nmitSections = allSections.filter(
-      (s) => s.departments.college_id === nmit.id
-    );
-
-    console.log(`NMAMIT sections: ${nmamitSections.length}`);
-    console.log(`NMIT sections: ${nmitSections.length}\n`);
-
-    // Create sections for NMIT CS if they don't exist
-    if (nmitSections.length === 0) {
-      console.log("📝 Creating sections for NMIT CS department...\n");
-
-      const sectionNames = ["A", "B", "C"];
-      for (const name of sectionNames) {
-        await prisma.sections.create({
-          data: {
-            section_name: name,
-            department_id: nmitCSDept.id,
-          },
-        });
-        console.log(`  ✓ Created Section ${name}`);
-      }
-      console.log("");
-    }
-
-    // Move NMIT students to NMIT CS department
-    console.log("📝 Moving NMIT students to NMIT CS department...\n");
-
-    const nmitStudents = await prisma.student.findMany({
-      where: {
-        college_id: nmit.id,
-        departments: { code: "CS" },
-      },
-    });
-
-    console.log(`Found ${nmitStudents.length} NMIT CS students\n`);
-
-    // Get NMIT sections for mapping
-    const nmitSectionsAfter = await prisma.sections.findMany({
-      where: {
-        department_id: nmitCSDept.id,
-      },
-    });
-
-    const sectionMap = {};
-    nmitSectionsAfter.forEach((s) => {
-      sectionMap[s.section_name] = s.section_id;
-    });
-
-    let movedCount = 0;
-    for (const student of nmitStudents) {
-      // Get current section name
-      const currentSection = await prisma.sections.findUnique({
-        where: { section_id: student.section_id },
-      });
-
-      const newSectionId = sectionMap[currentSection?.section_name];
-
-      if (newSectionId) {
-        await prisma.student.update({
-          where: { id: student.id },
-          data: {
-            department_id: nmitCSDept.id,
-            section_id: newSectionId,
-          },
-        });
-        movedCount++;
-      }
-    }
-
-    console.log(`✅ Moved ${movedCount} students to NMIT CS department\n`);
-
-    // Summary
-    console.log("📊 Final State:\n");
-
-    const depts = await prisma.department.findMany({
-      where: { code: "CS" },
-      include: {
-        colleges: true,
-        students: true,
-        sections: true,
-      },
-    });
-
-    depts.forEach((dept) => {
-      console.log(`${dept.colleges.name} (${dept.colleges.code}):`);
-      console.log(`  Department ID: ${dept.id}`);
-      console.log(`  Students: ${dept.students.length}`);
-      console.log(`  Sections: ${dept.sections.length}`);
-      console.log("");
-    });
-  } catch (error) {
-    console.error("❌ Error:", error.message);
-    console.error(error);
-  } finally {
-    await prisma.$disconnect();
+  if (!nmitCS301 || !nmamitCS301) {
+    console.log('❌ CS301 courses not found for both colleges!');
+    console.log(`NMIT CS301: ${nmitCS301 ? 'Found' : 'NOT FOUND'}`);
+    console.log(`NMAMIT CS301: ${nmamitCS301 ? 'Found' : 'NOT FOUND'}`);
+    return;
   }
+
+  console.log(`✅ Both CS301 courses found\n`);
+
+  // Get sections for each college
+  const nmitSections = await prisma.sections.findMany({
+    where: { department_id: nmitCS.id },
+    orderBy: { section_name: 'asc' }
+  });
+
+  const nmamitSections = await prisma.sections.findMany({
+    where: { department_id: nmamitCS.id },
+    orderBy: { section_name: 'asc' }
+  });
+
+  console.log(`NMIT Sections: ${nmitSections.map(s => s.section_name).join(', ')}`);
+  console.log(`NMAMIT Sections: ${nmamitSections.map(s => s.section_name).join(', ')}\n`);
+
+  // Get academic year
+  const academicYear = await prisma.academic_years.findFirst({
+    where: { is_active: true }
+  });
+
+  console.log(`Academic Year: ${academicYear.year_name}\n`);
+  console.log('='.repeat(80) + '\n');
+
+  // Create offerings for each college if they don't exist
+  for (const section of nmitSections) {
+    const existing = await prisma.courseOffering.findFirst({
+      where: {
+        courseId: nmitCS301.id,
+        section_id: section.section_id,
+        semester: 5
+      }
+    });
+
+    if (!existing) {
+      console.log(`Creating NMIT CS301 offering for Section ${section.section_name}...`);
+      await prisma.courseOffering.create({
+        data: {
+          courseId: nmitCS301.id,
+          section_id: section.section_id,
+          semester: 5,
+          year_id: academicYear.year_id
+        }
+      });
+    } else {
+      console.log(`✓ NMIT Section ${section.section_name} offering exists`);
+    }
+  }
+
+  for (const section of nmamitSections) {
+    const existing = await prisma.courseOffering.findFirst({
+      where: {
+        courseId: nmamitCS301.id,
+        section_id: section.section_id,
+        semester: 5
+      }
+    });
+
+    if (!existing) {
+      console.log(`Creating NMAMIT CS301 offering for Section ${section.section_name}...`);
+      await prisma.courseOffering.create({
+        data: {
+          courseId: nmamitCS301.id,
+          section_id: section.section_id,
+          semester: 5,
+          year_id: academicYear.year_id
+        }
+      });
+    } else {
+      console.log(`✓ NMAMIT Section ${section.section_name} offering exists`);
+    }
+  }
+
+  console.log('\n✅ All offerings created!\n');
+  console.log('='.repeat(80) + '\n');
+
+  await prisma.$disconnect();
 }
 
-separateCSdepartments();
+separateDepartments();
