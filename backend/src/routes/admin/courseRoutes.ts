@@ -4,6 +4,8 @@ import DatabaseService from '../../lib/database';
 
 const router = Router();
 
+console.log('=== COURSE ROUTES MODULE LOADED ===');
+
 // Get eligible students for a course
 router.get('/courses/:courseId/eligible-students', async (req, res) => {
 	try {
@@ -520,6 +522,7 @@ router.get('/course-management', async (req, res) => {
 				type: course.type,
 				year: courseYear, // Add calculated year field
 				department: {
+					id: course.departmentId, // Add department ID
 					name: course.department?.name,
 					code: course.department?.code
 				},
@@ -815,5 +818,161 @@ router.post('/unassign-teacher', async (req, res) => {
 		});
 	}
 });
+
+// Assign teacher to course by creating or updating offering
+router.post('/courses/:courseId/assign-teacher', async (req, res) => {
+	console.log('=== ASSIGN TEACHER ROUTE HIT ===');
+	console.log('Course ID:', req.params.courseId);
+	console.log('Request body:', req.body);
+
+	try {
+		const { courseId } = req.params;
+		const { teacherId, sectionId, semester, academicYear } = req.body;
+
+		console.log('Extracted values:', { courseId, teacherId, sectionId, semester, academicYear });
+
+		if (!teacherId || !sectionId || !semester) {
+			console.log('Validation failed - missing required fields');
+			res.status(400).json({
+				status: 'error',
+				error: 'teacherId, sectionId, and semester are required'
+			});
+			return;
+		}
+
+		console.log('Validation passed - getting Prisma instance');
+		const prisma = DatabaseService.getInstance();
+
+		// Verify course exists
+		console.log('Looking up course with ID:', courseId);
+		const course = await prisma.course.findUnique({
+			where: { id: courseId }
+		});
+		console.log('Course lookup result:', course ? `Found: ${course.code}` : 'NOT FOUND');
+
+		if (!course) {
+			res.status(404).json({
+				status: 'error',
+				error: 'Course not found'
+			});
+			return;
+		}
+
+		// Verify teacher exists
+		console.log('Looking up teacher with user ID:', teacherId);
+		const teacher = await prisma.teacher.findFirst({
+			where: { userId: teacherId },
+			include: { user: true }
+		});
+		console.log('Teacher lookup result:', teacher ? `Found: ${teacher.user?.name} (Teacher ID: ${teacher.id})` : 'NOT FOUND');
+
+		if (!teacher) {
+			res.status(404).json({
+				status: 'error',
+				error: 'Teacher not found'
+			});
+			return;
+		}
+
+		// Use the actual teacher ID for the offering
+		const actualTeacherId = teacher.id;
+
+		// Get or create academic year
+		let year = await prisma.academic_years.findFirst({
+			where: {
+				year_name: academicYear || new Date().getFullYear().toString(),
+				is_active: true
+			}
+		});
+
+		// If no year found with that name, try to get any active year
+		if (!year) {
+			console.log('No year found with name:', academicYear, '- trying to get any active year');
+			year = await prisma.academic_years.findFirst({
+				where: { is_active: true }
+			});
+		}
+
+		// If still no year, get the first year available
+		if (!year) {
+			console.log('No active year found - getting first available year');
+			year = await prisma.academic_years.findFirst();
+		}
+
+		if (!year) {
+			res.status(404).json({
+				status: 'error',
+				error: 'No academic year found in database'
+			});
+			return;
+		}
+
+		console.log('Using academic year:', year.year_name, 'ID:', year.year_id);
+
+		// Find or create course offering
+		console.log('Looking for existing offering...');
+		let offering = await prisma.courseOffering.findFirst({
+			where: {
+				courseId: courseId,
+				section_id: sectionId,
+				semester: parseInt(semester),
+				year_id: year.year_id
+			}
+		});
+
+		if (!offering) {
+			// Create new offering
+			console.log('No existing offering found - creating new one');
+			offering = await prisma.courseOffering.create({
+				data: {
+					courseId: courseId,
+					section_id: sectionId,
+					semester: parseInt(semester),
+					year_id: year.year_id,
+					teacherId: actualTeacherId
+				}
+			});
+			console.log('Created new offering:', offering.id);
+		} else {
+			// Update existing offering
+			console.log('Found existing offering:', offering.id, '- updating teacher');
+			offering = await prisma.courseOffering.update({
+				where: { id: offering.id },
+				data: { teacherId: actualTeacherId }
+			});
+			console.log('Updated offering');
+		}
+
+		// Fetch complete offering data for response
+		console.log('Fetching complete offering data...');
+		const updatedOffering = await prisma.courseOffering.findUnique({
+			where: { id: offering.id },
+			include: {
+				course: true,
+				sections: true,
+				teacher: { include: { user: true } }
+			}
+		});
+
+		console.log('=== SUCCESS: Teacher assigned ===');
+		res.json({
+			status: 'success',
+			data: {
+				offering: updatedOffering,
+				message: 'Teacher assigned successfully'
+			}
+		});
+
+	} catch (error) {
+		console.error('=== ERROR in assign teacher route ===');
+		console.error('Error assigning teacher to course:', error);
+		res.status(500).json({
+			status: 'error',
+			error: error instanceof Error ? error.message : 'Unknown error'
+		});
+	}
+});
+
+console.log('=== COURSE ROUTES: /courses/:courseId/assign-teacher route registered ===');
 
 export default router;

@@ -474,6 +474,27 @@ export const adminApi = {
     if (semester) params.append('semester', semester)
 
     return apiRequest<{ status: string; data: CourseEnrollment[] }>(`/api/admin/courses/${courseId}/enrollments?${params.toString()}`)
+  },
+
+  async getSectionsByDepartment(departmentId: string): Promise<{ status: string; data: any[] }> {
+    console.log('getSectionsByDepartment called with departmentId:', departmentId, 'type:', typeof departmentId, 'length:', departmentId?.length)
+    if (!departmentId || departmentId.trim() === '') {
+      console.error('ERROR: Department ID is empty or null!')
+      throw new Error('Department ID is required')
+    }
+    return apiRequest<{ status: string; data: any[] }>(`/api/departments/${departmentId}/sections`)
+  },
+
+  async assignTeacherToCourse(courseId: string, teacherId: string, sectionId: string, semester: number, academicYear: string): Promise<{ status: string; data?: any; error?: string }> {
+    return apiRequest<{ status: string; data?: any; error?: string }>(`/api/admin/courses/${courseId}/assign-teacher`, {
+      method: 'POST',
+      body: JSON.stringify({
+        teacherId,
+        sectionId,
+        semester,
+        academicYear
+      })
+    })
   }
 }
 

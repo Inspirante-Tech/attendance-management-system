@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const prisma = Database.getInstance();
-    
+
     const departments = await prisma.department.findMany({
       include: {
         colleges: true,
@@ -50,8 +50,8 @@ router.get('/', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
     });
@@ -63,7 +63,7 @@ router.get('/:id', async (req, res) => {
   try {
     const prisma = Database.getInstance();
     const { id } = req.params;
-    
+
     const department = await prisma.department.findUnique({
       where: { id: id },
       include: {
@@ -143,8 +143,8 @@ router.get('/:id', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
     });
@@ -156,7 +156,7 @@ router.get('/college/:collegeId', async (req, res) => {
   try {
     const prisma = Database.getInstance();
     const { collegeId } = req.params;
-    
+
     const departments = await prisma.department.findMany({
       where: { college_id: collegeId },
       include: {
@@ -195,8 +195,8 @@ router.get('/college/:collegeId', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
     });
@@ -208,7 +208,7 @@ router.get('/:id/stats', async (req, res) => {
   try {
     const prisma = Database.getInstance();
     const { id } = req.params;
-    
+
     const department = await prisma.department.findUnique({
       where: { id: id },
       include: {
@@ -265,8 +265,8 @@ router.get('/:id/stats', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
     });
@@ -277,7 +277,7 @@ router.get('/:id/stats', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, code, college } = req.body;
-    
+
     if (!name || !code || !college) {
       return res.status(400).json({
         status: 'error',
@@ -356,7 +356,7 @@ router.put('/:id', async (req, res) => {
   try {
     const { id } = req.params;
     const { name, code, college, sections } = req.body;
-    
+
     if (!name || !code || !college) {
       return res.status(400).json({
         status: 'error',
@@ -382,7 +382,7 @@ router.put('/:id', async (req, res) => {
 
     // Check if department code already exists (excluding current department)
     const codeConflict = await prisma.department.findFirst({
-      where: { 
+      where: {
         code: code.toUpperCase(),
         id: { not: id }
       }
@@ -497,9 +497,9 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Check if department has students, teachers, or courses
-    if (existingDepartment._count.students > 0 || 
-        existingDepartment._count.teachers > 0 || 
-        existingDepartment._count.courses > 0) {
+    if (existingDepartment._count.students > 0 ||
+      existingDepartment._count.teachers > 0 ||
+      existingDepartment._count.courses > 0) {
       const dependencies = []
       if (existingDepartment._count.students > 0) {
         dependencies.push(`${existingDepartment._count.students} student(s)`)
@@ -510,7 +510,7 @@ router.delete('/:id', async (req, res) => {
       if (existingDepartment._count.courses > 0) {
         dependencies.push(`${existingDepartment._count.courses} course(s)`)
       }
-      
+
       return res.status(409).json({
         status: 'error',
         error: `Cannot delete department. It has ${dependencies.join(', ')}. Please remove these dependencies first.`,
@@ -535,8 +535,8 @@ router.delete('/:id', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
     });
@@ -603,43 +603,43 @@ router.delete('/:id/force', async (req, res) => {
     }
 
     // Force delete department with explicit cascading deletes
-    
+
     // Delete all students and their dependencies
     for (const student of existingDepartment.students) {
       // Delete attendance records
       await prisma.attendanceRecord.deleteMany({
         where: { studentId: student.id }
       })
-      
+
       // Delete enrollments
       await prisma.studentEnrollment.deleteMany({
         where: { studentId: student.id }
       })
-      
+
       // Delete student record
       await prisma.student.delete({
         where: { id: student.id }
       })
-      
+
       // Delete user roles
       await prisma.userRoleAssignment.deleteMany({
         where: { userId: student.userId }
       })
-      
+
       // Delete admin record if exists
       if (student.user.admin) {
         await prisma.admin.delete({
           where: { userId: student.userId }
         })
       }
-      
+
       // Delete report viewer record if exists
       if (student.user.reportViewer) {
         await prisma.reportViewer.delete({
           where: { userId: student.userId }
         })
       }
-      
+
       // Delete user
       await prisma.user.delete({
         where: { id: student.userId }
@@ -652,36 +652,36 @@ router.delete('/:id/force', async (req, res) => {
       await prisma.attendance.deleteMany({
         where: { teacherId: teacher.id }
       })
-      
+
       // Delete course offerings
       await prisma.courseOffering.deleteMany({
         where: { teacherId: teacher.id }
       })
-      
+
       // Delete teacher record
       await prisma.teacher.delete({
         where: { id: teacher.id }
       })
-      
+
       // Delete user roles
       await prisma.userRoleAssignment.deleteMany({
         where: { userId: teacher.userId }
       })
-      
+
       // Delete admin record if exists
       if (teacher.user.admin) {
         await prisma.admin.delete({
           where: { userId: teacher.userId }
         })
       }
-      
+
       // Delete report viewer record if exists
       if (teacher.user.reportViewer) {
         await prisma.reportViewer.delete({
           where: { userId: teacher.userId }
         })
       }
-      
+
       // Delete user
       await prisma.user.delete({
         where: { id: teacher.userId }
@@ -694,12 +694,12 @@ router.delete('/:id/force', async (req, res) => {
       await prisma.courseElectiveGroupMember.deleteMany({
         where: { courseId: course.id }
       })
-      
+
       // Delete course offerings
       await prisma.courseOffering.deleteMany({
         where: { courseId: course.id }
       })
-      
+
       // Delete course
       await prisma.course.delete({
         where: { id: course.id }
@@ -715,7 +715,7 @@ router.delete('/:id/force', async (req, res) => {
         where: { id: group.id }
       })
     }
-    
+
     // Delete sections
     await prisma.sections.deleteMany({
       where: { department_id: id }
@@ -733,10 +733,57 @@ router.delete('/:id/force', async (req, res) => {
     });
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    res.status(500).json({ 
-      status: 'error', 
+    res.status(500).json({
+      status: 'error',
       error: errorMessage,
       timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Get all sections for a specific department
+router.get('/:departmentId/sections', async (req, res) => {
+  try {
+    const { departmentId } = req.params;
+    console.log('Fetching sections for department:', departmentId);
+
+    const prisma = Database.getInstance();
+
+    const sections = await prisma.sections.findMany({
+      where: {
+        department_id: departmentId
+      },
+      include: {
+        departments: {
+          select: {
+            name: true,
+            code: true
+          }
+        }
+      },
+      orderBy: {
+        section_name: 'asc'
+      }
+    });
+
+    console.log(`Found ${sections.length} sections for department ${departmentId}`);
+
+    const formattedSections = sections.map(section => ({
+      section_id: section.section_id,
+      section_name: section.section_name,
+      departmentName: section.departments?.name,
+      departmentCode: section.departments?.code
+    }));
+
+    res.json({
+      status: 'success',
+      data: formattedSections
+    });
+  } catch (error) {
+    console.error('Error fetching sections:', error);
+    res.status(500).json({
+      status: 'error',
+      message: error instanceof Error ? error.message : 'Unknown error'
     });
   }
 });

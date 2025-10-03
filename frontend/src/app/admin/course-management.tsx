@@ -15,7 +15,8 @@ import {
   RefreshCw,
   AlertCircle,
   MessageSquarePlusIcon,
-  UserPlus
+  UserPlus,
+  UserCheck
 
 } from 'lucide-react'
 import { adminApi } from '@/lib/api'
@@ -155,6 +156,16 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   const [selectedSection, setSelectedSection] = useState('')
   const [sections, setSections] = useState<any[]>([])
   const [enrollmentLoading, setEnrollmentLoading] = useState(false)
+
+  // Teacher Assignment Modal state
+  const [showTeacherModal, setShowTeacherModal] = useState(false)
+  const [teacherModalCourse, setTeacherModalCourse] = useState<Course | null>(null)
+  const [teacherModalTeacher, setTeacherModalTeacher] = useState('')
+  const [teacherModalSection, setTeacherModalSection] = useState('')
+  const [teacherModalSemester, setTeacherModalSemester] = useState('5')
+  const [teacherModalLoading, setTeacherModalLoading] = useState(false)
+  const [teacherModalSections, setTeacherModalSections] = useState<any[]>([])
+  const [teacherModalDataLoading, setTeacherModalDataLoading] = useState(false)
 
   // CSV Upload state
   const [csvFile, setCsvFile] = useState<File | null>(null)
@@ -775,6 +786,139 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     }
   }
 
+  // Open teacher assignment modal
+  const openTeacherModal = async (course: Course) => {
+    console.log('=== openTeacherModal called ===')
+    console.log('Full course object:', JSON.stringify(course, null, 2))
+    console.log('Department:', course.department)
+    console.log('Department ID:', course.department?.id)
+
+    setTeacherModalCourse(course)
+    setTeacherModalTeacher('')
+    setTeacherModalSection('')
+    setTeacherModalSemester('5')
+    setTeacherModalSections([])
+    setShowTeacherModal(true)
+    setTeacherModalDataLoading(true)
+
+    // Fetch both teachers and sections
+    try {
+      const departmentId = course.department?.id
+      console.log('Extracted departmentId:', departmentId, 'Type:', typeof departmentId)
+
+      if (!departmentId || departmentId.trim() === '') {
+        console.error('Department ID is missing for course:', course)
+        alert('Error: Department information is missing for this course')
+        setShowTeacherModal(false)
+        return
+      }
+
+      console.log('Fetching sections for department:', departmentId)
+
+      // Fetch sections
+      const sectionsResponse = await adminApi.getSectionsByDepartment(departmentId)
+      console.log('Sections response:', sectionsResponse)
+
+      if (sectionsResponse.status === 'success') {
+        setTeacherModalSections(sectionsResponse.data.map((section: any) => ({
+          section_id: section.section_id,
+          section_name: section.section_name,
+          departmentName: section.departmentName,
+          departmentCode: section.departmentCode
+        })))
+      } else {
+        console.error('Failed to fetch sections:', sectionsResponse)
+      }
+
+      // Fetch teachers if not already loaded
+      if (teachers.length === 0) {
+        console.log('Fetching teachers...')
+        const teachersResponse = await adminApi.getUsersByRole('teacher')
+        console.log('Teachers response:', teachersResponse)
+        if (teachersResponse.status === 'success') {
+          setTeachers(teachersResponse.data)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching sections or teachers:', error)
+      alert('Failed to load sections or teachers. Please try again.')
+    } finally {
+      setTeacherModalDataLoading(false)
+    }
+  }
+
+  // Handle teacher assignment submission
+  const handleTeacherAssignment = async (e: React.FormEvent) => {
+    e.preventDefault()
+
+    if (!teacherModalCourse) {
+      alert('No course selected')
+      return
+    }
+
+    if (!teacherModalTeacher) {
+      alert('Please select a teacher')
+      return
+    }
+
+    if (!teacherModalSection) {
+      alert('Please select a section')
+      return
+    }
+
+    try {
+      setTeacherModalLoading(true)
+
+      // Call API to assign teacher to course offering
+      const response = await adminApi.assignTeacherToCourse(
+        teacherModalCourse.id,
+        teacherModalTeacher,
+        teacherModalSection,
+        parseInt(teacherModalSemester),
+        '2025' // Current academic year
+      )
+
+      if (response.status === 'success') {
+        alert('Teacher assigned successfully!')
+        setShowTeacherModal(false)
+        // Refresh courses list
+        const coursesResponse = await adminApi.getCourseManagement()
+        if (coursesResponse.status === 'success') {
+          const transformedCourses: Course[] = coursesResponse.data.map((course: any) => ({
+            id: course.id,
+            code: course.code,
+            name: course.name,
+            year: course.year || 1,
+            department: {
+              id: course.department?.id || '',
+              name: course.department?.name || '',
+              code: course.department?.code || '',
+              college: {
+                name: course.college?.name || '',
+                code: course.college?.code || ''
+              }
+            },
+            type: course.type || 'core',
+            hasTheoryComponent: course.hasTheoryComponent || true,
+            hasLabComponent: course.hasLabComponent || false,
+            offerings: course.offerings || [],
+            teacher: course.teacher || undefined,
+            teacherAssigned: course.teacherAssigned || false,
+            openElectiveRestrictions: course.openElectiveRestrictions || []
+          }))
+          setCourses(transformedCourses)
+        }
+      } else {
+        alert('Failed to assign teacher: ' + (response.error || 'Unknown error'))
+      }
+    } catch (error) {
+      console.error('Error assigning teacher:', error)
+      alert('Error assigning teacher')
+    } finally {
+      setTeacherModalLoading(false)
+    }
+  }
+
   if (loading) {
     return (
       <div className="p-6">
@@ -1079,17 +1223,17 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                         >
                           <Users className="h-4 w-4" />
                         </Button>
-                        <Button title='Delete Course' size="sm" variant="outline" onClick={() => deleteCourse(course.id)}>
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                        {/* student assignment */}
                         <Button
                           size="sm"
                           variant="outline"
-                          title='Assign students'
-                          onClick={() => openEnrollmentModal(course)}
+                          onClick={() => openTeacherModal(course)}
+                          className="bg-green-50 hover:bg-green-100"
+                          title="Assign Teacher"
                         >
-                          <UserPlus size={16} strokeWidth={2} />
+                          <UserCheck className="h-4 w-4" />
+                        </Button>
+                        <Button title='Delete Course' size="sm" variant="outline" onClick={() => deleteCourse(course.id)}>
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
                     </td>
@@ -1738,6 +1882,143 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                   </div>
                 </form>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Teacher Assignment Modal */}
+      {showTeacherModal && teacherModalCourse && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-bold text-gray-900">Assign Teacher</h2>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowTeacherModal(false)}
+                >
+                  ✕
+                </Button>
+              </div>
+
+              {/* Course Info */}
+              <div className="mb-4 p-4 bg-gray-50 rounded-lg">
+                <div className="text-sm font-medium text-gray-900">{teacherModalCourse.code}</div>
+                <div className="text-sm text-gray-600">{teacherModalCourse.name}</div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {teacherModalCourse.department.name} - {teacherModalCourse.department.college.name}
+                </div>
+              </div>
+
+              <form onSubmit={handleTeacherAssignment} className="space-y-4">
+                {teacherModalDataLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <RefreshCw className="h-6 w-6 animate-spin mr-2 text-blue-600" />
+                    <span className="text-gray-600">Loading teachers and sections...</span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Teacher Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Select Teacher <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={teacherModalTeacher}
+                        onChange={(e) => setTeacherModalTeacher(e.target.value)}
+                        required
+                      >
+                        <option value="">Select Teacher</option>
+                        {teachers.map(teacher => (
+                          <option key={teacher.id} value={teacher.id}>
+                            {teacher.name} ({teacher.username})
+                          </option>
+                        ))}
+                      </select>
+                      {teachers.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">No teachers available</p>
+                      )}
+                    </div>
+
+                    {/* Section Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Select Section <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={teacherModalSection}
+                        onChange={(e) => setTeacherModalSection(e.target.value)}
+                        required
+                      >
+                        <option value="">Select Section</option>
+                        {teacherModalSections.map(section => (
+                          <option key={section.section_id} value={section.section_id}>
+                            Section {section.section_name}
+                          </option>
+                        ))}
+                      </select>
+                      {teacherModalSections.length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">No sections available for this department</p>
+                      )}
+                    </div>
+
+                    {/* Semester Selection */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-900 mb-1">
+                        Semester <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className="w-full px-3 py-2 border rounded-md bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        value={teacherModalSemester}
+                        onChange={(e) => setTeacherModalSemester(e.target.value)}
+                        required
+                      >
+                        <option value="1">Semester 1</option>
+                        <option value="2">Semester 2</option>
+                        <option value="3">Semester 3</option>
+                        <option value="4">Semester 4</option>
+                        <option value="5">Semester 5</option>
+                        <option value="6">Semester 6</option>
+                        <option value="7">Semester 7</option>
+                        <option value="8">Semester 8</option>
+                      </select>
+                    </div>
+                  </>
+                )}
+
+                {/* Action Buttons */}
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    type="submit"
+                    className="flex-1 bg-green-600 hover:bg-green-700"
+                    disabled={teacherModalLoading || teacherModalDataLoading || !teacherModalTeacher || !teacherModalSection}
+                  >
+                    {teacherModalLoading ? (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                        Assigning...
+                      </>
+                    ) : (
+                      <>
+                        <UserCheck className="h-4 w-4 mr-2" />
+                        Assign Teacher
+                      </>
+                    )}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowTeacherModal(false)}
+                    disabled={teacherModalLoading}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </form>
             </div>
           </div>
         </div>
