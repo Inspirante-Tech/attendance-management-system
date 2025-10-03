@@ -1,21 +1,23 @@
-const { PrismaClient } = require('./generated/prisma');
+const { PrismaClient } = require("./generated/prisma");
 const prisma = new PrismaClient();
 
 async function cleanupDuplicateOfferings() {
   try {
-    console.log('🧹 Cleaning up Duplicate Course Offerings\n');
+    console.log("🧹 Cleaning up Duplicate Course Offerings\n");
 
-    const nmamit = await prisma.college.findFirst({ where: { code: 'NMAMIT' } });
+    const nmamit = await prisma.college.findFirst({
+      where: { code: "NMAMIT" },
+    });
     const nmamitCS = await prisma.department.findFirst({
-      where: { code: 'CS', college_id: nmamit.id }
+      where: { code: "CS", college_id: nmamit.id },
     });
 
     const cs301 = await prisma.course.findFirst({
-      where: { code: 'CS301', departmentId: nmamitCS.id }
+      where: { code: "CS301", departmentId: nmamitCS.id },
     });
 
     const academicYear = await prisma.academic_years.findFirst({
-      where: { is_active: true, college_id: nmamit.id }
+      where: { is_active: true, college_id: nmamit.id },
     });
 
     // Get all CS301 offerings
@@ -23,20 +25,20 @@ async function cleanupDuplicateOfferings() {
       where: {
         courseId: cs301.id,
         semester: 5,
-        year_id: academicYear.year_id
+        year_id: academicYear.year_id,
       },
       include: {
         sections: true,
-        enrollments: true
-      }
+        enrollments: true,
+      },
     });
 
     console.log(`Found ${offerings.length} CS301 offerings\n`);
 
     // Group by section
     const bySection = {};
-    offerings.forEach(o => {
-      const section = o.sections?.section_name || 'None';
+    offerings.forEach((o) => {
+      const section = o.sections?.section_name || "None";
       if (!bySection[section]) bySection[section] = [];
       bySection[section].push(o);
     });
@@ -45,11 +47,15 @@ async function cleanupDuplicateOfferings() {
 
     for (const [section, sectionOfferings] of Object.entries(bySection)) {
       console.log(`Section ${section}: ${sectionOfferings.length} offerings`);
-      
+
       if (sectionOfferings.length > 1) {
         // Keep the one with enrollments, delete the empty ones
-        const withEnrollments = sectionOfferings.filter(o => o.enrollments.length > 0);
-        const empty = sectionOfferings.filter(o => o.enrollments.length === 0);
+        const withEnrollments = sectionOfferings.filter(
+          (o) => o.enrollments.length > 0
+        );
+        const empty = sectionOfferings.filter(
+          (o) => o.enrollments.length === 0
+        );
 
         console.log(`  - With enrollments: ${withEnrollments.length}`);
         console.log(`  - Empty: ${empty.length}`);
@@ -57,7 +63,7 @@ async function cleanupDuplicateOfferings() {
         for (const emptyOffering of empty) {
           console.log(`  🗑️  Deleting empty offering: ${emptyOffering.id}`);
           await prisma.courseOffering.delete({
-            where: { id: emptyOffering.id }
+            where: { id: emptyOffering.id },
           });
           deletedCount++;
         }
@@ -71,21 +77,22 @@ async function cleanupDuplicateOfferings() {
       where: {
         courseId: cs301.id,
         semester: 5,
-        year_id: academicYear.year_id
+        year_id: academicYear.year_id,
       },
       include: {
         sections: true,
-        enrollments: true
-      }
+        enrollments: true,
+      },
     });
 
-    console.log('📊 Final CS301 Offerings:');
-    finalOfferings.forEach(o => {
-      console.log(`  Section ${o.sections?.section_name}: ${o.enrollments.length} students`);
+    console.log("📊 Final CS301 Offerings:");
+    finalOfferings.forEach((o) => {
+      console.log(
+        `  Section ${o.sections?.section_name}: ${o.enrollments.length} students`
+      );
     });
-
   } catch (error) {
-    console.error('❌ Error:', error.message);
+    console.error("❌ Error:", error.message);
   } finally {
     await prisma.$disconnect();
   }

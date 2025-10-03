@@ -242,7 +242,7 @@ router.get('/attendance/:studyYear?', authenticateToken, async (req: Authenticat
 
       for (const offering of allOfferings) {
         const courseKey = offering.course.code;
-        
+
         if (!courseMap.has(courseKey)) {
           courseMap.set(courseKey, {
             code: offering.course.code,
