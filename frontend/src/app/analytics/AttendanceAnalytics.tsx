@@ -105,152 +105,162 @@ export default function AttendanceAnalytics({ studyYear, collegeId }: Attendance
   };
 
   return (
-    <div className="space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-        {departmentWiseData.map((dept, index) => (
-          <Card key={dept.id || `${dept.code}-${index}`} className="overflow-hidden">
-            <CardHeader
-              className="cursor-pointer hover:bg-gray-50 transition-colors pb-4"
-              onClick={() => toggleDepartment(`${dept.code}-${index}`)}
-            >
-              <div className="flex items-center justify-between">
-                <div className="flex-1 min-w-0">
-                  <CardTitle className="text-lg truncate">{dept.name}</CardTitle>
-                  <CardDescription className="flex items-center space-x-4 mt-1">
-                    <span>Code: {dept.code}</span>
-                    <span>Students: {dept.students}</span>
-                  </CardDescription>
-                </div>
-                <div className="flex items-center space-x-3">
-                  <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getAttendanceColor(dept.attendance || 0)}`}>
-                    {dept.attendance?.toFixed(1)}%
+    <div className="space-y-6 pb-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6 items-start auto-rows-min">
+        {departmentWiseData.map((dept, index) => {
+          const isExpanded = expandedDepts.includes(`${dept.code}-${index}`);
+          return (
+            <div key={dept.id || `${dept.code}-${index}`} className={`relative ${isExpanded ? 'min-h-[200px]' : ''}`}>
+              <Card
+                className={`overflow-visible transition-all duration-200 ${isExpanded
+                    ? 'absolute top-0 left-0 right-0 z-[100] shadow-2xl scale-105 bg-white max-h-[80vh] overflow-y-auto'
+                    : 'relative shadow-md'
+                  }`}
+              >
+                <CardHeader
+                  className="cursor-pointer hover:bg-gray-50 transition-colors pb-4"
+                  onClick={() => toggleDepartment(`${dept.code}-${index}`)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex-1 min-w-0">
+                      <CardTitle className="text-lg truncate">{dept.name}</CardTitle>
+                      <CardDescription className="flex items-center space-x-4 mt-1">
+                        <span>Code: {dept.code}</span>
+                        <span>Students: {dept.students}</span>
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center space-x-3">
+                      <div className={`px-3 py-1 rounded-full text-sm font-semibold ${getAttendanceColor(dept.attendance || 0)}`}>
+                        {dept.attendance?.toFixed(1)}%
+                      </div>
+                      {isExpanded ?
+                        <ChevronDown className="h-5 w-5" /> :
+                        <ChevronRight className="h-5 w-5" />
+                      }
+                    </div>
                   </div>
-                  {expandedDepts.includes(`${dept.code}-${index}`) ?
-                    <ChevronDown className="h-5 w-5" /> :
-                    <ChevronRight className="h-5 w-5" />
-                  }
-                </div>
-              </div>
-            </CardHeader>
+                </CardHeader>
 
-            {expandedDepts.includes(`${dept.code}-${index}`) && (
-              <CardContent className="pt-0">
-                <div className="space-y-4">
-                  {/* Courses */}
-                  {dept.courses && dept.courses.length > 0 ? (
-                    dept.courses.map((course, courseIndex) => {
-                      const courseKey = `${dept.code}-${course.code}-${courseIndex}`;
-                      const isExpanded = expandedCourses.includes(courseKey);
+                {expandedDepts.includes(`${dept.code}-${index}`) && (
+                  <CardContent className="pt-0">
+                    <div className="space-y-4">
+                      {/* Courses */}
+                      {dept.courses && dept.courses.length > 0 ? (
+                        dept.courses.map((course, courseIndex) => {
+                          const courseKey = `${dept.code}-${course.code}-${courseIndex}`;
+                          const isExpanded = expandedCourses.includes(courseKey);
 
-                      return (
-                        <div key={courseKey} className="border-l-4 border-blue-200 pl-4">
-                          <div
-                            className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded mb-2"
-                            onClick={() => toggleCourse(courseKey)}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <h4 className="font-semibold text-gray-800 truncate">{course.name}</h4>
-                              <p className="text-xs text-gray-500">{course.code}</p>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <span className={`px-2 py-1 rounded text-sm ${getAttendanceColor(course.attendance || 0)}`}>
-                                {course.attendance?.toFixed(1)}%
-                              </span>
-                              <span className="text-xs text-gray-500">({course.students} students)</span>
-                              {isExpanded ?
-                                <ChevronDown className="h-4 w-4" /> :
-                                <ChevronRight className="h-4 w-4" />
-                              }
-                            </div>
-                          </div>
+                          return (
+                            <div key={courseKey} className="border-l-4 border-blue-200 pl-4">
+                              <div
+                                className="flex items-center justify-between cursor-pointer hover:bg-gray-50 p-2 rounded mb-2"
+                                onClick={() => toggleCourse(courseKey)}
+                              >
+                                <div className="flex-1 min-w-0">
+                                  <h4 className="font-semibold text-gray-800 truncate">{course.name}</h4>
+                                  <p className="text-xs text-gray-500">{course.code}</p>
+                                </div>
+                                <div className="flex items-center space-x-2">
+                                  <span className={`px-2 py-1 rounded text-sm ${getAttendanceColor(course.attendance || 0)}`}>
+                                    {course.attendance?.toFixed(1)}%
+                                  </span>
+                                  <span className="text-xs text-gray-500">({course.students} students)</span>
+                                  {isExpanded ?
+                                    <ChevronDown className="h-4 w-4" /> :
+                                    <ChevronRight className="h-4 w-4" />
+                                  }
+                                </div>
+                              </div>
 
-                          {/* Sections */}
-                          {isExpanded && course.sections && (
-                            <div className="ml-4 space-y-2">
-                              {course.sections.map((section, sectionIndex) => {
-                                const sectionKey = `${courseKey}-${section.section}`;
-                                const isSectionExpanded = expandedCourses.includes(sectionKey);
+                              {/* Sections */}
+                              {isExpanded && course.sections && (
+                                <div className="ml-4 space-y-2">
+                                  {course.sections.map((section, sectionIndex) => {
+                                    const sectionKey = `${courseKey}-${section.section}`;
+                                    const isSectionExpanded = expandedCourses.includes(sectionKey);
 
-                                return (
-                                  <div key={sectionIndex} className="bg-gray-50 p-3 rounded">
-                                    <div
-                                      className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
-                                      onClick={() => toggleCourse(sectionKey)}
-                                    >
-                                      <div className="flex-1">
-                                        <span className="font-medium">Section {section.section}</span>
-                                      </div>
-                                      <div className="flex items-center space-x-2">
-                                        <span className={`px-2 py-1 rounded text-xs ${getAttendanceColor(section.attendance || 0)}`}>
-                                          {section.attendance?.toFixed(1)}%
-                                        </span>
-                                        <span className="text-xs text-gray-500">({section.students} students)</span>
-                                        {isSectionExpanded ?
-                                          <ChevronDown className="h-3 w-3" /> :
-                                          <ChevronRight className="h-3 w-3" />
-                                        }
-                                      </div>
-                                    </div>
+                                    return (
+                                      <div key={sectionIndex} className="bg-gray-50 p-3 rounded">
+                                        <div
+                                          className="flex items-center justify-between text-sm cursor-pointer hover:bg-gray-100 p-1 rounded"
+                                          onClick={() => toggleCourse(sectionKey)}
+                                        >
+                                          <div className="flex-1">
+                                            <span className="font-medium">Section {section.section}</span>
+                                          </div>
+                                          <div className="flex items-center space-x-2">
+                                            <span className={`px-2 py-1 rounded text-xs ${getAttendanceColor(section.attendance || 0)}`}>
+                                              {section.attendance?.toFixed(1)}%
+                                            </span>
+                                            <span className="text-xs text-gray-500">({section.students} students)</span>
+                                            {isSectionExpanded ?
+                                              <ChevronDown className="h-3 w-3" /> :
+                                              <ChevronRight className="h-3 w-3" />
+                                            }
+                                          </div>
+                                        </div>
 
-                                    {/* Students */}
-                                    {isSectionExpanded && section.enrolledStudents && section.enrolledStudents.length > 0 && (
-                                      <div className="mt-2 pl-2 border-l-2 border-blue-200">
-                                        <p className="text-xs font-medium text-gray-600 mb-1">
-                                          Enrolled Students ({section.enrolledStudents.length}):
-                                        </p>
-                                        <div className="grid grid-cols-1 gap-1">
-                                          {section.enrolledStudents.map((student, studentIndex) => (
-                                            <div key={student.id || studentIndex} className="text-xs bg-white p-2 rounded border">
-                                              <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                  <div className="font-medium">{student.name || 'Unknown Student'}</div>
-                                                  <div className="text-gray-500">
-                                                    USN: {student.usn || 'N/A'} • Sem: {student.semester || 'N/A'}
+                                        {/* Students */}
+                                        {isSectionExpanded && section.enrolledStudents && section.enrolledStudents.length > 0 && (
+                                          <div className="mt-2 pl-2 border-l-2 border-blue-200">
+                                            <p className="text-xs font-medium text-gray-600 mb-1">
+                                              Enrolled Students ({section.enrolledStudents.length}):
+                                            </p>
+                                            <div className="grid grid-cols-1 gap-1">
+                                              {section.enrolledStudents.map((student, studentIndex) => (
+                                                <div key={student.id || studentIndex} className="text-xs bg-white p-2 rounded border">
+                                                  <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                      <div className="font-medium">{student.name || 'Unknown Student'}</div>
+                                                      <div className="text-gray-500">
+                                                        USN: {student.usn || 'N/A'} • Sem: {student.semester || 'N/A'}
+                                                      </div>
+                                                    </div>
+                                                    <div className="flex-shrink-0 ml-2">
+                                                      <span className={`px-2 py-1 rounded text-xs font-medium ${(student.attendancePercent || 0) >= 90
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : (student.attendancePercent || 0) >= 75
+                                                          ? 'bg-yellow-100 text-yellow-700'
+                                                          : 'bg-red-100 text-red-700'
+                                                        }`}>
+                                                        {student.attendancePercent !== undefined
+                                                          ? `${student.attendancePercent}%`
+                                                          : 'N/A'
+                                                        }
+                                                      </span>
+                                                    </div>
                                                   </div>
                                                 </div>
-                                                <div className="flex-shrink-0 ml-2">
-                                                  <span className={`px-2 py-1 rounded text-xs font-medium ${(student.attendancePercent || 0) >= 90
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : (student.attendancePercent || 0) >= 75
-                                                      ? 'bg-yellow-100 text-yellow-700'
-                                                      : 'bg-red-100 text-red-700'
-                                                    }`}>
-                                                    {student.attendancePercent !== undefined
-                                                      ? `${student.attendancePercent}%`
-                                                      : 'N/A'
-                                                    }
-                                                  </span>
-                                                </div>
-                                              </div>
+                                              ))}
                                             </div>
-                                          ))}
-                                        </div>
-                                      </div>
-                                    )}
+                                          </div>
+                                        )}
 
-                                    {isSectionExpanded && (!section.enrolledStudents || section.enrolledStudents.length === 0) && (
-                                      <div className="mt-2 pl-2 border-l-2 border-gray-200">
-                                        <p className="text-xs text-gray-500">No students enrolled in this section</p>
+                                        {isSectionExpanded && (!section.enrolledStudents || section.enrolledStudents.length === 0) && (
+                                          <div className="mt-2 pl-2 border-l-2 border-gray-200">
+                                            <p className="text-xs text-gray-500">No students enrolled in this section</p>
+                                          </div>
+                                        )}
                                       </div>
-                                    )}
-                                  </div>
-                                );
-                              })}
+                                    );
+                                  })}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          );
+                        })
+                      ) : (
+                        <div className="text-center text-gray-500 py-4">
+                          <p>No courses available for this department</p>
                         </div>
-                      );
-                    })
-                  ) : (
-                    <div className="text-center text-gray-500 py-4">
-                      <p>No courses available for this department</p>
+                      )}
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            )}
-          </Card>
-        ))}
+                  </CardContent>
+                )}
+              </Card>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
