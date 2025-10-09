@@ -19,6 +19,7 @@ import {
   TrendingUp
 } from 'lucide-react'
 
+
 export default function TeacherDashboard() {
   const [dashboardData, setDashboardData] = useState<TeacherDashboardData | null>(null)
   const [courses, setCourses] = useState<CourseOffering[]>([])
@@ -60,6 +61,7 @@ export default function TeacherDashboard() {
 
       setDashboardData(dashboardResult)
       setCourses(coursesResult)
+      console.log('Courses loaded in main page:', coursesResult, dashboardResult)
     } catch (err) {
       console.error('Error loading teacher data:', err)
       setError(err instanceof Error ? err.message : 'Failed to load teacher data')
@@ -411,6 +413,7 @@ export default function TeacherDashboard() {
 
           {selectedYear && selectedDepartment && selectedCourse && selectedSection && !courseStatsLoading && (
             <CourseManagement
+                teacherId={dashboardData.teacher.id}
               courseOffering={selectedCourse}
               selectedYear={selectedYear}
               selectedDepartment={selectedDepartment}

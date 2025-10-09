@@ -187,6 +187,45 @@ router.get('/dashboard', authenticateToken, async (req: AuthenticatedRequest, re
     }
 });
 
+//get coursename and coursecode from this course id :
+router.get('/coursecnc/:courseId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) {
+      return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+    }
+
+    const prisma = DatabaseService.getInstance();
+    const cId = req.params.courseId;
+
+    const cnc = await prisma.course.findUnique({
+      where: { id: cId },
+      select: {
+        name: true,
+        code: true
+      }
+    });
+
+    if (!cnc) {
+      return res.status(404).json({ status: 'error', message: 'Course not found' });
+    }
+
+    res.json({
+      status: 'success',
+      data: cnc
+    });
+
+  } catch (error) {
+    console.error('Error fetching course:', error);
+    res.status(500).json({
+      status: 'error',
+      message: 'Failed to load course',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
+
 // Get courses assigned to teacher
 router.get('/courses', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
@@ -238,10 +277,8 @@ router.get('/courses', authenticateToken, async (req: AuthenticatedRequest, res)
                 name: offering.course.name,
                 code: offering.course.code,
                 type: offering.course.type,
-                hasTheoryComponent: offering.course.hasTheoryComponent,
-                hasLabComponent: offering.course.hasLabComponent,
-                department: offering.course.department?.code || 'Unknown',
-                departmentName: offering.course.department?.name || 'Unknown'
+                
+                department: offering.course.department?.name || 'Unknown'
             },
             section: offering.sections ? {
                 id: offering.sections.section_id,
@@ -702,129 +739,129 @@ router.get('/courses/:offeringId/statistics', authenticateToken, async (req: Aut
     }
 });
 
-// Update student marks (teachers can only update marks for their assigned courses)
-router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    const { enrollmentId } = req.params;
-    const markData = req.body;
+// // Update student marks (teachers can only update marks for their assigned courses)
+// router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
+//     const { enrollmentId } = req.params;
+//     const markData = req.body;
 
-    try {
-        const userId = req.user?.id;
-        if (!userId) {
-            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
-        }
+//     try {
+//         const userId = req.user?.id;
+//         if (!userId) {
+//             return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+//         }
 
-        const prisma = DatabaseService.getInstance();
+//         const prisma = DatabaseService.getInstance();
 
-        // Get teacher info
-        const teacher = await prisma.teacher.findUnique({
-            where: { userId }
-        });
+//         // Get teacher info
+//         const teacher = await prisma.teacher.findUnique({
+//             where: { userId }
+//         });
 
-        if (!teacher) {
-            return res.status(403).json({ status: 'error', message: 'Teacher not found' });
-        }
+//         if (!teacher) {
+//             return res.status(403).json({ status: 'error', message: 'Teacher not found' });
+//         }
 
-        // Check if enrollment exists and verify teacher has access to this course
-        const enrollment = await prisma.studentEnrollment.findUnique({
-            where: { id: enrollmentId },
-            include: {
-                offering: {
-                    include: {
-                        teacher: true
-                    }
-                }
-            }
-        });
+//         // Check if enrollment exists and verify teacher has access to this course
+//         const enrollment = await prisma.studentEnrollment.findUnique({
+//             where: { id: enrollmentId },
+//             include: {
+//                 offering: {
+//                     include: {
+//                         teacher: true
+//                     }
+//                 }
+//             }
+//         });
 
-        if (!enrollment) {
-            return res.status(404).json({
-                status: 'error',
-                error: 'Enrollment not found'
-            });
-        }
+//         if (!enrollment) {
+//             return res.status(404).json({
+//                 status: 'error',
+//                 error: 'Enrollment not found'
+//             });
+//         }
 
-        // Verify teacher has access to this course
-        if (!enrollment.offering || enrollment.offering.teacherId !== teacher.id) {
-            return res.status(403).json({
-                status: 'error',
-                error: 'Access denied - you can only update marks for your assigned courses'
-            });
-        }
+//         // Verify teacher has access to this course
+//         if (!enrollment.offering || enrollment.offering.teacherId !== teacher.id) {
+//             return res.status(403).json({
+//                 status: 'error',
+//                 error: 'Access denied - you can only update marks for your assigned courses'
+//             });
+//         }
 
-        // Determine if this is theory or lab marks update
-        const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
-        const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
+//         // Determine if this is theory or lab marks update
+//         const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
+//         const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
 
-        if (isTheoryUpdate) {
-            // Update theory marks
-            const theoryMarkData: any = {};
-            if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
-            if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
-            if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
-            if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
-            if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
-            if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
+//         if (isTheoryUpdate) {
+//             // Update theory marks
+//             const theoryMarkData: any = {};
+//             if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
+//             if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
+//             if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
+//             if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
+//             if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
+//             if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
 
-            // Get current marks to check MSE3 eligibility
-            const currentMarks = await prisma.theoryMarks.findUnique({
-                where: { enrollmentId }
-            });
+//             // Get current marks to check MSE3 eligibility
+//             const currentMarks = await prisma.theoryMarks.findUnique({
+//                 where: { enrollmentId }
+//             });
 
-            // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
-            const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
-            const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
+//             // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
+//             const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
+//             const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
 
-            // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
-            if ((mse1 + mse2) >= 20) {
-                // If MSE1 + MSE2 >= 20, MSE3 must be null
-                theoryMarkData.mse3Marks = null;
-            }
+//             // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
+//             if ((mse1 + mse2) >= 20) {
+//                 // If MSE1 + MSE2 >= 20, MSE3 must be null
+//                 theoryMarkData.mse3Marks = null;
+//             }
 
-            theoryMarkData.lastUpdatedAt = new Date();
+//             theoryMarkData.lastUpdatedAt = new Date();
 
-            await prisma.theoryMarks.upsert({
-                where: { enrollmentId },
-                update: theoryMarkData,
-                create: {
-                    enrollmentId,
-                    ...theoryMarkData
-                }
-            });
-        }
+//             await prisma.theoryMarks.upsert({
+//                 where: { enrollmentId },
+//                 update: theoryMarkData,
+//                 create: {
+//                     enrollmentId,
+//                     ...theoryMarkData
+//                 }
+//             });
+//         }
 
-        if (isLabUpdate) {
-            // Update lab marks
-            const labMarkData: any = {};
-            if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
-            if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
-            if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
+//         if (isLabUpdate) {
+//             // Update lab marks
+//             const labMarkData: any = {};
+//             if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
+//             if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
+//             if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
 
-            labMarkData.lastUpdatedAt = new Date();
+//             labMarkData.lastUpdatedAt = new Date();
 
-            await prisma.labMarks.upsert({
-                where: { enrollmentId },
-                update: labMarkData,
-                create: {
-                    enrollmentId,
-                    ...labMarkData
-                }
-            });
-        }
+//             await prisma.labMarks.upsert({
+//                 where: { enrollmentId },
+//                 update: labMarkData,
+//                 create: {
+//                     enrollmentId,
+//                     ...labMarkData
+//                 }
+//             });
+//         }
 
-        res.json({
-            status: 'success',
-            message: 'Marks updated successfully'
-        });
+//         res.json({
+//             status: 'success',
+//             message: 'Marks updated successfully'
+//         });
 
-    } catch (error) {
-        console.error('Error updating marks:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to update marks',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
-    }
-});
+//     } catch (error) {
+//         console.error('Error updating marks:', error);
+//         res.status(500).json({
+//             status: 'error',
+//             message: 'Failed to update marks',
+//             error: error instanceof Error ? error.message : 'Unknown error'
+//         });
+//     }
+// });
 
 // Get marks for students in teacher's courses
 router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) => {
@@ -898,8 +935,7 @@ router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) =
                         }
                     }
                 },
-                theoryMarks: true,
-                labMarks: true
+                studentMarks:true,
             }
         });
 
@@ -1792,297 +1828,423 @@ router.post('/attendance/session', authenticateToken, async (req: AuthenticatedR
     }
 });
 
-// Get student attendance for a specific course and date
-router.get('/attendance/students', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-        const prisma = DatabaseService.getInstance();
-        const userId = req.user?.id;
-        const { courseId, date } = req.query;
 
-        if (!userId) {
-            return res.status(401).json({ status: 'error', message: 'User authentication required' });
-        }
+// Get test components for a specific course taught by the teacher
+router.get('/course/:courseId/teacher/:teacherId/components', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, teacherId } = req.params;
 
-        if (!courseId || !date) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'courseId and date are required'
-            });
-        }
+    // Find course offering for this teacher & course
+    const offering = await prisma.courseOffering.findFirst({
+      where: {
+        courseId,
+        teacherId
+      },
+      include: {
+        testComponents: true
+      }
+    });
 
-        // Get teacher's information
-        const teacher = await prisma.teacher.findFirst({
-            where: { userId: userId }
-        });
-
-        if (!teacher) {
-            return res.status(403).json({ status: 'error', message: 'Teacher access required' });
-        }
-
-        // Find the course offering
-        let courseOffering = await prisma.courseOffering.findFirst({
-            where: {
-                id: courseId as string,
-                teacherId: teacher.id
-            },
-            include: {
-                course: {
-                    select: {
-                        id: true,
-                        name: true,
-                        code: true
-                    }
-                }
-            }
-        });
-
-        if (!courseOffering) {
-            courseOffering = await prisma.courseOffering.findFirst({
-                where: {
-                    courseId: courseId as string,
-                    teacherId: teacher.id
-                },
-                include: {
-                    course: {
-                        select: {
-                            id: true,
-                            name: true,
-                            code: true
-                        }
-                    }
-                }
-            });
-        }
-
-        if (!courseOffering) {
-            return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
-        }
-
-        const classDate = new Date(date as string);
-
-        // Get all students enrolled in this course
-        const enrollments = await prisma.studentEnrollment.findMany({
-            where: { offeringId: courseOffering.id },
-            include: {
-                student: {
-                    include: {
-                        user: {
-                            select: {
-                                id: true,
-                                name: true
-                            }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Find attendance session for this date
-        const attendanceSession = await prisma.attendance.findFirst({
-            where: {
-                offeringId: courseOffering.id,
-                classDate: classDate,
-                teacherId: teacher.id
-            },
-            include: {
-                attendanceRecords: true
-            }
-        });
-
-        // Build student attendance data
-        const studentAttendanceData = enrollments.map(enrollment => {
-            const attendanceRecord = attendanceSession?.attendanceRecords.find(
-                record => record.studentId === enrollment.studentId
-            );
-
-            return {
-                studentId: enrollment.studentId,
-                usn: enrollment.student?.usn || '',
-                student_name: enrollment.student?.user?.name || 'Unknown',
-                status: attendanceRecord ? attendanceRecord.status : 'unmarked',
-                attendanceRecordId: attendanceRecord?.id,
-                courseId: courseOffering!.course.id,
-                courseName: `${courseOffering!.course.code} - ${courseOffering!.course.name}`
-            };
-        });
-
-        res.json({
-            status: 'success',
-            data: studentAttendanceData
-        });
-
-    } catch (error) {
-        console.error('Error getting student attendance:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to get student attendance',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
+    if (!offering) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'Course offering not found for this teacher/course'
+      });
     }
+
+    // Map test components into table-usable structure
+    const components = offering.testComponents.map(tc => (    {
+      id: tc.id,
+      name: tc.name,
+      maxMarks: tc.maxMarks,
+      weightage: tc.weightage,
+      type: tc.type
+    }));
+
+    res.json({
+      status: 'success',
+      offeringId: offering.id,
+      courseId: offering.courseId,
+      teacherId: offering.teacherId,
+      components
+    });
+  } catch (error) {
+    console.error('Error fetching test components:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
 });
 
-// Update individual student attendance
-router.put('/attendance/student', authenticateToken, async (req: AuthenticatedRequest, res) => {
-    try {
-        const prisma = DatabaseService.getInstance();
-        const userId = req.user?.id;
-        const { studentId, courseId, date, status } = req.body;
+//to update the test components for a specific course taught by that teacher
+// Save (add/update/delete) test components for a course offering
+// router.post('/course/:courseId/teacher/:teacherId/components', async (req, res) => {
+//   try {
+//     const prisma = DatabaseService.getInstance();
+//     const { courseId, teacherId } = req.params;
+//     const { components } = req.body; // array of components from frontend
 
-        if (!userId) {
-            return res.status(401).json({ status: 'error', message: 'User authentication required' });
+//     // Find course offering for this teacher & course
+//     const offering = await prisma.courseOffering.findFirst({
+//       where: { courseId, teacherId },
+//       include: { testComponents: true },
+//     });
+
+//     if (!offering) {
+//       return res.status(404).json({ status: 'error', error: 'Course offering not found' });
+//     }
+
+//     const existingComponents = offering.testComponents;
+
+//     // Track IDs from frontend
+//     const incomingIds = components.filter(c => c.id).map(c => c.id);
+
+//     // 1️⃣ Delete removed components
+//     const toDelete = existingComponents.filter(c => !incomingIds.includes(c.id));
+//     for (const comp of toDelete) {
+//       await prisma.testComponent.delete({ where: { id: comp.id } });
+//     }
+
+//     // 2️⃣ Update existing or create new components
+//     for (const comp of components) {
+//       if (comp.id) {
+//         // Update
+//         await prisma.testComponent.update({
+//           where: { id: comp.id },
+//           data: {
+//             name: comp.name,
+//             maxMarks: comp.maxMarks,
+//             weightage: comp.weightage,
+//             type: comp.type,
+//           },
+//         });
+//       } else {
+//         // Create new
+//         await prisma.testComponent.create({
+//           data: {
+//             name: comp.name,
+//             maxMarks: comp.maxMarks,
+//             weightage: comp.weightage ?? 100,
+//             type: comp.type ?? 'theory',
+//             courseOfferingId: offering.id,
+//           },
+//         });
+//       }
+//     }
+
+//     // 3️⃣ Fetch updated components to return
+//     const updatedComponents = await prisma.testComponent.findMany({
+//       where: { courseOfferingId: offering.id },
+//     });
+
+//     res.json({ status: 'success', components: updatedComponents });
+//   } catch (error) {
+//     console.error('Error saving components:', error);
+//     res.status(500).json({ status: 'error', error: error instanceof Error ? error.message : 'Unknown error' });
+//   }
+// });
+router.post('/course/:courseId/teacher/:teacherId/components', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, teacherId } = req.params;
+    const { components } = req.body;
+
+    if (!Array.isArray(components)) {
+      return res.status(400).json({ status: 'error', error: 'Invalid components array' });
+    }
+
+    // Find course offering
+    const offering = await prisma.courseOffering.findFirst({
+      where: { courseId, teacherId },
+      include: { testComponents: true },
+    });
+
+    if (!offering) {
+      return res.status(404).json({ status: 'error', error: 'Course offering not found' });
+    }
+
+    const existingComponents = offering.testComponents;
+    const incomingIds = components.filter(c => c.id).map(c => c.id);
+
+    // 1️⃣ Delete removed components safely
+    for (const comp of existingComponents) {
+      if (!incomingIds.includes(comp.id)) {
+        try {
+          await prisma.testComponent.delete({ where: { id: comp.id } });
+        } catch (e) {
+          console.warn(`Failed to delete component ${comp.id}:`, e.message);
         }
+      }
+    }
 
-        if (!studentId || !courseId || !date || !status) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'studentId, courseId, date, and status are required'
-            });
-        }
+    // 2️⃣ Upsert components (update if exists, create if not)
+    for (const comp of components) {
+      // Skip invalid components
+      if (!comp.name || typeof comp.maxMarks !== 'number' || !comp.type) {
+        console.warn('Skipping invalid component:', comp);
+        continue;
+      }
 
-        if (!['present', 'absent', 'unmarked'].includes(status)) {
-            return res.status(400).json({
-                status: 'error',
-                message: 'Status must be present, absent, or unmarked'
-            });
-        }
-
-        // Get teacher's information
-        const teacher = await prisma.teacher.findFirst({
-            where: { userId: userId }
-        });
-
-        if (!teacher) {
-            return res.status(403).json({ status: 'error', message: 'Teacher access required' });
-        }
-
-        // Find the course offering
-        let courseOffering = await prisma.courseOffering.findFirst({
-            where: {
-                id: courseId,
-                teacherId: teacher.id
-            }
-        });
-
-        if (!courseOffering) {
-            courseOffering = await prisma.courseOffering.findFirst({
-                where: {
-                    courseId: courseId,
-                    teacherId: teacher.id
-                }
-            });
-        }
-
-        if (!courseOffering) {
-            return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
-        }
-
-        const classDate = new Date(date);
-
-        // Find or create attendance session for this date
-        let attendanceSession = await prisma.attendance.findFirst({
-            where: {
-                offeringId: courseOffering.id,
-                classDate: classDate,
-                teacherId: teacher.id
-            }
-        });
-
-        if (!attendanceSession) {
-            // Create attendance session if it doesn't exist
-            attendanceSession = await prisma.attendance.create({
-                data: {
-                    offeringId: courseOffering.id,
-                    teacherId: teacher.id,
-                    classDate: classDate,
-                    periodNumber: 1,
-                    syllabusCovered: `Attendance session for ${classDate.toISOString().split('T')[0]}`,
-                    status: 'confirmed'
-                }
-            });
-
-            // Create attendance records for all students in the course
-            const enrollments = await prisma.studentEnrollment.findMany({
-                where: { offeringId: courseOffering.id }
-            });
-
-            await Promise.all(
-                enrollments.map(enrollment =>
-                    prisma.attendanceRecord.create({
-                        data: {
-                            attendanceId: attendanceSession!.id,
-                            studentId: enrollment.studentId,
-                            status: 'absent' // Default to absent
-                        }
-                    })
-                )
-            );
-        }
-
-        // Find or create the specific student's attendance record
-        let attendanceRecord = await prisma.attendanceRecord.findFirst({
-            where: {
-                attendanceId: attendanceSession.id,
-                studentId: studentId
-            }
-        });
-
-        if (!attendanceRecord) {
-            // Create record if student is not yet in the session
-            attendanceRecord = await prisma.attendanceRecord.create({
-                data: {
-                    attendanceId: attendanceSession.id,
-                    studentId: studentId,
-                    status: status === 'unmarked' ? 'absent' : status
-                }
-            });
-        } else {
-            // Update existing record
-            if (status === 'unmarked') {
-                // Delete the record to mark as unmarked
-                await prisma.attendanceRecord.delete({
-                    where: { id: attendanceRecord.id }
-                });
-                attendanceRecord = null;
-            } else {
-                // Update the status
-                attendanceRecord = await prisma.attendanceRecord.update({
-                    where: { id: attendanceRecord.id },
-                    data: { status: status }
-                });
-            }
-        }
-
-        // Get updated student info
-        const student = await prisma.student.findUnique({
-            where: { id: studentId },
-            include: {
-                user: {
-                    select: { name: true }
-                }
-            }
-        });
-
-        res.json({
-            status: 'success',
-            message: `Student attendance updated to ${status}`,
+      if (comp.id) {
+        // Update if exists, otherwise create
+        const existing = await prisma.testComponent.findUnique({ where: { id: comp.id } });
+        if (existing) {
+          await prisma.testComponent.update({
+            where: { id: comp.id },
             data: {
-                studentId: studentId,
-                student_name: student?.user?.name || 'Unknown',
-                usn: student?.usn || '',
-                status: attendanceRecord ? attendanceRecord.status : 'unmarked',
-                date: date,
-                sessionId: attendanceSession.id
+              name: comp.name,
+              maxMarks: comp.maxMarks,
+              weightage: comp.weightage ?? 100,
+              type: comp.type,
+            },
+          });
+        } else {
+          await prisma.testComponent.create({
+            data: {
+              name: comp.name,
+              maxMarks: comp.maxMarks,
+              weightage: comp.weightage ?? 100,
+              type: comp.type,
+              courseOfferingId: offering.id,
+            },
+          });
+        }
+      } else {
+        // Create new
+        await prisma.testComponent.create({
+          data: {
+            name: comp.name,
+            maxMarks: comp.maxMarks,
+            weightage: comp.weightage ?? 100,
+            type: comp.type,
+            courseOfferingId: offering.id,
+          },
+        });
+      }
+    }
+
+    // 3️⃣ Fetch updated components
+    const updatedComponents = await prisma.testComponent.findMany({
+      where: { courseOfferingId: offering.id },
+    });
+
+    res.json({ status: 'success', components: updatedComponents });
+  } catch (error) {
+    console.error('Error saving components:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
+});
+
+//get students marks for a specific course taught by that teacher
+router.get('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, teacherId } = req.params;
+
+    // 1. Find the offering
+    const offering = await prisma.courseOffering.findFirst({
+      where: {
+        courseId,
+        teacherId
+      },
+      include: {
+        enrollments: {
+          include: {
+            student: {
+              include: {
+                user: true // to get student name/email
+              }
+            },
+            studentMarks: {
+              include: {
+                testComponent: true
+              }
             }
+          }
+        }
+      }
+    });
+
+    if (!offering) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'Course offering not found for this teacher/course'
+      });
+    }
+
+    // 2. Restructure marks by student
+    const students = offering.enrollments.map(enrollment => ({
+      studentId: enrollment.student?.id,
+      usn: enrollment.student?.usn,
+      studentName: enrollment.student?.user?.name,
+      studentEmail: enrollment.student?.user?.email,
+      marks: enrollment.studentMarks.map(sm => ({
+        componentId: sm.testComponentId,
+        componentName: sm.testComponent.name,
+        type: sm.testComponent.type,
+        obtainedMarks: sm.marksObtained,
+        maxMarks: sm.testComponent.maxMarks,
+        weightage: sm.testComponent.weightage
+      }))
+    }));
+
+    res.json({
+      status: 'success',
+      offeringId: offering.id,
+      courseId: offering.courseId,
+      teacherId: offering.teacherId,
+      students
+    });
+  } catch (error) {
+    console.error('Error fetching student marks:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+// Update student marks for a course taught by a teacher
+router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, teacherId } = req.params;
+    const { students } = req.body; 
+    // students = [{ studentId, marks: [{ componentId, marksObtained }] }]
+
+    if (!Array.isArray(students)) {
+      return res.status(400).json({ status: 'error', error: 'Students array is required' });
+    }
+
+    // 1️⃣ Find the course offering
+    const offering = await prisma.courseOffering.findFirst({
+      where: { courseId, teacherId },
+      include: { enrollments: true },
+    });
+
+    if (!offering) {
+      return res.status(404).json({ status: 'error', error: 'Course offering not found' });
+    }
+
+    const updatedStudents: any[] = [];
+
+    // 2️⃣ Loop through each student and update/create marks
+    for (const student of students) {
+      const enrollment = offering.enrollments.find(e => e.studentId === student.studentId);
+      if (!enrollment) continue;
+
+      const updatedMarks: any[] = [];
+
+      for (const mark of student.marks) {
+        const existing = await prisma.studentMark.findUnique({
+          where: {
+            enrollmentId_testComponentId: {
+              enrollmentId: enrollment.id,
+              testComponentId: mark.componentId,
+            },
+          },
         });
 
-    } catch (error) {
-        console.error('Error updating student attendance:', error);
-        res.status(500).json({
-            status: 'error',
-            message: 'Failed to update student attendance',
-            error: error instanceof Error ? error.message : 'Unknown error'
-        });
+        if (existing) {
+          const updated = await prisma.studentMark.update({
+            where: { id: existing.id },
+            data: { marksObtained: mark.marksObtained },
+          });
+          updatedMarks.push(updated);
+        } else {
+          const created = await prisma.studentMark.create({
+            data: {
+              enrollmentId: enrollment.id,
+              testComponentId: mark.componentId,
+              marksObtained: mark.marksObtained,
+            },
+          });
+          updatedMarks.push(created);
+        }
+      }
+
+      updatedStudents.push({
+        studentId: student.studentId,
+        updatedMarks,
+      });
     }
+
+    res.json({
+      status: 'success',
+      offeringId: offering.id,
+      courseId: offering.courseId,
+      teacherId: offering.teacherId,
+      updatedStudents,
+    });
+  } catch (error) {
+    console.error('Error updating student marks:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error',
+    });
+  }
 });
+
+//to update student marks for a specific test component
+router.put('/teacher/marks/:enrollmentId', async (req, res) => {
+    const prisma = DatabaseService.getInstance();
+  const { enrollmentId } = req.params;
+  const { testComponentId, marksObtained } = req.body;
+
+  if (!testComponentId) {
+    return res.status(400).json({ status: 'error', message: 'testComponentId is required' });
+  }
+
+  try {
+    // Check if the student mark already exists
+    const existingMark = await prisma.studentMark.findUnique({
+      where: {
+        enrollmentId_testComponentId: {
+          enrollmentId,
+          testComponentId
+        }
+      }
+    });
+
+    let updatedMark;
+    if (existingMark) {
+      // Update existing mark
+      updatedMark = await prisma.studentMark.update({
+        where: {
+          enrollmentId_testComponentId: {
+            enrollmentId,
+            testComponentId
+          }
+        },
+        data: {
+          marksObtained
+        }
+      });
+    } else {
+      // Create a new mark if it doesn't exist
+      updatedMark = await prisma.studentMark.create({
+        data: {
+          enrollmentId,
+          testComponentId,
+          marksObtained
+        }
+      });
+    }
+
+    res.json({
+      status: 'success',
+      message: 'Marks updated successfully',
+      data: updatedMark
+    });
+  } catch (error) {
+    console.error('Error updating student marks:', error);
+    res.status(500).json({ status: 'error', message: 'Failed to update marks' });
+  }
+});
+
 
 export default router;

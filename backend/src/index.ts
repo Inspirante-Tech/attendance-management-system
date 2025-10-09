@@ -30,7 +30,13 @@ try {
 } catch (error) {
 	console.error('=== Error importing admin routes ===', error);
 }
-
+let studentRoutes;
+try {
+  studentRoutes = require('./routes/student').default;
+  console.log('=== Student routes imported successfully ===');
+} catch (error) {
+  console.error('=== Error importing student routes ===', error);
+}
 console.log('=== About to import teacher routes ===');
 let teacherRoutes;
 try {
@@ -113,6 +119,7 @@ app.use('/api/users', usersRoutes);
 app.use('/api/courses', coursesRoutes);
 app.use('/api/departments', departmentsRoutes);
 app.use('/api/colleges', collegesRoutes);
+
 app.use('/api/analytics', analyticsRoutes);
 if (exportRoutes) {
 	app.use('/api/export', exportRoutes);
@@ -121,6 +128,10 @@ if (exportRoutes) {
 if (adminRoutes) {
 	app.use('/api/admin', adminRoutes);
 	console.log('=== Admin routes registered ===');
+}
+if (studentRoutes){
+  app.use('/api/student', studentRoutes);
+  console.log('=== Student routes registered ===');
 }
 if (teacherRoutes) {
 	app.use('/api/teacher', teacherRoutes);

@@ -1,6 +1,6 @@
 // src/routes/admin/index.ts
 import { Router } from 'express';
-import { authenticateToken, requireAdmin, requireTeacherOrAdmin } from '../../middleware/auth';
+import { authenticateToken, requireAdmin, requireTeacher, requireTeacherOrAdmin } from '../../middleware/auth';
 import importRoutes from './importRoutes';
 import marksRoutes from './marksRoutes';
 import courseRoutes from './courseRoutes';
@@ -11,7 +11,7 @@ import enrollmentRoutes from './enrollmentRoutes';
 const router = Router();
 
 console.log('=== ADMIN ROUTES MODULE LOADED ===');
-
+router.use('/', importRoutes);
 // Apply authentication middleware to all admin routes
 router.use(authenticateToken);
 
@@ -19,12 +19,12 @@ router.use(authenticateToken);
 router.use('/assigned-courses', requireTeacherOrAdmin);
 router.use('/attendance', requireTeacherOrAdmin);
 router.use('/marks', requireTeacherOrAdmin);
-
+router.use('/course', requireTeacher);
 // Apply admin-only middleware to remaining routes
 router.use(requireAdmin);
 
 // Mount all admin route modules
-router.use('/', importRoutes);
+
 router.use('/', marksRoutes);
 router.use('/', courseRoutes);
 router.use('/', attendanceRoutes);

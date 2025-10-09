@@ -23,6 +23,20 @@ export interface Section {
   section_name: string
 }
 
+
+export interface Student {
+  user_id: string
+  name: string
+  usn: string
+  phone: string
+  email: string
+  college_name: string
+  semester: number
+  department: string
+  academic_year: string
+  photo_url: string
+}
+
 export interface StudentEnrollment {
   id: string
   courseId: string
@@ -75,6 +89,11 @@ export interface ApiResponse<T> {
   message?: string
   count?: number
 }
+
+
+
+
+
 
 // Marks and Attendance interfaces
 export interface StudentMark {

@@ -3,11 +3,15 @@ generator client {
   output   = "../generated/prisma"
 }
 
+generator dbml {
+  provider = "prisma-dbml-generator"
+  output   = "./prisma/dbml"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 
 // schema to store diff college name eg: NMAMIT ,NMIT ... etc
 model College {
@@ -23,7 +27,6 @@ model College {
 
   @@map("colleges")
 }
-
 
 //schema for  storing different department in each college 
 model Department {
@@ -172,10 +175,13 @@ model CourseOffering {
   teacher        Teacher?            @relation(fields: [teacherId], references: [id], onUpdate: NoAction)
   academic_years academic_years?     @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
   enrollments    StudentEnrollment[]
+  testComponents TestComponent[]
 
   @@unique([courseId, semester, year_id, teacherId, section_id], name: "unique_course_offering")
   @@map("course_offerings")
 }
+
+
 
 model StudentEnrollment {
   id             String          @id @default(dbgenerated("uuid_generate_v4()")) @map("enrollment_id") @db.Uuid
@@ -183,11 +189,11 @@ model StudentEnrollment {
   offeringId     String?         @map("offering_id") @db.Uuid
   attemptNumber  Int?            @default(1) @map("attempt_number")
   year_id        String?         @db.Uuid
-  labMarks       LabMarks?
   offering       CourseOffering? @relation(fields: [offeringId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   student        Student?        @relation(fields: [studentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   academic_years academic_years? @relation(fields: [year_id], references: [year_id], onDelete: Cascade, onUpdate: NoAction)
-  theoryMarks    TheoryMarks?
+
+  studentMarks   StudentMark[]
 
   @@map("student_enrollments")
 }
@@ -218,32 +224,8 @@ model AttendanceRecord {
   @@map("attendance_records")
 }
 
-model TheoryMarks {
-  id            String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
-  enrollmentId  String            @unique @map("enrollment_id") @db.Uuid
-  mse1Marks     Int?              @map("mse1_marks") @db.SmallInt
-  mse2Marks     Int?              @map("mse2_marks") @db.SmallInt
-  mse3Marks     Int?              @map("mse3_marks") @db.SmallInt
-  task1Marks    Int?              @map("task1_marks") @db.SmallInt
-  task2Marks    Int?              @map("task2_marks") @db.SmallInt
-  task3Marks    Int?              @map("task3_marks") @db.SmallInt
-  lastUpdatedAt DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
-  enrollment    StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
 
-  @@map("theory_marks")
-}
 
-model LabMarks {
-  id                        String            @id @default(dbgenerated("uuid_generate_v4()")) @map("marks_id") @db.Uuid
-  enrollmentId              String            @unique @map("enrollment_id") @db.Uuid
-  recordMarks               Int?              @map("record_marks") @db.SmallInt
-  continuousEvaluationMarks Int?              @map("continuous_evaluation_marks") @db.SmallInt
-  labMseMarks               Int?              @map("lab_mse_marks") @db.SmallInt
-  lastUpdatedAt             DateTime?         @default(now()) @map("last_updated_at") @db.Timestamp(6)
-  enrollment                StudentEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
-  @@map("lab_marks")
-}
 
 model Admin {
   id     String @id @default(dbgenerated("uuid_generate_v4()")) @map("admin_id") @db.Uuid
@@ -286,10 +268,40 @@ model sections {
   @@unique([department_id, section_name])
 }
 
+model TestComponent {
+  id               String          @id @default(dbgenerated("uuid_generate_v4()")) @map("test_component_id") @db.Uuid
+  courseOfferingId String          @map("course_offering_id") @db.Uuid
+  name             String          @map("test_name") @db.VarChar(50)   // e.g., "MSE1", "Project"
+  maxMarks         Int             @map("max_marks")
+  weightage        Int             @default(100) @map("weightage")     // default percentage
+  courseOffering   CourseOffering  @relation(fields: [courseOfferingId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  studentMarks     StudentMark[]
+  type             test_type        @default(theory) 
+  @@map("test_components")
+}
+
+model StudentMark {
+  id              String             @id @default(dbgenerated("uuid_generate_v4()")) @map("student_mark_id") @db.Uuid
+  enrollmentId    String             @map("enrollment_id") @db.Uuid
+  testComponentId String             @map("test_component_id") @db.Uuid
+  marksObtained   Int?               @map("marks_obtained")
+  enrollment      StudentEnrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  testComponent   TestComponent      @relation(fields: [testComponentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([enrollmentId, testComponentId]) // one student can have only one mark per test
+  @@map("student_marks")
+}
+
+
+// Enums
+enum test_type {
+theory
+lab
+}
 enum attendance_status {
   present
   absent
-  unmarked
+  not
 }
 
 enum course_type {

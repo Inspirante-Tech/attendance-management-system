@@ -82,22 +82,23 @@ router.get('/import-status', async (req, res) => {
     const prisma = DatabaseService.getInstance();
     
     const counts = {
-      colleges: await prisma.college.count(),
-      users: await prisma.user.count(),
-      departments: await prisma.department.count(),
-      sections: await prisma.sections.count(),
-      students: await prisma.student.count(),
-      teachers: await prisma.teacher.count(),
-      courses: await prisma.course.count(),
-      userRoles: await prisma.userRoleAssignment.count(),
-      academicYears: await prisma.academic_years.count(),
-      courseOfferings: await prisma.courseOffering.count(),
-      attendance: await prisma.attendance.count(),
-      attendanceRecords: await prisma.attendanceRecord.count(),
-      enrollments: await prisma.studentEnrollment.count(),
-      theoryMarks: await prisma.theoryMarks.count(),
-      labMarks: await prisma.labMarks.count()
-    };
+  colleges: await prisma.college.count(),
+  users: await prisma.user.count(),
+  departments: await prisma.department.count(),
+  sections: await prisma.sections.count(),
+  students: await prisma.student.count(),
+  teachers: await prisma.teacher.count(),
+  courses: await prisma.course.count(),
+  userRoles: await prisma.userRoleAssignment.count(),
+  academicYears: await prisma.academic_years.count(),
+  courseOfferings: await prisma.courseOffering.count(),
+  attendance: await prisma.attendance.count(),
+  attendanceRecords: await prisma.attendanceRecord.count(),
+  enrollments: await prisma.studentEnrollment.count(),
+  testComponents: await prisma.testComponent.count(),
+  studentMarks: await prisma.studentMark.count(),
+};
+
 
     res.json({
       success: true,
@@ -117,45 +118,29 @@ router.get('/import-status', async (req, res) => {
 router.post('/fix-course-components', async (req, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    
+
     console.log('=== FIXING COURSE COMPONENTS ===');
-    
-    // Get all courses
+
+    // Get all courses  
     const courses = await prisma.course.findMany();
     console.log(`Found ${courses.length} courses to update`);
-    
+
     let updatedCount = 0;
-    
+
     for (const course of courses) {
-      let hasTheory = false;
-      let hasLab = false;
-      
-      // Check for theory marks
-      const theoryMarksCount = await prisma.theoryMarks.count({
+      // Check if any TestComponents exist for this course
+      const components = await prisma.testComponent.findMany({
         where: {
-          enrollment: {
-            offering: {
-              courseId: course.id
-            }
+          courseOffering: {
+            courseId: course.id
           }
         }
       });
-      
-      // Check for lab marks
-      const labMarksCount = await prisma.labMarks.count({
-        where: {
-          enrollment: {
-            offering: {
-              courseId: course.id
-            }
-          }
-        }
-      });
-      
-      hasTheory = theoryMarksCount > 0;
-      hasLab = labMarksCount > 0;
-      
-      // Update course if flags are different
+
+      const hasTheory = components.some(c => c.name.toLowerCase().includes('mse') || c.name.toLowerCase().includes('theory'));
+      const hasLab = components.some(c => c.name.toLowerCase().includes('lab'));
+
+      // Update course flags if needed
       if (course.hasTheoryComponent !== hasTheory || course.hasLabComponent !== hasLab) {
         await prisma.course.update({
           where: { id: course.id },
@@ -165,11 +150,9 @@ router.post('/fix-course-components', async (req, res) => {
           }
         });
         updatedCount++;
-        
-        console.log(`Updated course ${course.code}: theory=${hasTheory}, lab=${hasLab}`);
       }
     }
-    
+
     res.json({
       success: true,
       message: `Fixed ${updatedCount} courses`,
@@ -185,5 +168,6 @@ router.post('/fix-course-components', async (req, res) => {
     });
   }
 });
+
 
 export default router;

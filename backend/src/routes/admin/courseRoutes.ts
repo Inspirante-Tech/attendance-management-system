@@ -4,6 +4,74 @@ import DatabaseService from '../../lib/database';
 
 const router = Router();
 
+
+
+
+//to get information on a particular course:
+router.get('/courses/:courseId', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+
+    const prisma = DatabaseService.getInstance();
+
+    // Get the course details along with teachers (via CourseOffering)
+    const course = await prisma.course.findUnique({
+      where: { id: courseId },
+      select: {
+        id: true,
+        name: true,
+        courseOfferings: {
+          where: {
+            teacherId: { not: null }
+          },
+          select: {
+            teacher: {
+              select: {
+                id: true,
+                user: {
+                  select: { name: true }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({ status: "error", error: "Course not found" });
+    }
+
+    // Extract unique teachers from offerings
+    const uniqueTeachersMap = new Map<string, { id: string; name: string }>();
+    for (const offering of course.courseOfferings) {
+      const t = offering.teacher;
+      if (t && !uniqueTeachersMap.has(t.id)) {
+        uniqueTeachersMap.set(t.id, { id: t.id, name: t.user.name });
+      }
+    }
+
+    const teachers = Array.from(uniqueTeachersMap.values());
+
+    res.json({
+      status: "success",
+      data: {
+        id: course.id,
+        name: course.name,
+        teachers
+      }
+    });
+
+  } catch (error) {
+    console.error("Error fetching course details:", error);
+    res.status(500).json({
+      status: "error",
+      error: error instanceof Error ? error.message : "Unknown error"
+    });
+  }
+});
+
+
 console.log('=== COURSE ROUTES MODULE LOADED ===');
 
 // Get eligible students for a course
@@ -47,106 +115,109 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
 			return;
 		}
 
-		// Build query conditions based on course type
-		const yearNumber = parseInt(year as string);
-		const semesterNumber = parseInt(semester as string);
-
-		// Convert semester to year using proper mapping:
-		// Semester 1,2 = Year 1; Semester 3,4 = Year 2; Semester 5,6 = Year 3; Semester 7,8 = Year 4
-		const courseYear = Math.ceil(semesterNumber / 2);
-
-		// Students are stored with semester field which indicates their current semester
-		// We don't use batchYear for filtering as it stores the batch start year (e.g., 2023), not year of study
-		const absoluteSemester: number = semesterNumber;
-
-		// Build student where conditions
-		let studentWhereConditions: any = {
-			college_id: course.department.college_id,
-			semester: absoluteSemester
-		};
-
-		// Apply course-specific filters
-		if (course.type === 'core' || course.type === 'department_elective') {
-			if (course.departmentId) {
-				studentWhereConditions.department_id = course.departmentId;
-			}
-		} else if (course.type === 'open_elective') {
-			const restrictedDepartmentIds = course.openElectiveRestrictions?.map((r: any) => r.restrictedDepartmentId) || [];
-			if (restrictedDepartmentIds.length > 0) {
-				studentWhereConditions.department_id = {
-					notIn: restrictedDepartmentIds
-				};
-			}
-		}
-
-		// Get students who are NOT already enrolled in this course for this semester
-		const eligibleStudents = await prisma.student.findMany({
-			where: {
-				...studentWhereConditions,
-				enrollments: {
-					none: {
-						offering: {
-							courseId: courseId,
-							semester: absoluteSemester
-						}
-					}
-				}
-			},
-			include: {
-				user: { select: { name: true, email: true } },
-				departments: { select: { id: true, name: true, code: true } },
-				sections: { select: { section_id: true, section_name: true } }
-			},
-			orderBy: [
-				{ departments: { code: 'asc' } },
-				{ usn: 'asc' }
-			]
-		});
-
-		const transformedStudents = eligibleStudents.map((student: any) => ({
-			id: student.id,
-			name: student.user.name,
-			email: student.user.email,
-			usn: student.usn,
-			semester: student.semester,
-			batchYear: student.batchYear,
-			department: student.departments ? {
-				id: student.departments.id,
-				name: student.departments.name,
-				code: student.departments.code
-			} : null,
-			section: student.sections ? {
-				id: student.sections.section_id,
-				name: student.sections.section_name
-			} : null
-		}));
-
-		res.json({
-			status: 'success',
-			data: {
-				course: {
-					id: course.id,
-					code: course.code,
-					name: course.name,
-					type: course.type,
-					department: course.department ? {
-						id: course.department.id,
-						name: course.department.name,
-						code: course.department.code
-					} : null,
-					restrictions: course.openElectiveRestrictions?.map((r: any) => ({
-						departmentCode: r.restrictedDepartment.code,
-						departmentName: r.restrictedDepartment.name
-					})) || []
-				},
-				eligibleStudents: transformedStudents,
-				filters: {
-					year: yearNumber,
-					semester: semesterNumber,
-					absoluteSemester: absoluteSemester
-				}
-			}
-		});
+    // Build query conditions based on course type
+    const yearNumber = parseInt(year as string);
+    const semesterNumber = parseInt(semester as string);
+    
+    // Convert semester to year using proper mapping:
+    // Semester 1,2 = Year 1; Semester 3,4 = Year 2; Semester 5,6 = Year 3; Semester 7,8 = Year 4
+    //himanshu thinks this is not necessary for now :)
+    //const courseYear = Math.ceil(semesterNumber / 2);
+    
+    // Students are stored with batchYear which represents their academic year
+    // We need to find students whose current year matches the course year
+    const batchYear: number =yearNumber;
+    const absoluteSemester: number = semesterNumber;
+    
+    // Build student where conditions
+    let studentWhereConditions: any = {
+      batchYear: batchYear,
+      college_id: course.college_id,
+      semester: absoluteSemester
+    };
+    
+    // Apply course-specific filters
+    if (course.type === 'core' || course.type === 'department_elective') {
+      if (course.departmentId) {
+        studentWhereConditions.department_id = course.departmentId;
+      }
+    } else if (course.type === 'open_elective') {
+      const restrictedDepartmentIds = course.openElectiveRestrictions?.map((r: any) => r.restrictedDepartmentId) || [];
+      if (restrictedDepartmentIds.length > 0) {
+        studentWhereConditions.department_id = {
+          notIn: restrictedDepartmentIds
+        };
+      }
+    }
+    
+    // Get students who are NOT already enrolled in this course for this semester
+    const eligibleStudents = await prisma.student.findMany({
+      where: {
+        ...studentWhereConditions,
+        enrollments: {
+          none: {
+            offering: {
+              courseId: courseId,
+              semester: absoluteSemester
+            }
+          }
+        }
+      },
+      include: {
+        user: { select: { name: true, email: true } },
+        departments: { select: { id: true, name: true, code: true } },
+        sections: { select: { section_id: true, section_name: true } }
+      },
+      orderBy: [
+        { departments: { code: 'asc' } },
+        { usn: 'asc' }
+      ]
+    });
+    
+    const transformedStudents = eligibleStudents.map((student: any) => ({
+      id: student.id,
+      name: student.user.name,
+      email: student.user.email,
+      usn: student.usn,
+      semester: student.semester,
+      batchYear: student.batchYear,
+      department: student.departments ? {
+        id: student.departments.id,
+        name: student.departments.name,
+        code: student.departments.code
+      } : null,
+      section: student.sections ? {
+        id: student.sections.section_id,
+        name: student.sections.section_name
+      } : null
+    }));
+    
+    res.json({
+      status: 'success',
+      data: {
+        course: {
+          id: course.id,
+          code: course.code,
+          name: course.name,
+          type: course.type,
+          department: course.department ? {
+            id: course.department.id,
+            name: course.department.name,
+            code: course.department.code
+          } : null,
+          restrictions: course.openElectiveRestrictions?.map((r: any) => ({
+            departmentCode: r.restrictedDepartment.code,
+            departmentName: r.restrictedDepartment.name
+          })) || []
+        },
+        eligibleStudents: transformedStudents,
+        filters: {
+          year: yearNumber,
+          semester: semesterNumber,
+          absoluteSemester: absoluteSemester
+        }
+      }
+    });
 
 	} catch (error) {
 		console.error('Error fetching eligible students:', error);

@@ -312,4 +312,55 @@ router.put('/marks/:enrollmentId', async (req, res) => {
   }
 });
 
+
+//to get structure of that subject table 
+// Get test components for a course offering (teacher + course)
+router.get('/course/:courseId/teacher/:teacherId/components', async (req, res) => {
+  try {
+    const prisma = DatabaseService.getInstance();
+    const { courseId, teacherId } = req.params;
+
+    // Find course offering for this teacher & course
+    const offering = await prisma.courseOffering.findFirst({
+      where: {
+        courseId,
+        teacherId
+      },
+      include: {
+        testComponents: true
+      }
+    });
+
+    if (!offering) {
+      return res.status(404).json({
+        status: 'error',
+        error: 'Course offering not found for this teacher/course'
+      });
+    }
+
+    // Map test components into table-usable structure
+    const components = offering.testComponents.map(tc => ({
+      id: tc.id,
+      name: tc.name,          // e.g. "MSE1", "Lab Record"
+      maxMarks: tc.maxMarks,
+      weightage: tc.weightage,
+      type: tc.type           // theory/lab
+    }));
+
+    res.json({
+      status: 'success',
+      offeringId: offering.id,
+      courseId: offering.courseId,
+      teacherId: offering.teacherId,
+      components
+    });
+  } catch (error) {
+    console.error('Error fetching test components:', error);
+    res.status(500).json({
+      status: 'error',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
+  }
+});
+
 export default router;
