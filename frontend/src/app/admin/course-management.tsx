@@ -4,11 +4,6 @@ import { useState, useEffect, useCallback } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { 
-  Plus, 
-  UserCog,
-  Search, 
-  Edit, 
 import {
   Plus,
   Search,
@@ -134,7 +129,6 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
     hasLabComponent: false,
     restrictedDepartments: [] as string[] // Add restricted departments for open electives
   })
-
 
   // Edit functionality state
   const [editingCourse, setEditingCourse] = useState<Course | null>(null)
@@ -274,7 +268,6 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
   }, [initialFilters])
 
   // Get filtered courses
-  console.log("before filter:"+courses);
   const filteredCourses = courses.filter(course => {
     const matchesSearch = course.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -306,10 +299,6 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
 
     return true
   })
-  console.log("after fileterin:"+filteredCourses)
-   const [showTeachers, setShowTeachers] = useState<string | null>(null)
-
-
 
   // Get unique departments for filter
   const allDepartments = Array.from(new Set(courses.map(course => course.department.code).filter(Boolean))).sort()
@@ -445,9 +434,6 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       alert('Error force deleting course: ' + errorMsg)
     }
   }
-//
-// const openStudentAssignmentModal = (course: Course) => { }
-
 
   // Open edit form
   const openEditForm = (course: Course) => {
@@ -961,8 +947,8 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
       </div>
     )
   }
- 
-  return ( <>  
+
+  return (
     <div className="p-6">
       <div className="flex justify-between items-center mb-6">
         <div>
@@ -1099,33 +1085,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                 </tr>
               </thead>
               <tbody className="bg-white">
-                {/* {filteredCourses.map((course) => {
-                      const uniqueTeachers = course.offerings
-                        ?.filter(o => o.teacher)
-                        .reduce((acc, o) => {
-                          if (!acc.find(t => t.id === o.teacher!.id)) {
-                            acc.push(o.teacher!)
-                          }
-                          return acc
-                        }, [] as { id: string; name: string }[]) ?? [] */}
-                {filteredCourses.map((course) => {
-                    const uniqueTeachers = course.offerings
-                      ?.filter(o => o.teacher)
-                      .reduce((acc, o) => {
-                        const exists = acc.find(t => t.id === o.teacher!.id && t.section === o.section)
-                        if (!exists) {
-                          acc.push({
-                            id: o.teacher!.id,
-                            name: o.teacher!.name,
-                            section: o.section,
-                          })
-                        }
-                        return acc
-                      }, [] as { id: string; name: string; section: string }[]) ?? []
-
-
-                return(
-                 
+                {filteredCourses.map((course) => (
                   <tr key={course.id} className="hover:bg-gray-50">
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="font-medium text-gray-900">{course.code}</div>
@@ -1135,7 +1095,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
                       <div className="text-sm text-gray-800 font-medium">
-                        {getCourseYear(course) }
+                        {getCourseYear(course)}
                       </div>
                     </td>
                     <td className="border border-gray-300 px-3 py-2">
@@ -1283,7 +1243,7 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
                       </div>
                     </td>
                   </tr>
-)})}
+                ))}
               </tbody>
             </table>
           </div>

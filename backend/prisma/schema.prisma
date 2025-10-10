@@ -301,7 +301,7 @@ lab
 enum attendance_status {
   present
   absent
-  not
+  unmarked
 }
 
 enum course_type {
