@@ -5,6 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Database, Download, Upload, AlertTriangle, CheckCircle, AlertCircle, Info, Trash2, RefreshCw } from 'lucide-react'
 import axios from 'axios'
+import { authService } from '@/lib/auth'
 
 interface StatusMessage {
     type: 'success' | 'error' | 'info' | 'warning';
@@ -25,8 +26,18 @@ export default function DatabaseDump() {
 
     const checkDumpAvailability = async () => {
         try {
-            const token = localStorage.getItem('token')
-            const response = await axios.get('http://localhost:5000/api/admin/dump-info', {
+            const token = authService.getToken()
+            if (!token) {
+                setStatus({
+                    type: 'error',
+                    message: 'Authentication Required',
+                    details: 'Please login as admin to use this feature.'
+                })
+                setDumpAvailable(false)
+                return
+            }
+            
+            const response = await axios.get('http://localhost:4000/api/admin/dump-info', {
                 headers: { Authorization: `Bearer ${token}` }
             })
             setDumpAvailable(response.data.available)
@@ -39,6 +50,13 @@ export default function DatabaseDump() {
             }
         } catch (error: any) {
             console.error('Error checking dump availability:', error)
+            if (error.response?.status === 401) {
+                setStatus({
+                    type: 'error',
+                    message: 'Authentication Failed',
+                    details: 'Your session may have expired. Please logout and login again.'
+                })
+            }
             setDumpAvailable(false)
         }
     }
@@ -48,8 +66,8 @@ export default function DatabaseDump() {
         setStatus(null)
 
         try {
-            const token = localStorage.getItem('token')
-            const response = await axios.get('http://localhost:5000/api/admin/export-dump', {
+            const token = authService.getToken()
+            const response = await axios.get('http://localhost:4000/api/admin/export-dump', {
                 headers: { Authorization: `Bearer ${token}` },
                 responseType: 'blob'
             })
@@ -82,11 +100,19 @@ export default function DatabaseDump() {
             })
         } catch (error: any) {
             console.error('Export error:', error)
-            setStatus({
-                type: 'error',
-                message: 'Failed to export database dump',
-                details: error.response?.data?.error || error.message
-            })
+            if (error.response?.status === 401) {
+                setStatus({
+                    type: 'error',
+                    message: 'Authentication Failed',
+                    details: 'Your session has expired. Please logout and login again.'
+                })
+            } else {
+                setStatus({
+                    type: 'error',
+                    message: 'Failed to export database dump',
+                    details: error.response?.data?.error || error.message
+                })
+            }
         } finally {
             setLoading(false)
         }
@@ -126,12 +152,12 @@ export default function DatabaseDump() {
         setStatus(null)
 
         try {
-            const token = localStorage.getItem('token')
+            const token = authService.getToken()
             const formData = new FormData()
             formData.append('dumpFile', selectedFile)
 
             const response = await axios.post(
-                'http://localhost:5000/api/admin/import-dump',
+                'http://localhost:4000/api/admin/import-dump',
                 formData,
                 {
                     headers: {
@@ -154,11 +180,19 @@ export default function DatabaseDump() {
 
         } catch (error: any) {
             console.error('Import error:', error)
-            setStatus({
-                type: 'error',
-                message: 'Failed to import database dump',
-                details: error.response?.data?.error || error.message
-            })
+            if (error.response?.status === 401) {
+                setStatus({
+                    type: 'error',
+                    message: 'Authentication Failed',
+                    details: 'Your session has expired. Please logout and login again.'
+                })
+            } else {
+                setStatus({
+                    type: 'error',
+                    message: 'Failed to import database dump',
+                    details: error.response?.data?.error || error.message
+                })
+            }
         } finally {
             setLoading(false)
         }
@@ -169,9 +203,9 @@ export default function DatabaseDump() {
         setStatus(null)
 
         try {
-            const token = localStorage.getItem('token')
+            const token = authService.getToken()
             const response = await axios.post(
-                'http://localhost:5000/api/admin/clear-database',
+                'http://localhost:4000/api/admin/clear-database',
                 { confirmation: 'DELETE_ALL_DATA' },
                 {
                     headers: { Authorization: `Bearer ${token}` }
@@ -186,11 +220,19 @@ export default function DatabaseDump() {
             setShowClearConfirm(false)
         } catch (error: any) {
             console.error('Clear error:', error)
-            setStatus({
-                type: 'error',
-                message: 'Failed to clear database',
-                details: error.response?.data?.error || error.message
-            })
+            if (error.response?.status === 401) {
+                setStatus({
+                    type: 'error',
+                    message: 'Authentication Failed',
+                    details: 'Your session has expired. Please logout and login again.'
+                })
+            } else {
+                setStatus({
+                    type: 'error',
+                    message: 'Failed to clear database',
+                    details: error.response?.data?.error || error.message
+                })
+            }
         } finally {
             setLoading(false)
         }
