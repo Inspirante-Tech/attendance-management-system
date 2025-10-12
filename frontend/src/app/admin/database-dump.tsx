@@ -36,7 +36,7 @@ export default function DatabaseDump() {
                 setDumpAvailable(false)
                 return
             }
-            
+
             const response = await axios.get('http://localhost:4000/api/admin/dump-info', {
                 headers: { Authorization: `Bearer ${token}` }
             })
