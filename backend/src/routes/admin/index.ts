@@ -8,6 +8,7 @@ import attendanceRoutes from './attendanceRoutes';
 import debugRoutes from './debugRoutes';
 import enrollmentRoutes from './enrollmentRoutes';
 import excelImportRoutes from './excelImportRoutes';
+import exportRoutes from './exportRoutes';
 
 const router = Router();
 
@@ -27,6 +28,7 @@ router.use(requireAdmin);
 // Mount all admin route modules
 router.use('/', importRoutes);
 router.use('/', excelImportRoutes);
+router.use('/', exportRoutes);
 router.use('/', marksRoutes);
 router.use('/', courseRoutes);
 router.use('/', attendanceRoutes);

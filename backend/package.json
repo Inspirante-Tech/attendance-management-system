@@ -30,7 +30,9 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.16.2",
+    "@types/archiver": "^6.0.3",
     "@types/multer": "^2.0.0",
+    "archiver": "^7.0.1",
     "backend": "file:",
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
