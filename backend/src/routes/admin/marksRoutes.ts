@@ -1,71 +1,65 @@
 // src/routes/admin/marksRoutes.ts
+/**
+ * Marks management routes for admins and teachers
+ * Handles CRUD operations for theory and lab marks
+ */
 import { Router } from 'express';
 import DatabaseService from '../../lib/database';
+import { GetMarksParams, UpdateMarksRequest } from '../../types/marks.types';
+import { ApiResponse } from '../../types/common.types';
+import {
+  hasTheoryMarksUpdate,
+  hasLabMarksUpdate,
+  buildTheoryMarksData,
+  buildLabMarksData,
+  transformToMarksData,
+  buildMarksWhereClause
+} from '../../utils/marks.helpers';
 
 const router = Router();
 
 console.log('=== ADMIN MARKS ROUTES LOADED ===');
 
-// Get all marks (theory and lab) for students
+/**
+ * GET /marks
+ * Retrieves marks for students based on filters
+ * Query parameters:
+ * - courseId: Filter by course
+ * - departmentId: Filter by department
+ * - year: Filter by batch year
+ * - studentId: Filter by student UUID
+ * - studentUsn: Filter by student USN
+ */
+/**
+ * GET /marks
+ * Retrieves marks for students based on filters
+ * Query parameters:
+ * - courseId: Filter by course
+ * - departmentId: Filter by department
+ * - year: Filter by batch year
+ * - studentId: Filter by student UUID
+ * - studentUsn: Filter by student USN
+ */
 router.get('/marks', async (req, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    const { courseId, departmentId, year, studentId, studentUsn } = req.query;
-    
-    let whereClause: any = {};
-    
-    // Handle student filtering by either UUID or USN
-    if (studentId || studentUsn) {
-      if (studentUsn) {
-        // Filter by USN
-        whereClause.student = {
-          usn: studentUsn as string
-        };
-      } else if (studentId) {
-        // Filter by UUID
-        whereClause.studentId = studentId as string;
-      }
-    }
-    
-    if (courseId) {
-      whereClause.offering = {
-        courseId: courseId as string
-      };
-    }
-    
-    if (departmentId || year) {
-      if (!whereClause.student) {
-        whereClause.student = {};
-      }
-      if (departmentId) {
-        whereClause.student.department_id = departmentId as string;
-      }
-      if (year) {
-        whereClause.student.batchYear = parseInt(year as string);
-      }
-    }
+    const params = req.query as Partial<GetMarksParams>;
 
+    // Build where clause based on query parameters
+    const whereClause = buildMarksWhereClause(params);
+
+    // Fetch enrollments with marks
     const enrollments = await prisma.studentEnrollment.findMany({
       where: whereClause,
       include: {
         student: {
           include: {
-            user: {
-              select: {
-                name: true
-              }
-            }
+            user: { select: { name: true } }
           }
         },
         offering: {
           include: {
-            course: {
-              select: {
-                id: true,
-                code: true,
-                name: true
-              }
-            }
+            course: { select: { id: true, code: true, name: true } }
           }
         },
         theoryMarks: true,
@@ -73,55 +67,27 @@ router.get('/marks', async (req, res) => {
       }
     }) as any[];
 
-    const marksData = enrollments.map(enrollment => ({
-      id: enrollment.id,
-      enrollmentId: enrollment.id,
-      student: enrollment.student ? {
-        id: enrollment.student.id,
-        usn: enrollment.student.usn,
-        user: {
-          name: enrollment.student.user.name
-        }
-      } : null,
-      course: enrollment.offering?.course ? {
-        id: enrollment.offering.course.id,
-        code: enrollment.offering.course.code,
-        name: enrollment.offering.course.name
-      } : null,
-      theoryMarks: enrollment.theoryMarks ? {
-        id: enrollment.theoryMarks.id,
-        mse1_marks: enrollment.theoryMarks.mse1Marks,
-        mse2_marks: enrollment.theoryMarks.mse2Marks,
-        mse3_marks: enrollment.theoryMarks.mse3Marks,
-        task1_marks: enrollment.theoryMarks.task1Marks,
-        task2_marks: enrollment.theoryMarks.task2Marks,
-        task3_marks: enrollment.theoryMarks.task3Marks,
-        last_updated_at: enrollment.theoryMarks.lastUpdatedAt
-      } : null,
-      labMarks: enrollment.labMarks ? {
-        id: enrollment.labMarks.id,
-        record_marks: enrollment.labMarks.recordMarks,
-        continuous_evaluation_marks: enrollment.labMarks.continuousEvaluationMarks,
-        lab_mse_marks: enrollment.labMarks.labMseMarks,
-        last_updated_at: enrollment.labMarks.lastUpdatedAt
-      } : null,
-      updatedAt: enrollment.theoryMarks?.lastUpdatedAt || enrollment.labMarks?.lastUpdatedAt || new Date()
-    }));
+    // Transform data to standardized format
+    const marksData = enrollments.map(transformToMarksData);
 
     res.json({
       status: 'success',
       data: marksData
-    });
+    } as ApiResponse);
+
   } catch (error) {
     console.error('Error fetching marks:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 
-// Get marks for a specific enrollment
+/**
+ * GET /marks/:enrollmentId
+ * Retrieves marks for a specific enrollment
+ */
 router.get('/marks/:enrollmentId', async (req, res) => {
   try {
     const prisma = DatabaseService.getInstance();
@@ -132,22 +98,12 @@ router.get('/marks/:enrollmentId', async (req, res) => {
       include: {
         student: {
           include: {
-            user: {
-              select: {
-                name: true
-              }
-            }
+            user: { select: { name: true } }
           }
         },
         offering: {
           include: {
-            course: {
-              select: {
-                id: true,
-                code: true,
-                name: true
-              }
-            }
+            course: { select: { id: true, code: true, name: true } }
           }
         },
         theoryMarks: true,
@@ -156,66 +112,37 @@ router.get('/marks/:enrollmentId', async (req, res) => {
     }) as any;
 
     if (!enrollment) {
-      res.status(404).json({
+      return res.status(404).json({
         status: 'error',
         error: 'Enrollment not found'
-      });
-      return;
+      } as ApiResponse);
     }
 
-    const marksData = {
-      id: enrollment.id,
-      enrollmentId: enrollment.id,
-      student: enrollment.student ? {
-        id: enrollment.student.id,
-        usn: enrollment.student.usn,
-        user: {
-          name: enrollment.student.user.name
-        }
-      } : null,
-      course: enrollment.offering?.course ? {
-        id: enrollment.offering.course.id,
-        code: enrollment.offering.course.code,
-        name: enrollment.offering.course.name
-      } : null,
-      theoryMarks: enrollment.theoryMarks ? {
-        id: enrollment.theoryMarks.id,
-        mse1_marks: enrollment.theoryMarks.mse1Marks,
-        mse2_marks: enrollment.theoryMarks.mse2Marks,
-        mse3_marks: enrollment.theoryMarks.mse3Marks,
-        task1_marks: enrollment.theoryMarks.task1Marks,
-        task2_marks: enrollment.theoryMarks.task2Marks,
-        task3_marks: enrollment.theoryMarks.task3Marks,
-        last_updated_at: enrollment.theoryMarks.lastUpdatedAt
-      } : null,
-      labMarks: enrollment.labMarks ? {
-        id: enrollment.labMarks.id,
-        record_marks: enrollment.labMarks.recordMarks,
-        continuous_evaluation_marks: enrollment.labMarks.continuousEvaluationMarks,
-        lab_mse_marks: enrollment.labMarks.labMseMarks,
-        last_updated_at: enrollment.labMarks.lastUpdatedAt
-      } : null,
-      updatedAt: enrollment.theoryMarks?.lastUpdatedAt || enrollment.labMarks?.lastUpdatedAt || new Date()
-    };
+    const marksData = transformToMarksData(enrollment);
 
     res.json({
       status: 'success',
       data: marksData
-    });
+    } as ApiResponse);
+
   } catch (error) {
     console.error('Error fetching enrollment marks:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 
-// Update marks for a specific enrollment
+/**
+ * PUT /marks/:enrollmentId
+ * Updates marks for a specific enrollment
+ * Body: Theory and/or lab marks fields
+ */
 router.put('/marks/:enrollmentId', async (req, res) => {
   const { enrollmentId } = req.params;
-  const markData = req.body;
-  
+  const markData = req.body as UpdateMarksRequest;
+
   try {
     const prisma = DatabaseService.getInstance();
 
@@ -225,43 +152,24 @@ router.put('/marks/:enrollmentId', async (req, res) => {
     });
 
     if (!enrollment) {
-      res.status(404).json({
+      return res.status(404).json({
         status: 'error',
         error: 'Enrollment not found'
-      });
-      return;
+      } as ApiResponse);
     }
 
     // Determine if this is theory or lab marks update
-    const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
-    const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
+    const isTheoryUpdate = hasTheoryMarksUpdate(markData);
+    const isLabUpdate = hasLabMarksUpdate(markData);
 
+    // Update theory marks if applicable
     if (isTheoryUpdate) {
-      // Update theory marks
-      const theoryMarkData: any = {};
-      if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
-      if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
-      if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
-      if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
-      if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
-      if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
-      
       // Get current marks to check MSE3 eligibility
       const currentMarks = await prisma.theoryMarks.findUnique({
         where: { enrollmentId }
       });
-      
-      // Calculate MSE1 + MSE2 total (use new values if being updated, otherwise use current values)
-      const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
-      const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
-      
-      // Check MSE3 eligibility constraint: MSE3 can only exist if MSE1 + MSE2 < 20
-      if ((mse1 + mse2) >= 20) {
-        // If MSE1 + MSE2 >= 20, MSE3 must be null
-        theoryMarkData.mse3Marks = null;
-      }
-      
-      theoryMarkData.lastUpdatedAt = new Date();
+
+      const theoryMarkData = buildTheoryMarksData(markData, currentMarks);
 
       await prisma.theoryMarks.upsert({
         where: { enrollmentId },
@@ -273,14 +181,9 @@ router.put('/marks/:enrollmentId', async (req, res) => {
       });
     }
 
+    // Update lab marks if applicable
     if (isLabUpdate) {
-      // Update lab marks
-      const labMarkData: any = {};
-      if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
-      if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
-      if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
-      
-      labMarkData.lastUpdatedAt = new Date();
+      const labMarkData = buildLabMarksData(markData);
 
       await prisma.labMarks.upsert({
         where: { enrollmentId },
@@ -295,7 +198,8 @@ router.put('/marks/:enrollmentId', async (req, res) => {
     res.json({
       status: 'success',
       message: 'Marks updated successfully'
-    });
+    } as ApiResponse);
+
   } catch (error) {
     console.error('Error updating marks:', error);
     console.error('EnrollmentId:', enrollmentId);
@@ -308,7 +212,7 @@ router.put('/marks/:enrollmentId', async (req, res) => {
         markData,
         errorDetails: error instanceof Error ? error.stack : 'Unknown error'
       }
-    });
+    } as ApiResponse);
   }
 });
 

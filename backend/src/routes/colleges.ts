@@ -8,7 +8,7 @@ const router = Router();
 router.get('/', async (req, res) => {
   try {
     const prisma = Database.getInstance()
-    
+
     const colleges = await prisma.college.findMany({
       orderBy: { name: 'asc' },
       include: {
@@ -66,7 +66,7 @@ router.get('/:id', async (req, res) => {
   try {
     const { id } = req.params
     const prisma = Database.getInstance()
-    
+
     const college = await prisma.college.findUnique({
       where: { id },
       include: {
@@ -131,7 +131,7 @@ router.get('/:id/stats', async (req, res) => {
   try {
     const { id } = req.params
     const prisma = Database.getInstance()
-    
+
     const college = await prisma.college.findUnique({
       where: { id },
       include: {
@@ -192,7 +192,7 @@ router.get('/:id/stats', async (req, res) => {
 router.post('/', async (req, res) => {
   try {
     const { name, code } = req.body
-    
+
     if (!name || !code) {
       res.status(400).json({
         status: 'error',
@@ -202,7 +202,7 @@ router.post('/', async (req, res) => {
     }
 
     const prisma = Database.getInstance()
-    
+
     // Check if college with this code already exists
     const existingCollege = await prisma.college.findUnique({
       where: { code: code.toUpperCase() }
@@ -243,7 +243,7 @@ router.put('/:id', async (req, res) => {
     const { id } = req.params
     const { name, code } = req.body
     const prisma = Database.getInstance()
-    
+
     // Check if college exists
     const existingCollege = await prisma.college.findUnique({
       where: { id }
@@ -300,7 +300,7 @@ router.delete('/:id', async (req, res) => {
   try {
     const { id } = req.params
     const prisma = Database.getInstance()
-    
+
     // Check if college exists
     const existingCollege = await prisma.college.findUnique({
       where: { id },
@@ -324,9 +324,9 @@ router.delete('/:id', async (req, res) => {
     }
 
     // Check if college has dependencies
-    if (existingCollege._count.departments > 0 || 
-        existingCollege._count.students > 0 || 
-        existingCollege._count.teachers > 0) {
+    if (existingCollege._count.departments > 0 ||
+      existingCollege._count.students > 0 ||
+      existingCollege._count.teachers > 0) {
       const dependencies = []
       if (existingCollege._count.departments > 0) {
         dependencies.push(`${existingCollege._count.departments} department(s)`)
@@ -337,7 +337,7 @@ router.delete('/:id', async (req, res) => {
       if (existingCollege._count.teachers > 0) {
         dependencies.push(`${existingCollege._count.teachers} teacher(s)`)
       }
-      
+
       res.status(409).json({
         status: 'error',
         error: `Cannot delete college. It has ${dependencies.join(', ')}. Please remove these dependencies first.`,
@@ -372,7 +372,7 @@ router.delete('/:id/force', async (req, res) => {
   try {
     const { id } = req.params
     const prisma = Database.getInstance()
-    
+
     // Check if college exists and get all dependencies
     const existingCollege = await prisma.college.findUnique({
       where: { id },
@@ -418,12 +418,6 @@ router.delete('/:id/force', async (req, res) => {
               }
             }
           }
-        },
-        courses: {
-          include: {
-            courseOfferings: true,
-            courseElectiveGroupMembers: true
-          }
         }
       }
     })
@@ -438,43 +432,43 @@ router.delete('/:id/force', async (req, res) => {
 
     // Force delete college with explicit cascading deletes
     // Delete all related records manually to ensure complete removal
-    
+
     // Delete all students and their dependencies
     for (const student of existingCollege.students) {
       // Delete attendance records
       await prisma.attendanceRecord.deleteMany({
         where: { studentId: student.id }
       })
-      
+
       // Delete enrollments
       await prisma.studentEnrollment.deleteMany({
         where: { studentId: student.id }
       })
-      
+
       // Delete student record
       await prisma.student.delete({
         where: { id: student.id }
       })
-      
+
       // Delete user roles
       await prisma.userRoleAssignment.deleteMany({
         where: { userId: student.userId }
       })
-      
+
       // Delete admin record if exists
       if (student.user.admin) {
         await prisma.admin.delete({
           where: { userId: student.userId }
         })
       }
-      
+
       // Delete report viewer record if exists
       if (student.user.reportViewer) {
         await prisma.reportViewer.delete({
           where: { userId: student.userId }
         })
       }
-      
+
       // Delete user
       await prisma.user.delete({
         where: { id: student.userId }
@@ -487,62 +481,62 @@ router.delete('/:id/force', async (req, res) => {
       await prisma.attendance.deleteMany({
         where: { teacherId: teacher.id }
       })
-      
+
       // Delete course offerings
       await prisma.courseOffering.deleteMany({
         where: { teacherId: teacher.id }
       })
-      
+
       // Delete teacher record
       await prisma.teacher.delete({
         where: { id: teacher.id }
       })
-      
+
       // Delete user roles
       await prisma.userRoleAssignment.deleteMany({
         where: { userId: teacher.userId }
       })
-      
+
       // Delete admin record if exists
       if (teacher.user.admin) {
         await prisma.admin.delete({
           where: { userId: teacher.userId }
         })
       }
-      
+
       // Delete report viewer record if exists
       if (teacher.user.reportViewer) {
         await prisma.reportViewer.delete({
           where: { userId: teacher.userId }
         })
       }
-      
+
       // Delete user
       await prisma.user.delete({
         where: { id: teacher.userId }
       })
     }
 
-    // Delete all courses and their dependencies
-    for (const course of existingCollege.courses) {
-      // Delete course elective group members
-      await prisma.courseElectiveGroupMember.deleteMany({
-        where: { courseId: course.id }
-      })
-      
-      // Delete course offerings
-      await prisma.courseOffering.deleteMany({
-        where: { courseId: course.id }
-      })
-      
-      // Delete course
-      await prisma.course.delete({
-        where: { id: course.id }
-      })
-    }
-
     // Delete all departments and their dependencies
     for (const department of existingCollege.departments) {
+      // Delete all courses in this department
+      for (const course of department.courses) {
+        // Delete course elective group members
+        await prisma.courseElectiveGroupMember.deleteMany({
+          where: { courseId: course.id }
+        })
+
+        // Delete course offerings
+        await prisma.courseOffering.deleteMany({
+          where: { courseId: course.id }
+        })
+
+        // Delete course
+        await prisma.course.delete({
+          where: { id: course.id }
+        })
+      }
+
       // Delete department elective groups
       for (const group of department.departmentElectiveGroups) {
         await prisma.courseElectiveGroupMember.deleteMany({
@@ -552,12 +546,12 @@ router.delete('/:id/force', async (req, res) => {
           where: { id: group.id }
         })
       }
-      
+
       // Delete sections
       await prisma.sections.deleteMany({
         where: { department_id: department.id }
       })
-      
+
       // Delete department
       await prisma.department.delete({
         where: { id: department.id }
