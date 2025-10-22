@@ -32,11 +32,10 @@ router.post('/import/:table', upload.single('file'), async (req, res) => {
     console.error('=== IMPORT ENDPOINT ERROR ===', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
-      res.status(500).json({
-        error: errorMessage,
-        timestamp: new Date().toISOString()
-      });
-    }
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Clear all data endpoint
@@ -107,11 +106,10 @@ router.post('/clear-database', async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
-      res.status(500).json({
-        error: errorMessage,
-        timestamp: new Date().toISOString()
-      });
-    }
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Get import status endpoint
@@ -147,11 +145,10 @@ router.get('/import-status', async (req, res) => {
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
-      res.status(500).json({
-        error: errorMessage,
-        timestamp: new Date().toISOString()
-      });
-    }
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Fix course components endpoint
@@ -223,11 +220,10 @@ router.post('/fix-course-components', async (req, res) => {
     console.error('Error fixing course components:', error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     res.status(500).json({
-      res.status(500).json({
-        error: errorMessage,
-        timestamp: new Date().toISOString()
-      });
-    }
+      error: errorMessage,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 

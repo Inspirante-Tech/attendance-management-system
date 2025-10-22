@@ -1,5 +1,7 @@
 // src/routes/teacher.ts
 import { Router } from 'express';
+import { authenticateToken, AuthenticatedRequest } from '../middleware/auth';
+import DatabaseService from '../lib/database';
 import dashboardRoutes from './teacher/dashboardRoutes';
 import courseRoutes from './teacher/courseRoutes';
 import attendanceRoutes from './teacher/attendanceRoutes';
