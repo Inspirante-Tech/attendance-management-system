@@ -12,7 +12,7 @@ import {
 } from 'lucide-react'
 
 import { Course, Section } from './dropdown-navigation'
-import { TeacherAPI, StudentMarksData } from '@/lib/teacher-api'
+import { TeacherAPI, StudentMarks, TestComponent } from '@/lib/teacher-api'
 
 interface LabMarksProps {
   courseOffering: Course
@@ -21,21 +21,28 @@ interface LabMarksProps {
   selectedSection: Section
 }
 
+// Type for local editing state
+interface MarksEditState {
+  [testComponentId: string]: number | null;
+}
+
 export function LabMarksManagement({
   courseOffering,
   selectedDepartment,
   selectedSection
 }: Omit<LabMarksProps, 'selectedYear'>) {
-  const [marks, setMarks] = useState<StudentMarksData[]>([])
+  const [students, setStudents] = useState<StudentMarks[]>([])
+  const [testComponents, setTestComponents] = useState<TestComponent[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [editingStudent, setEditingStudent] = useState<string | null>(null)
+  const [editState, setEditState] = useState<{ [enrollmentId: string]: MarksEditState }>({})
 
-  // Load marks data when course offering changes
+  // Load marks data and test components when course offering changes
   const loadMarksData = async () => {
-    if (!courseOffering.course_id) {
-      setError('No course ID available')
+    if (!courseOffering.offering_id) {
+      setError('No course offering ID available')
       setLoading(false)
       return
     }
@@ -43,8 +50,24 @@ export function LabMarksManagement({
     setLoading(true)
     setError(null)
     try {
-      const data = await TeacherAPI.getMarks(courseOffering.course_id)
-      setMarks(data)
+      // Fetch test components first
+      const components = await TeacherAPI.getTestComponents(courseOffering.offering_id)
+      const labComponents = components.filter(c => c.type === 'lab')
+      setTestComponents(labComponents)
+
+      // Fetch student marks using new schema
+      const marksData = await TeacherAPI.getStudentMarksNewSchema(courseOffering.course_id)
+      setStudents(marksData)
+
+      // Initialize edit state with current marks
+      const initialEditState: { [enrollmentId: string]: MarksEditState } = {}
+      marksData.forEach(student => {
+        initialEditState[student.enrollmentId] = {}
+        student.labMarks.forEach(mark => {
+          initialEditState[student.enrollmentId][mark.testId] = mark.marksObtained
+        })
+      })
+      setEditState(initialEditState)
     } catch (err) {
       console.error('Error loading marks data:', err)
       setError(err instanceof Error ? err.message : 'Failed to load marks')
@@ -55,57 +78,46 @@ export function LabMarksManagement({
 
   useEffect(() => {
     loadMarksData()
-  }, [courseOffering.course_id])
+  }, [courseOffering.offering_id, courseOffering.course_id])
 
-  const updateMarks = (studentId: string, field: 'record_marks' | 'continuous_evaluation_marks' | 'lab_mse_marks', value: number | null) => {
-    setMarks(prev => prev.map(student => {
-      if (student.student.id === studentId) {
-        const updated = { ...student }
-
-        // Initialize labMarks if it doesn't exist
-        if (!updated.labMarks) {
-          updated.labMarks = {
-            id: '',
-            record_marks: null,
-            continuous_evaluation_marks: null,
-            lab_mse_marks: null,
-            last_updated_at: new Date()
-          }
-        } else {
-          updated.labMarks = { ...updated.labMarks }
-        }
-
-        // Update the specific field
-        updated.labMarks[field] = value
-
-        return updated
+  const updateMarks = (enrollmentId: string, testComponentId: string, value: number | null) => {
+    setEditState(prev => ({
+      ...prev,
+      [enrollmentId]: {
+        ...prev[enrollmentId],
+        [testComponentId]: value
       }
-      return student
     }))
   }
 
-  const calculateTotal = (labMarks: StudentMarksData['labMarks']) => {
-    if (!labMarks) return 0
-    const record = labMarks.record_marks || 0
-    const continuous = labMarks.continuous_evaluation_marks || 0
-    const labMse = labMarks.lab_mse_marks || 0
-    return record + continuous + labMse
+  const calculateTotal = (enrollmentId: string) => {
+    const marks = editState[enrollmentId] || {}
+    return testComponents.reduce((sum, component) => {
+      const mark = marks[component.id] || 0
+      return sum + mark
+    }, 0)
   }
 
-  const saveMarks = async (studentId: string) => {
+  const saveMarks = async (enrollmentId: string) => {
     setSaving(true)
     try {
-      const studentData = marks.find(m => m.student.id === studentId)
-      if (!studentData || !studentData.labMarks) return
+      const studentData = students.find(s => s.enrollmentId === enrollmentId)
+      if (!studentData) return
 
-      // TODO: Replace with actual API call to update marks
-      console.log('Saving lab marks for student:', studentData)
+      // Prepare marks array for API
+      const marksArray = testComponents.map(component => ({
+        testComponentId: component.id,
+        marksObtained: editState[enrollmentId]?.[component.id] || 0
+      }))
 
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      // Call the new marks update API
+      await TeacherAPI.updateEnrollmentMarks(enrollmentId, marksArray)
+
+      // Reload data to get fresh state
+      await loadMarksData()
 
       setEditingStudent(null)
-      alert(`Lab marks saved successfully for ${studentData.student.user.name}!`)
+      alert(`Lab marks saved successfully for ${studentData.student.name}!`)
     } catch (error) {
       console.error('Error saving marks:', error)
       alert('Error saving marks. Please try again.')
@@ -115,17 +127,23 @@ export function LabMarksManagement({
   }
 
   const exportMarks = () => {
-    // Export real data to CSV
+    // Export real data to CSV with dynamic columns
+    const headers = ['USN', 'Name', ...testComponents.map(c => c.name), 'Total']
     const csvContent = [
-      ['USN', 'Name', 'Record', 'Continuous Evaluation', 'Lab MSE', 'Total'].join(','),
-      ...marks.map(student => [
-        student.student.usn,
-        student.student.user.name,
-        student.labMarks?.record_marks || '',
-        student.labMarks?.continuous_evaluation_marks || '',
-        student.labMarks?.lab_mse_marks || '',
-        calculateTotal(student.labMarks)
-      ].join(','))
+      headers.join(','),
+      ...students.map(student => {
+        const marks = student.labMarks
+        const total = calculateTotal(student.enrollmentId)
+        return [
+          student.student.usn,
+          student.student.name,
+          ...testComponents.map(component => {
+            const mark = marks.find(m => m.testId === component.id)
+            return mark?.marksObtained ?? ''
+          }),
+          total
+        ].join(',')
+      })
     ].join('\n')
 
     const blob = new Blob([csvContent], { type: 'text/csv' })
@@ -200,144 +218,136 @@ export function LabMarksManagement({
         <CardHeader className="pb-3">
           <CardTitle className="text-lg">Student Lab Marks</CardTitle>
           <CardDescription className="text-sm">
-            Click Edit to modify marks. Total = Record + Continuous Evaluation + Lab MSE.
+            {testComponents.length > 0
+              ? `Click Edit to modify marks. Dynamic test components loaded: ${testComponents.map(c => c.name).join(', ')}`
+              : 'No test components configured for this course. Admin needs to create test components first.'}
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-gray-200">
-                  <th className="text-left py-2 px-3 text-sm font-semibold text-gray-900">Student</th>
-                  <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Record<br /><span className="text-xs text-gray-500">(0-10)</span></th>
-                  <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Continuous Evaluation<br /><span className="text-xs text-gray-500">(0-20)</span></th>
-                  <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Lab MSE<br /><span className="text-xs text-gray-500">(0-20)</span></th>
-                  <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Total<br /><span className="text-xs text-gray-500">(0-50)</span></th>
-                  <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {marks.map((student) => {
-                  const total = calculateTotal(student.labMarks)
-                  return (
-                    <tr
-                      key={student.student.id}
-                      className="border-b border-gray-100 hover:bg-gray-50"
-                    >
-                      <td className="py-3 px-3">
-                        <div>
-                          <span className="text-sm font-medium text-gray-900">{student.student.user.name}</span>
-                          <br />
-                          <span className="text-xs text-gray-500">{student.student.usn}</span>
-                        </div>
-                      </td>
+          {testComponents.length === 0 ? (
+            <div className="text-center py-8">
+              <AlertTriangle className="w-12 h-12 text-amber-500 mx-auto mb-3" />
+              <h3 className="text-lg font-medium text-gray-900 mb-1">No Test Components</h3>
+              <p className="text-gray-600">
+                An admin needs to configure test components for this course offering before you can enter marks.
+              </p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="text-left py-2 px-3 text-sm font-semibold text-gray-900">Student</th>
+                    {testComponents.map(component => (
+                      <th key={component.id} className="text-center py-2 px-3 text-sm font-semibold text-gray-900">
+                        {component.name}
+                        <br />
+                        <span className="text-xs text-gray-500">(0-{component.maxMarks})</span>
+                      </th>
+                    ))}
+                    <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Total</th>
+                    <th className="text-center py-2 px-3 text-sm font-semibold text-gray-900">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {students.map((student) => {
+                    const total = calculateTotal(student.enrollmentId)
+                    const isEditing = editingStudent === student.enrollmentId
 
-                      {/* Record Marks */}
-                      <td className="py-3 px-3 text-center">
-                        {editingStudent === student.student.id ? (
-                          <input
-                            type="number"
-                            min="0"
-                            max="10"
-                            value={student.labMarks?.record_marks ?? ''}
-                            onChange={(e) => updateMarks(student.student.id, 'record_marks', e.target.value ? parseInt(e.target.value) : null)}
-                            className="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            title="Record Marks (0-10)"
-                            placeholder="0"
-                            aria-label="Record Marks"
-                          />
-                        ) : (
-                          <span className="text-sm">{student.labMarks?.record_marks ?? '-'}</span>
-                        )}
-                      </td>
-
-                      {/* Continuous Evaluation */}
-                      <td className="py-3 px-3 text-center">
-                        {editingStudent === student.student.id ? (
-                          <input
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={student.labMarks?.continuous_evaluation_marks ?? ''}
-                            onChange={(e) => updateMarks(student.student.id, 'continuous_evaluation_marks', e.target.value ? parseInt(e.target.value) : null)}
-                            className="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            title="Continuous Evaluation Marks (0-20)"
-                            placeholder="0"
-                            aria-label="Continuous Evaluation Marks"
-                          />
-                        ) : (
-                          <span className="text-sm">{student.labMarks?.continuous_evaluation_marks ?? '-'}</span>
-                        )}
-                      </td>
-
-                      {/* Lab MSE */}
-                      <td className="py-3 px-3 text-center">
-                        {editingStudent === student.student.id ? (
-                          <input
-                            type="number"
-                            min="0"
-                            max="20"
-                            value={student.labMarks?.lab_mse_marks ?? ''}
-                            onChange={(e) => updateMarks(student.student.id, 'lab_mse_marks', e.target.value ? parseInt(e.target.value) : null)}
-                            className="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
-                            title="Lab MSE Marks (0-20)"
-                            placeholder="0"
-                            aria-label="Lab MSE Marks"
-                          />
-                        ) : (
-                          <span className="text-sm">{student.labMarks?.lab_mse_marks ?? '-'}</span>
-                        )}
-                      </td>
-
-                      {/* Total */}
-                      <td className="py-3 px-3 text-center">
-                        <span className={`text-sm font-semibold ${total >= 40 ? 'text-green-600' :
-                            total >= 30 ? 'text-orange-600' :
-                              'text-red-600'
-                          }`}>
-                          {total}
-                        </span>
-                      </td>
-
-                      {/* Actions */}
-                      <td className="py-3 px-3 text-center">
-                        {editingStudent === student.student.id ? (
-                          <div className="flex items-center justify-center space-x-1">
-                            <button
-                              onClick={() => saveMarks(student.student.id)}
-                              disabled={saving}
-                              className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors disabled:opacity-50"
-                              title="Save marks"
-                              aria-label="Save marks"
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => setEditingStudent(null)}
-                              className="p-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
-                              title="Cancel editing"
-                              aria-label="Cancel editing"
-                            >
-                              <AlertTriangle className="w-4 h-4" />
-                            </button>
+                    return (
+                      <tr
+                        key={student.enrollmentId}
+                        className="border-b border-gray-100 hover:bg-gray-50"
+                      >
+                        <td className="py-3 px-3">
+                          <div>
+                            <span className="text-sm font-medium text-gray-900">{student.student.name}</span>
+                            <br />
+                            <span className="text-xs text-gray-500">{student.student.usn}</span>
                           </div>
-                        ) : (
-                          <button
-                            onClick={() => setEditingStudent(student.student.id)}
-                            className="p-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
-                            title="Edit marks"
-                            aria-label="Edit marks"
-                          >
-                            <Edit3 className="w-4 h-4" />
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
+                        </td>
+
+                        {/* Dynamic test component columns */}
+                        {testComponents.map(component => {
+                          const currentMark = student.labMarks.find(m => m.testId === component.id)
+                          const editValue = editState[student.enrollmentId]?.[component.id]
+
+                          return (
+                            <td key={component.id} className="py-3 px-3 text-center">
+                              {isEditing ? (
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max={component.maxMarks}
+                                  value={editValue ?? ''}
+                                  onChange={(e) => updateMarks(
+                                    student.enrollmentId,
+                                    component.id,
+                                    e.target.value ? parseInt(e.target.value) : null
+                                  )}
+                                  className="w-16 px-2 py-1 text-center border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                  title={`${component.name} (0-${component.maxMarks})`}
+                                  placeholder="0"
+                                  aria-label={component.name}
+                                />
+                              ) : (
+                                <span className="text-sm">{currentMark?.marksObtained ?? '-'}</span>
+                              )}
+                            </td>
+                          )
+                        })}
+
+                        {/* Total */}
+                        <td className="py-3 px-3 text-center">
+                          <span className={`text-sm font-semibold ${total >= (testComponents.reduce((sum, c) => sum + c.maxMarks, 0) * 0.8) ? 'text-green-600' :
+                              total >= (testComponents.reduce((sum, c) => sum + c.maxMarks, 0) * 0.6) ? 'text-orange-600' :
+                                'text-red-600'
+                            }`}>
+                            {total}
+                          </span>
+                        </td>
+
+                        {/* Actions */}
+                        <td className="py-3 px-3 text-center">
+                          {isEditing ? (
+                            <div className="flex items-center justify-center space-x-1">
+                              <button
+                                onClick={() => saveMarks(student.enrollmentId)}
+                                disabled={saving}
+                                className="p-1 bg-green-100 text-green-700 rounded hover:bg-green-200 transition-colors disabled:opacity-50"
+                                title="Save marks"
+                                aria-label="Save marks"
+                              >
+                                {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle className="w-4 h-4" />}
+                              </button>
+                              <button
+                                onClick={() => setEditingStudent(null)}
+                                disabled={saving}
+                                className="p-1 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition-colors"
+                                title="Cancel editing"
+                                aria-label="Cancel editing"
+                              >
+                                <AlertTriangle className="w-4 h-4" />
+                              </button>
+                            </div>
+                          ) : (
+                            <button
+                              onClick={() => setEditingStudent(student.enrollmentId)}
+                              className="p-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 transition-colors"
+                              title="Edit marks"
+                              aria-label="Edit marks"
+                            >
+                              <Edit3 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -349,11 +359,11 @@ export function LabMarksManagement({
             <div className="text-sm text-gray-600">
               <p className="font-medium mb-1">Lab Marking Guidelines:</p>
               <ul className="list-disc list-inside space-y-1">
-                <li>Record marks: 0-10 points for lab record maintenance</li>
-                <li>Continuous Evaluation: 0-20 points for ongoing lab performance</li>
-                <li>Lab MSE: 0-20 points for lab mid-semester examination</li>
-                <li>Total marks = Record + Continuous Evaluation + Lab MSE</li>
-                <li>Maximum possible total: 50 marks (10+20+20)</li>
+                <li>This course uses <strong>dynamic test components</strong> configured by admins</li>
+                <li>Current components: {testComponents.length > 0 ? testComponents.map(c => `${c.name} (max: ${c.maxMarks})`).join(', ') : 'None configured'}</li>
+                <li>Click "Edit" to enter or modify marks for any student</li>
+                <li>Marks are validated against max marks for each component</li>
+                <li>Total is automatically calculated from all components</li>
               </ul>
             </div>
           </div>

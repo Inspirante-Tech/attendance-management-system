@@ -69,7 +69,9 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             users,
             academicYears,
             courseOfferings,
-            attendanceRecords
+            attendanceRecords,
+            testComponents,
+            studentMarks
         ] = await Promise.all([
             // Colleges - just this college
             prisma.college.findMany({
@@ -256,6 +258,65 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
                         }
                     }
                 }
+            }),
+
+            // Test components for this academic year
+            prisma.testComponent.findMany({
+                where: {
+                    courseOffering: {
+                        year_id: yearId
+                    }
+                },
+                include: {
+                    courseOffering: {
+                        include: {
+                            course: {
+                                select: { code: true }
+                            },
+                            sections: {
+                                select: { section_name: true }
+                            }
+                        }
+                    }
+                }
+            }),
+
+            // Student marks for this academic year
+            prisma.studentMark.findMany({
+                where: {
+                    testComponent: {
+                        courseOffering: {
+                            year_id: yearId
+                        }
+                    }
+                },
+                include: {
+                    testComponent: {
+                        include: {
+                            courseOffering: {
+                                include: {
+                                    course: {
+                                        select: { code: true }
+                                    },
+                                    sections: {
+                                        select: { section_name: true }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enrollment: {
+                        include: {
+                            student: {
+                                include: {
+                                    user: {
+                                        select: { username: true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             })
         ]);
 
@@ -368,6 +429,31 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
         }));
         XLSX.utils.book_append_sheet(workbooks['attendance_records'], XLSX.utils.json_to_sheet(attendanceData), 'Attendance Records');
 
+        // 11. Test Components
+        workbooks['test_components'] = XLSX.utils.book_new();
+        const testComponentsData = testComponents.map(tc => ({
+            course_code: tc.courseOffering?.course.code || '',
+            section_name: tc.courseOffering?.sections?.section_name || '',
+            component_name: tc.name,
+            type: tc.type,
+            max_marks: tc.maxMarks,
+            weightage: tc.weightage
+        }));
+        XLSX.utils.book_append_sheet(workbooks['test_components'], XLSX.utils.json_to_sheet(testComponentsData), 'Test Components');
+
+        // 12. Student Marks
+        workbooks['student_marks'] = XLSX.utils.book_new();
+        const studentMarksData = studentMarks.map(sm => ({
+            student_usn: sm.enrollment?.student?.user.username || '',
+            course_code: sm.testComponent?.courseOffering?.course.code || '',
+            section_name: sm.testComponent?.courseOffering?.sections?.section_name || '',
+            test_component: sm.testComponent?.name || '',
+            type: sm.testComponent?.type || '',
+            marks_obtained: sm.marksObtained ?? '',
+            max_marks: sm.testComponent?.maxMarks || ''
+        }));
+        XLSX.utils.book_append_sheet(workbooks['student_marks'], XLSX.utils.json_to_sheet(studentMarksData), 'Student Marks');
+
         // Create ZIP archive
         const archive = archiver('zip', {
             zlib: { level: 9 }
@@ -406,19 +492,30 @@ Files Included:
 - academic_years.xlsx: Academic year information
 - course_offerings.xlsx: Course-section-teacher assignments for this year
 - attendance_records.xlsx: Complete attendance history for this year
+- test_components.xlsx: Test component definitions (MSE, assignments, lab tests, etc.)
+- student_marks.xlsx: All student marks for this academic year
 
 How to Use:
 1. Extract all files from this ZIP
 2. Modify the data as needed for your new academic year
 3. Use the Excel Import tab in the admin dashboard to reimport base data
 4. Follow the import order: colleges → departments → sections → users → students/teachers → courses → academic_years
-5. Note: Attendance data is for archival/reference - cannot be reimported directly
+5. Note: Attendance and marks data are for archival/reference
 
 Attendance Data:
 - The attendance_records.xlsx contains the complete attendance history
 - Includes student USN, course code, date, period, status, and syllabus covered
 - This is a read-only export for record keeping and analysis
 - ${attendanceRecords.length} attendance records exported
+
+Marks Data:
+- test_components.xlsx: Contains all test definitions (${testComponents.length} components)
+  * Includes component name, type (theory/lab), max marks, and weightage
+  * These define the assessment structure for courses
+- student_marks.xlsx: Contains all student marks (${studentMarks.length} mark entries)
+  * Links students to test components with marks obtained
+  * This is a read-only export for archival and analysis
+  * Cannot be re-imported directly but serves as permanent record
 
 Note: All users in the users.xlsx file will be created with the default password: password123
 `;
@@ -452,7 +549,9 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             users,
             academicYears,
             courseOfferings,
-            attendanceRecords
+            attendanceRecords,
+            testComponents,
+            studentMarks
         ] = await Promise.all([
             prisma.college.findMany({
                 select: {
@@ -590,6 +689,59 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
                         }
                     }
                 }
+            }),
+
+            // All test components
+            prisma.testComponent.findMany({
+                include: {
+                    courseOffering: {
+                        include: {
+                            course: {
+                                select: { code: true }
+                            },
+                            sections: {
+                                select: { section_name: true }
+                            },
+                            academic_years: {
+                                select: { year_name: true }
+                            }
+                        }
+                    }
+                }
+            }),
+
+            // All student marks
+            prisma.studentMark.findMany({
+                include: {
+                    testComponent: {
+                        include: {
+                            courseOffering: {
+                                include: {
+                                    course: {
+                                        select: { code: true }
+                                    },
+                                    sections: {
+                                        select: { section_name: true }
+                                    },
+                                    academic_years: {
+                                        select: { year_name: true }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    enrollment: {
+                        include: {
+                            student: {
+                                include: {
+                                    user: {
+                                        select: { username: true }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             })
         ]);
 
@@ -703,6 +855,33 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
         }));
         XLSX.utils.book_append_sheet(workbooks['attendance_records'], XLSX.utils.json_to_sheet(attendanceDataAll), 'Attendance Records');
 
+        // 11. Test Components
+        workbooks['test_components'] = XLSX.utils.book_new();
+        const testComponentsDataAll = testComponents.map(tc => ({
+            course_code: tc.courseOffering?.course.code || '',
+            section_name: tc.courseOffering?.sections?.section_name || '',
+            academic_year: tc.courseOffering?.academic_years?.year_name || '',
+            component_name: tc.name,
+            type: tc.type,
+            max_marks: tc.maxMarks,
+            weightage: tc.weightage
+        }));
+        XLSX.utils.book_append_sheet(workbooks['test_components'], XLSX.utils.json_to_sheet(testComponentsDataAll), 'Test Components');
+
+        // 12. Student Marks
+        workbooks['student_marks'] = XLSX.utils.book_new();
+        const studentMarksDataAll = studentMarks.map(sm => ({
+            student_usn: sm.enrollment?.student?.user.username || '',
+            course_code: sm.testComponent?.courseOffering?.course.code || '',
+            section_name: sm.testComponent?.courseOffering?.sections?.section_name || '',
+            academic_year: sm.testComponent?.courseOffering?.academic_years?.year_name || '',
+            test_component: sm.testComponent?.name || '',
+            type: sm.testComponent?.type || '',
+            marks_obtained: sm.marksObtained ?? '',
+            max_marks: sm.testComponent?.maxMarks || ''
+        }));
+        XLSX.utils.book_append_sheet(workbooks['student_marks'], XLSX.utils.json_to_sheet(studentMarksDataAll), 'Student Marks');
+
         // Create ZIP archive
         const archive = archiver('zip', {
             zlib: { level: 9 }
@@ -734,6 +913,8 @@ Total Teachers: ${teachers.length}
 Total Courses: ${courses.length}
 Total Course Offerings: ${courseOfferings.length}
 Total Attendance Records: ${attendanceRecords.length}
+Total Test Components: ${testComponents.length}
+Total Student Marks: ${studentMarks.length}
 
 Files Included:
 - colleges.xlsx: All college information
@@ -746,6 +927,8 @@ Files Included:
 - academic_years.xlsx: All academic year information
 - course_offerings.xlsx: All course-section-teacher assignments
 - attendance_records.xlsx: Complete attendance history
+- test_components.xlsx: All test component definitions (MSE, assignments, labs, etc.)
+- student_marks.xlsx: All student marks across all years
 
 How to Use:
 1. Extract all files from this ZIP
@@ -758,6 +941,21 @@ Attendance Data:
 - This is for archival and reference purposes only
 - Attendance data cannot be re-imported but serves as a permanent record
 - Use this for compliance, analysis, and historical reference
+
+Marks Data (NEW - Dynamic Schema):
+- test_components.xlsx: Complete test assessment structure
+  * Contains all test definitions with name, type (theory/lab), max marks, weightage
+  * Defines the flexible assessment framework for each course offering
+  * ${testComponents.length} test components across all courses and years
+  
+- student_marks.xlsx: Complete marks history
+  * All student marks linked to test components
+  * Includes student USN, course, section, academic year, test name, and marks
+  * ${studentMarks.length} mark entries total
+  * Read-only export for permanent records and analysis
+  
+Note: The new marks system uses dynamic test components, making it infinitely flexible!
+Admins can define any test structure without code changes.
 
 Note: All users will be created with the default password: password123
 `;

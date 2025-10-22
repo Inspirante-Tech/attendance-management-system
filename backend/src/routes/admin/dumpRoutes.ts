@@ -310,10 +310,10 @@ router.post('/clear-database', async (req: Request, res: Response) => {
 
         console.log('Deleting transactional data...');
 
-        // 1. Theory and Lab Marks (depend on enrollments)
-        await prisma.theoryMarks.deleteMany({});
-        await prisma.labMarks.deleteMany({});
-        console.log('  ✓ Deleted marks');
+        // 1. Student Marks and Test Components (depend on enrollments and offerings)
+        await prisma.studentMark.deleteMany({});
+        await prisma.testComponent.deleteMany({});
+        console.log('  ✓ Deleted marks and test components');
 
         // 2. Attendance Records (depend on attendance and students)
         await prisma.attendanceRecord.deleteMany({});

@@ -171,28 +171,28 @@ router.post('/fix-course-components', async (req, res) => {
       let hasTheory = false;
       let hasLab = false;
 
-      // Check for theory marks
-      const theoryMarksCount = await prisma.theoryMarks.count({
+      // Check for theory test components
+      const theoryComponentsCount = await prisma.testComponent.count({
         where: {
           courseOffering: {
             courseId: course.id
-          }
+          },
+          type: 'theory'
         }
       });
 
-      // Check for lab marks
-      const labMarksCount = await prisma.labMarks.count({
+      // Check for lab test components
+      const labComponentsCount = await prisma.testComponent.count({
         where: {
-          enrollment: {
-            offering: {
-              courseId: course.id
-            }
-          }
+          courseOffering: {
+            courseId: course.id
+          },
+          type: 'lab'
         }
       });
 
-      hasTheory = theoryMarksCount > 0;
-      hasLab = labMarksCount > 0;
+      hasTheory = theoryComponentsCount > 0;
+      hasLab = labComponentsCount > 0;
 
       // Update course if flags are different
       if (course.hasTheoryComponent !== hasTheory || course.hasLabComponent !== hasLab) {

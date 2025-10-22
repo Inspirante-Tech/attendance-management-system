@@ -6,9 +6,10 @@ import { authenticateToken, AuthenticatedRequest } from '../../middleware/auth';
 const router = Router();
 
 // Update student marks (teachers can only update marks for their assigned courses)
+// Body: { marks: [{ testComponentId: string, marksObtained: number }] }
 router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
     const { enrollmentId } = req.params;
-    const markData = req.body;
+    const { marks } = req.body;
 
     try {
         const userId = req.user?.id;
@@ -25,8 +26,16 @@ router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedR
 
         const enrollment = await prisma.studentEnrollment.findUnique({
             where: { id: enrollmentId },
-            include: { offering: { include: { teacher: true } } }
+            include: {
+                offering: {
+                    include: {
+                        teacher: true,
+                        testComponents: true
+                    }
+                }
+            }
         });
+
         if (!enrollment) {
             return res.status(404).json({ status: 'error', error: 'Enrollment not found' });
         }
@@ -34,46 +43,57 @@ router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedR
             return res.status(403).json({ status: 'error', error: 'Access denied - you can only update marks for your assigned courses' });
         }
 
-        const isTheoryUpdate = ['mse1_marks', 'mse2_marks', 'mse3_marks', 'task1_marks', 'task2_marks', 'task3_marks'].some(field => field in markData);
-        const isLabUpdate = ['record_marks', 'continuous_evaluation_marks', 'lab_mse_marks'].some(field => field in markData);
+        if (!marks || !Array.isArray(marks)) {
+            return res.status(400).json({
+                status: 'error',
+                error: 'Invalid marks data. Expected array of { testComponentId, marksObtained }'
+            });
+        }
 
-        if (isTheoryUpdate) {
-            const theoryMarkData: any = {};
-            if ('mse1_marks' in markData) theoryMarkData.mse1Marks = markData.mse1_marks;
-            if ('mse2_marks' in markData) theoryMarkData.mse2Marks = markData.mse2_marks;
-            if ('mse3_marks' in markData) theoryMarkData.mse3Marks = markData.mse3_marks;
-            if ('task1_marks' in markData) theoryMarkData.task1Marks = markData.task1_marks;
-            if ('task2_marks' in markData) theoryMarkData.task2Marks = markData.task2_marks;
-            if ('task3_marks' in markData) theoryMarkData.task3Marks = markData.task3_marks;
+        // Validate all test components belong to this offering
+        const validComponentIds = enrollment.offering.testComponents.map(tc => tc.id);
+        const invalidComponents = marks.filter(m => !validComponentIds.includes(m.testComponentId));
 
-            const currentMarks = await prisma.theoryMarks.findUnique({ where: { enrollmentId } });
-            const mse1 = theoryMarkData.mse1Marks !== undefined ? theoryMarkData.mse1Marks : (currentMarks?.mse1Marks || 0);
-            const mse2 = theoryMarkData.mse2Marks !== undefined ? theoryMarkData.mse2Marks : (currentMarks?.mse2Marks || 0);
-            if ((mse1 + mse2) >= 20) {
-                theoryMarkData.mse3Marks = null;
+        if (invalidComponents.length > 0) {
+            return res.status(400).json({
+                status: 'error',
+                error: 'Invalid test component IDs',
+                invalidComponents: invalidComponents.map(m => m.testComponentId)
+            });
+        }
+
+        // Validate marks don't exceed max
+        for (const mark of marks) {
+            const testComponent = enrollment.offering.testComponents.find(tc => tc.id === mark.testComponentId);
+            if (testComponent && mark.marksObtained > testComponent.maxMarks) {
+                return res.status(400).json({
+                    status: 'error',
+                    error: `Marks obtained (${mark.marksObtained}) exceed max marks (${testComponent.maxMarks}) for ${testComponent.name}`
+                });
             }
-            theoryMarkData.lastUpdatedAt = new Date();
-
-            await prisma.theoryMarks.upsert({
-                where: { enrollmentId },
-                update: theoryMarkData,
-                create: { enrollmentId, ...theoryMarkData }
-            });
         }
 
-        if (isLabUpdate) {
-            const labMarkData: any = {};
-            if ('record_marks' in markData) labMarkData.recordMarks = markData.record_marks;
-            if ('continuous_evaluation_marks' in markData) labMarkData.continuousEvaluationMarks = markData.continuous_evaluation_marks;
-            if ('lab_mse_marks' in markData) labMarkData.labMseMarks = markData.lab_mse_marks;
-            labMarkData.lastUpdatedAt = new Date();
-
-            await prisma.labMarks.upsert({
-                where: { enrollmentId },
-                update: labMarkData,
-                create: { enrollmentId, ...labMarkData }
+        // Update or create marks
+        const updatePromises = marks.map(async (mark) => {
+            return prisma.studentMark.upsert({
+                where: {
+                    enrollmentId_testComponentId: {
+                        enrollmentId,
+                        testComponentId: mark.testComponentId
+                    }
+                },
+                update: {
+                    marksObtained: mark.marksObtained
+                },
+                create: {
+                    enrollmentId,
+                    testComponentId: mark.testComponentId,
+                    marksObtained: mark.marksObtained
+                }
             });
-        }
+        });
+
+        await Promise.all(updatePromises);
 
         res.json({ status: 'success', message: 'Marks updated successfully' });
     } catch (error) {
@@ -92,7 +112,15 @@ router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) =
         }
 
         const prisma = DatabaseService.getInstance();
-        const teacher = await prisma.teacher.findUnique({ where: { userId }, include: { courseOfferings: { include: { course: true } } } });
+        const teacher = await prisma.teacher.findUnique({
+            where: { userId },
+            include: {
+                courseOfferings: {
+                    include: { course: true }
+                }
+            }
+        });
+
         if (!teacher) {
             return res.status(403).json({ status: 'error', message: 'Teacher not found' });
         }
@@ -104,37 +132,78 @@ router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) =
         const enrollments = await prisma.studentEnrollment.findMany({
             where: whereClause,
             include: {
-                student: { include: { user: { select: { id: true, name: true, email: true } } } },
-                offering: { include: { course: { select: { id: true, code: true, name: true } } } },
-                theoryMarks: true,
-                labMarks: true
+                student: {
+                    include: {
+                        user: {
+                            select: { id: true, name: true, email: true }
+                        }
+                    }
+                },
+                offering: {
+                    include: {
+                        course: {
+                            select: {
+                                id: true,
+                                code: true,
+                                name: true,
+                                hasTheoryComponent: true,
+                                hasLabComponent: true
+                            }
+                        },
+                        testComponents: true
+                    }
+                },
+                studentMarks: {
+                    include: {
+                        testComponent: true
+                    }
+                }
             }
         });
 
-        const transformedData = enrollments.map(enrollment => ({
-            id: enrollment.id,
-            enrollmentId: enrollment.id,
-            student: enrollment.student ? { id: enrollment.student.id, usn: enrollment.student.usn, user: enrollment.student.user } : null,
-            course: enrollment.offering?.course || null,
-            theoryMarks: enrollment.theoryMarks ? {
-                id: enrollment.theoryMarks.id,
-                mse1_marks: enrollment.theoryMarks.mse1Marks,
-                mse2_marks: enrollment.theoryMarks.mse2Marks,
-                mse3_marks: enrollment.theoryMarks.mse3Marks,
-                task1_marks: enrollment.theoryMarks.task1Marks,
-                task2_marks: enrollment.theoryMarks.task2Marks,
-                task3_marks: enrollment.theoryMarks.task3Marks,
-                last_updated_at: enrollment.theoryMarks.lastUpdatedAt
-            } : null,
-            labMarks: enrollment.labMarks ? {
-                id: enrollment.labMarks.id,
-                record_marks: enrollment.labMarks.recordMarks,
-                continuous_evaluation_marks: enrollment.labMarks.continuousEvaluationMarks,
-                lab_mse_marks: enrollment.labMarks.labMseMarks,
-                last_updated_at: enrollment.labMarks.lastUpdatedAt
-            } : null,
-            updatedAt: new Date()
-        }));
+        const transformedData = enrollments.map(enrollment => {
+            // Group marks by test type
+            const theoryMarks: any[] = [];
+            const labMarks: any[] = [];
+            let theoryTotal = 0;
+            let labTotal = 0;
+
+            enrollment.studentMarks.forEach(mark => {
+                const markData = {
+                    id: mark.id,
+                    testComponentId: mark.testComponentId,
+                    testName: mark.testComponent.name,
+                    maxMarks: mark.testComponent.maxMarks,
+                    marksObtained: mark.marksObtained,
+                    weightage: mark.testComponent.weightage
+                };
+
+                if (mark.testComponent.type === 'theory') {
+                    theoryMarks.push(markData);
+                    theoryTotal += mark.marksObtained || 0;
+                } else if (mark.testComponent.type === 'lab') {
+                    labMarks.push(markData);
+                    labTotal += mark.marksObtained || 0;
+                }
+            });
+
+            return {
+                id: enrollment.id,
+                enrollmentId: enrollment.id,
+                student: enrollment.student ? {
+                    id: enrollment.student.id,
+                    usn: enrollment.student.usn,
+                    user: enrollment.student.user
+                } : null,
+                course: enrollment.offering?.course || null,
+                testComponents: enrollment.offering?.testComponents || [],
+                theoryMarks,
+                labMarks,
+                theoryTotal,
+                labTotal,
+                grandTotal: theoryTotal + labTotal
+            };
+        });
 
         res.json({ status: 'success', data: transformedData });
     } catch (error) {
