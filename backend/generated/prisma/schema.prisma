@@ -3,11 +3,6 @@ generator client {
   output   = "../generated/prisma"
 }
 
-generator dbml {
-  provider = "prisma-dbml-generator"
-  output   = "./prisma/dbml"
-}
-
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -297,7 +292,7 @@ enum test_type {
 enum attendance_status {
   present
   absent
-  not
+  unmarked
 }
 
 enum course_type {

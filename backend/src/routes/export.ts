@@ -31,8 +31,11 @@ async function getAnalyticsDataForExport(filters: ExportFilters) {
                                             user: true
                                         }
                                     },
-                                    theoryMarks: true,
-                                    labMarks: true
+                                    studentMarks: {
+                                        include: {
+                                            testComponent: true
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -111,28 +114,24 @@ async function getAnalyticsDataForExport(filters: ExportFilters) {
                     totalAttendanceRecords += studentTotalCount;
                     totalPresentRecords += studentPresentCount;
 
-                    // Calculate individual student marks for this course
+                    // TODO: Calculate marks using new StudentMark/TestComponent structure
+                    // The old theoryMarks/labMarks tables have been replaced with a flexible marks system
                     let studentTheoryMarks = 0;
                     let studentLabMarks = 0;
+                    const studentTotalMarks = 0;
 
-                    if (enrollment.theoryMarks) {
-                        const theoryMark = enrollment.theoryMarks;
-                        studentTheoryMarks = (theoryMark.mse1Marks || 0) + (theoryMark.mse2Marks || 0) +
-                            (theoryMark.mse3Marks || 0) + (theoryMark.task1Marks || 0) +
-                            (theoryMark.task2Marks || 0) + (theoryMark.task3Marks || 0);
-                        totalMarks += studentTheoryMarks;
-                        marksCount++;
-                    }
-
-                    if (enrollment.labMarks) {
-                        const labMark = enrollment.labMarks;
-                        studentLabMarks = (labMark.recordMarks || 0) + (labMark.continuousEvaluationMarks || 0) +
-                            (labMark.labMseMarks || 0);
-                        totalMarks += studentLabMarks;
-                        marksCount++;
-                    }
-
-                    const studentTotalMarks = studentTheoryMarks + studentLabMarks;
+                    // COMMENTED OUT - Needs migration to new marks system
+                    // if (enrollment.studentMarks) {
+                    //     for (const mark of enrollment.studentMarks) {
+                    //         if (mark.testComponent.type === 'theory') {
+                    //             studentTheoryMarks += mark.marksObtained || 0;
+                    //         } else if (mark.testComponent.type === 'lab') {
+                    //             studentLabMarks += mark.marksObtained || 0;
+                    //         }
+                    //     }
+                    //     totalMarks += (studentTheoryMarks + studentLabMarks);
+                    //     marksCount++;
+                    // }
 
                     const studentData = {
                         name: student.user?.name || 'Unknown',

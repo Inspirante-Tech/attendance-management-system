@@ -139,7 +139,7 @@ async function seed() {
 
         // Create courses for each department in both colleges
         const allDepts = [...nmamitDepts, ...nmitDepts];
-        
+
         for (const dept of allDepts) {
             const courses = departmentCourses[dept.code!];
             if (!courses) continue;
@@ -279,23 +279,34 @@ async function seed() {
         }
 
         console.log('Creating admin user...');
-        const adminPasswordHash = await hash('admin123', 10);
-        const admin = await prisma.user.create({
-            data: {
-                username: 'admin',
-                name: 'System Admin',
-                email: 'admin@example.com',
-                passwordHash: adminPasswordHash,
-                userRoles: {
-                    create: {
-                        role: 'admin'
-                    }
-                },
-                admin: {
-                    create: {}
-                }
-            }
+        const existingAdmin = await prisma.user.findUnique({
+            where: { username: 'admin' }
         });
+
+        let admin;
+        if (!existingAdmin) {
+            const adminPasswordHash = await hash('admin123', 10);
+            admin = await prisma.user.create({
+                data: {
+                    username: 'admin',
+                    name: 'System Admin',
+                    email: 'admin@example.com',
+                    passwordHash: adminPasswordHash,
+                    userRoles: {
+                        create: {
+                            role: 'admin'
+                        }
+                    },
+                    admin: {
+                        create: {}
+                    }
+                }
+            });
+            console.log('✓ Admin user created');
+        } else {
+            admin = existingAdmin;
+            console.log('✓ Admin user already exists');
+        }
 
         console.log('Seed completed successfully');
         console.log('--------------------');

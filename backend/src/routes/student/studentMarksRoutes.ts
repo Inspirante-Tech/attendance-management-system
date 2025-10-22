@@ -202,6 +202,7 @@ import DatabaseService from "../../lib/database";
 
 const router = express.Router();
 
+// Get marks for a student
 router.get("/:userId/marks", async (req, res) => {
   try {
     const { userId } = req.params;
@@ -224,69 +225,85 @@ router.get("/:userId/marks", async (req, res) => {
       return res.status(404).json({ error: "Student not found" });
     }
 
-    // Fetch enrollments
+    // Fetch enrollments with marks
     const enrollments = await prisma.studentEnrollment.findMany({
       where: { studentId: student.id },
       include: {
-        offering: { include: { course: true } },
-        theoryMarks: true,
-        labMarks: true,
+        offering: {
+          include: {
+            course: true,
+            testComponents: true
+          }
+        },
+        studentMarks: {
+          include: {
+            testComponent: true
+          }
+        }
       },
     });
 
-    const marksData = enrollments.map((enroll) => {
-      const course = enroll.offering?.course || null;
-      const theory = enroll.theoryMarks || null;
-      const lab = enroll.labMarks || null;
-      
-      const total_theory_marks = theory
-        ? (theory.mse1Marks || 0) +
-          (theory.mse2Marks || 0) +
-          (theory.task1Marks || 0) +
-          (theory.task2Marks || 0) +
-          (theory.task3Marks || 0)
-        : 0;
+    const marksData = enrollments.map((enrollment) => {
+      const course = enrollment.offering?.course || null;
 
-      const total_lab_marks = lab
-        ? (lab.recordMarks || 0) +
-          (lab.continuousEvaluationMarks || 0) +
-          (lab.labMseMarks || 0)
-        : 0;
+      // Group marks by test type
+      const theoryMarks: any[] = [];
+      const labMarks: any[] = [];
+      let theoryTotal = 0;
+      let labTotal = 0;
+      let theoryMaxTotal = 0;
+      let labMaxTotal = 0;
 
-      const total_marks = total_theory_marks + total_lab_marks;
+      enrollment.studentMarks.forEach(mark => {
+        const markData = {
+          testName: mark.testComponent.name,
+          marksObtained: mark.marksObtained || 0,
+          maxMarks: mark.testComponent.maxMarks,
+          weightage: mark.testComponent.weightage
+        };
+
+        if (mark.testComponent.type === 'theory') {
+          theoryMarks.push(markData);
+          theoryTotal += mark.marksObtained || 0;
+          theoryMaxTotal += mark.testComponent.maxMarks;
+        } else if (mark.testComponent.type === 'lab') {
+          labMarks.push(markData);
+          labTotal += mark.marksObtained || 0;
+          labMaxTotal += mark.testComponent.maxMarks;
+        }
+      });
+
+      const totalMarks = theoryTotal + labTotal;
+      const maxTotalMarks = theoryMaxTotal + labMaxTotal;
+      const percentage = maxTotalMarks > 0 ? (totalMarks / maxTotalMarks) * 100 : 0;
 
       // Simple grading
       let grade = "F";
-      if (total_marks >= 90) grade = "O";
-      else if (total_marks >= 80) grade = "A+";
-      else if (total_marks >= 70) grade = "A";
-      else if (total_marks >= 60) grade = "B+";
-      else if (total_marks >= 50) grade = "B";
+      if (percentage >= 90) grade = "O";
+      else if (percentage >= 80) grade = "A+";
+      else if (percentage >= 70) grade = "A";
+      else if (percentage >= 60) grade = "B+";
+      else if (percentage >= 50) grade = "B";
+      else if (percentage >= 40) grade = "C";
 
       return {
-        course_code: course?.code ?? null,
-        course_name: course?.name ?? null,
-        course_type: course?.type ?? null,
-        has_theory_component: course?.hasTheoryComponent ?? false,
-        has_lab_component: course?.hasLabComponent ?? false,
-        theory_marks: theory,
-        lab_marks: lab,
-        total_theory_marks,
-        total_lab_marks: lab ? total_lab_marks : null,
-        total_marks,
+        courseCode: course?.code || "N/A",
+        courseName: course?.name || "N/A",
+        theoryMarks,
+        labMarks,
+        theoryTotal,
+        labTotal,
+        totalMarks,
+        maxTotalMarks,
+        percentage: parseFloat(percentage.toFixed(2)),
         grade,
       };
     });
 
     res.json({
       student: {
-        id: student.id,
         name: user.name,
         usn: student.usn,
-        email: user.email,
-        phone: user.phone,
-        college_id: student.college_id,
-        department_id: student.department_id,
         semester: student.semester,
         batchYear: student.batchYear,
       },
@@ -297,5 +314,6 @@ router.get("/:userId/marks", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 export default router;

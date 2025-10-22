@@ -304,7 +304,7 @@ exports.course_type = exports.$Enums.course_type = {
 exports.attendance_status = exports.$Enums.attendance_status = {
   present: 'present',
   absent: 'absent',
-  not: 'not'
+  unmarked: 'unmarked'
 };
 
 exports.test_type = exports.$Enums.test_type = {
