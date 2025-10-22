@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { TeacherAPI, type CourseOffering } from '@/lib/teacher-api'
 import { authService } from '@/lib/auth'
-import TeacherMarksAttendanceManagement from '@/app/teacher/marks-attendance-management'
+import TeacherMarksAttendanceManagement from '@/app/teacher/TeacherMarksAttendanceManagement'
 import { ArrowLeft } from 'lucide-react'
 
 export default function TeacherMarksAttendancePage() {

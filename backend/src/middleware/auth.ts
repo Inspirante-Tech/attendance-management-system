@@ -120,7 +120,7 @@ export const requireRole = (requiredRoles: string | string[]) => {
 
 // Convenience middleware for common role combinations
 export const requireAdmin = requireRole('admin');
-export const requireTeacher = requireRole(['teacher', 'admin']);
+export const requireTeacher = requireRole('teacher');
 export const requireStudent = requireRole(['student', 'teacher', 'admin']);
 export const requireTeacherOrAdmin = requireRole(['teacher', 'admin']);
 

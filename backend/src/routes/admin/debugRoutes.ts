@@ -682,7 +682,7 @@ router.post('/fix/create-matching-course-offerings', async (req, res) => {
 					year_name: '2024-25',
 					start_date: new Date('2024-08-01'),
 					end_date: new Date('2025-07-31'),
-					college_id: courses[0]?.college_id || ''
+					college_id: courses[0]?.department?.college_id || ''
 				}
 			});
 		}

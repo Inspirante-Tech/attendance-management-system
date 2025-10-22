@@ -1,15 +1,16 @@
 // API functions for student attendance system
-import {
-  Student,
-  DailyAttendance,
-  CourseAttendanceStats,
-  OverallAttendanceStats,
-  MonthlyAttendanceData
+import { StudentInfo ,StudentMarksResponse, AttendanceReport } from '@/types/student';
+import { 
+  DailyAttendance, 
+  CourseAttendanceStats, 
+
+  MonthlyAttendanceData 
 } from './types'
-import {
-  CourseEnrollmentData,
-  EnrollmentResult,
-  CourseEnrollment
+
+import { 
+  CourseEnrollmentData, 
+  EnrollmentResult, 
+  CourseEnrollment 
 } from '@/types/admin'
 import Cookies from 'js-cookie'
 
@@ -75,66 +76,101 @@ async function apiRequest<T>(endpoint: string, options?: RequestInit): Promise<T
 // Student API functions
 export const studentApi = {
   // Get student profile information
-  async getStudentProfile(studentId: string): Promise<Student> {
-    return apiRequest<Student>(`/api/students/${studentId}`)
+  async getStudentProfile(UserId: string): Promise<StudentInfo> {
+    console.log(`/api/student/students/${UserId}`  )
+    return apiRequest<StudentInfo>(`/api/student/students/${UserId}`)
   },
 
+
   // Get today's attendance for a student
-  async getTodayAttendance(studentId: string): Promise<DailyAttendance[]> {
+  async getTodayAttendance(userId: string): Promise<DailyAttendance[]> {
     const today = new Date().toISOString().split('T')[0]
-    return apiRequest<DailyAttendance[]>(`/api/students/${studentId}/attendance/daily?date=${today}`)
+    return apiRequest<DailyAttendance[]>(`/api/students/${userId}/attendance/daily?date=${today}`)
   },
 
   // Get attendance for a specific date
   async getAttendanceByDate(studentId: string, date: string): Promise<DailyAttendance[]> {
     return apiRequest<DailyAttendance[]>(`/api/students/${studentId}/attendance/daily?date=${date}`)
-  },
+  },    
 
   // Get monthly attendance data for calendar
   async getMonthlyAttendance(
-    studentId: string,
-    year: number,
+    userId: string, 
+    year: number, 
     month: number
   ): Promise<MonthlyAttendanceData> {
     return apiRequest<MonthlyAttendanceData>(
-      `/api/students/${studentId}/attendance/monthly?year=${year}&month=${month}`
+      `/api/student/${userId}/attendance/monthly?year=${year}&month=${month}`
     )
   },
 
-  // Get overall attendance statistics
-  async getOverallStats(studentId: string, academicYear?: string): Promise<OverallAttendanceStats> {
-    const params = academicYear ? `?academic_year=${academicYear}` : ''
-    return apiRequest<OverallAttendanceStats>(`/api/students/${studentId}/attendance/stats${params}`)
+  // // Get overall attendance statistics
+  // async getOverallStats(studentId: string, academicYear?: string): Promise<OverallAttendanceStats> {
+  //   const params = academicYear ? `?academic_year=${academicYear}` : ''
+  //   return apiRequest<OverallAttendanceStats>(`/api/students/${studentId}/attendance/stats${params}`)
+  // },
+
+  // Get student marks
+async getStudentMarks(userId: string): Promise<StudentMarksResponse> {
+  return apiRequest<StudentMarksResponse>(`/api/student/${userId}/marks`);
+},
+
+  // Get all stats at once
+  async getAllStats(userId: string): Promise<AttendanceReport> {
+    
+    return apiRequest<AttendanceReport>(`/api/student/${userId}/stats`)
   },
 
-  // Get course-wise attendance statistics
-  async getCourseWiseStats(studentId: string, academicYear?: string): Promise<CourseAttendanceStats[]> {
-    const params = academicYear ? `?academic_year=${academicYear}` : ''
-    return apiRequest<CourseAttendanceStats[]>(`/api/students/${studentId}/attendance/courses${params}`)
-  },
+  // async getCourseWiseStats(studentId: string, academicYear?: string): Promise<CourseAttendanceStats[]> {
+  //   const params = academicYear ? `?academic_year=${academicYear}` : ''
+  //   return apiRequest<CourseAttendanceStats[]>(`/api/students/${studentId}/attendance/courses${params}`)
+  // },
 
   // Get attendance trend data
-  async getAttendanceTrend(
-    studentId: string,
-    period: 'weekly' | 'monthly' | 'semester',
-    academicYear?: string
-  ): Promise<Array<{ period: string; percentage: number }>> {
-    const params = new URLSearchParams()
-    params.append('period', period)
-    if (academicYear) params.append('academic_year', academicYear)
+  // async getAttendanceTrend(
+  //   studentId: string,
+  //   period: 'weekly' | 'monthly' | 'semester',
+  //   academicYear?: string
+  // ): Promise<Array<{ period: string; percentage: number }>> {
+  //   const params = new URLSearchParams()
+  //   params.append('period', period)
+  //   if (academicYear) params.append('academic_year', academicYear)
 
-    return apiRequest<Array<{ period: string; percentage: number }>>(
-      `/api/students/${studentId}/attendance/trend?${params.toString()}`
-    )
-  },  // Get student's enrolled courses
-  async getEnrolledCourses(studentId: string, academicYear?: string): Promise<any[]> {
-    const params = academicYear ? `?academic_year=${academicYear}` : ''
-    return apiRequest<any[]>(`/api/students/${studentId}/courses${params}`)
-  }
-}
+  //   return apiRequest<Array<{ period: string; percentage: number }>>(
+  //     `/api/students/${studentId}/attendance/trend?${params.toString()}`
+  //   )
+//   },  // Get student's enrolled courses
+//   async getEnrolledCourses(studentId: string, academicYear?: string): Promise<any[]> {
+//     const params = academicYear ? `?academic_year=${academicYear}` : ''
+//     return apiRequest<any[]>(`/api/students/${studentId}/courses${params}`)
+//   }
+// }
+};
 
 // Admin API functions
 export const adminApi = {
+
+  //for imports
+  async getImportStatus() {
+  return apiRequest<any>('/api/admin/import-status')
+},
+// Import management
+async importTable(stepId: string, file: File): Promise<any> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  return apiRequest<any>(`/api/admin/import/${stepId}`, {
+    method: "POST",
+    body: formData
+  })
+},
+
+async clearDatabase(): Promise<any> {
+  return apiRequest<any>('/api/admin/clear-database', {
+    method: "POST"
+  })
+},
+
   // User management
   async getAllUsers(): Promise<any> {
     return apiRequest<any>('/api/users')
@@ -449,6 +485,7 @@ export const adminApi = {
   // Course Enrollment Management
   async getEligibleStudents(courseId: string, year: string, semester: string): Promise<{ status: string; data: CourseEnrollmentData }> {
     const params = new URLSearchParams()
+    params.append('courseId',courseId)
     params.append('year', year)
     params.append('semester', semester)
 

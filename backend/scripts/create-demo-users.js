@@ -14,6 +14,15 @@ const DEMO_USERS = [
     roles: ['admin']
   },
   {
+    username: 'amalytics',
+    password: 'analytics123',
+    name: 'Demo analytics',
+    email: 'amalytics@demo.com',
+    phone: '9999999991',
+    roles: ['report_viewer']
+  }
+,
+  {
     username: 'teacher',
     password: 'teacher123',
     name: 'Demo Teacher',

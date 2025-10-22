@@ -519,7 +519,7 @@ router.delete('/:id/force', async (req, res) => {
 
     // Delete all departments and their dependencies
     for (const department of existingCollege.departments) {
-      // Delete all courses in this department
+      // Delete all courses and their dependencies for this department
       for (const course of department.courses) {
         // Delete course elective group members
         await prisma.courseElectiveGroupMember.deleteMany({

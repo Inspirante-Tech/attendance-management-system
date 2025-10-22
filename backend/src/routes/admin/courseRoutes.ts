@@ -4,6 +4,74 @@ import DatabaseService from '../../lib/database';
 
 const router = Router();
 
+
+
+
+//to get information on a particular course:
+router.get('/courses/:courseId', async (req, res) => {
+	try {
+		const { courseId } = req.params;
+
+		const prisma = DatabaseService.getInstance();
+
+		// Get the course details along with teachers (via CourseOffering)
+		const course = await prisma.course.findUnique({
+			where: { id: courseId },
+			select: {
+				id: true,
+				name: true,
+				courseOfferings: {
+					where: {
+						teacherId: { not: null }
+					},
+					select: {
+						teacher: {
+							select: {
+								id: true,
+								user: {
+									select: { name: true }
+								}
+							}
+						}
+					}
+				}
+			}
+		});
+
+		if (!course) {
+			return res.status(404).json({ status: "error", error: "Course not found" });
+		}
+
+		// Extract unique teachers from offerings
+		const uniqueTeachersMap = new Map<string, { id: string; name: string }>();
+		for (const offering of course.courseOfferings) {
+			const t = offering.teacher;
+			if (t && !uniqueTeachersMap.has(t.id)) {
+				uniqueTeachersMap.set(t.id, { id: t.id, name: t.user.name });
+			}
+		}
+
+		const teachers = Array.from(uniqueTeachersMap.values());
+
+		res.json({
+			status: "success",
+			data: {
+				id: course.id,
+				name: course.name,
+				teachers
+			}
+		});
+
+	} catch (error) {
+		console.error("Error fetching course details:", error);
+		res.status(500).json({
+			status: "error",
+			error: error instanceof Error ? error.message : "Unknown error"
+		});
+	}
+});
+
+
 console.log('=== COURSE ROUTES MODULE LOADED ===');
 
 // Get eligible students for a course
@@ -53,14 +121,17 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
 
 		// Convert semester to year using proper mapping:
 		// Semester 1,2 = Year 1; Semester 3,4 = Year 2; Semester 5,6 = Year 3; Semester 7,8 = Year 4
-		const courseYear = Math.ceil(semesterNumber / 2);
+		//himanshu thinks this is not necessary for now :)
+		//const courseYear = Math.ceil(semesterNumber / 2);
 
-		// Students are stored with semester field which indicates their current semester
-		// We don't use batchYear for filtering as it stores the batch start year (e.g., 2023), not year of study
+		// Students are stored with batchYear which represents their academic year
+		// We need to find students whose current year matches the course year
+		const batchYear: number = yearNumber;
 		const absoluteSemester: number = semesterNumber;
 
 		// Build student where conditions
 		let studentWhereConditions: any = {
+			batchYear: batchYear,
 			college_id: course.department.college_id,
 			semester: absoluteSemester
 		};

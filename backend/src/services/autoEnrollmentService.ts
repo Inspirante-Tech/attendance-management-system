@@ -29,7 +29,7 @@ export async function autoEnrollStudentForSemester(studentId: string, semester: 
 
   try {
     const prisma = Database.getInstance();
-    
+
     // Get student details with department and college info
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -52,7 +52,7 @@ export async function autoEnrollStudentForSemester(studentId: string, semester: 
 
     // Get the current active academic year
     console.log(`🔍 Looking for active academic year for college: ${student.college_id}`);
-    
+
     // First, let's see all academic years for this college
     const allAcademicYears = await prisma.academic_years.findMany({
       where: {
@@ -85,13 +85,15 @@ export async function autoEnrollStudentForSemester(studentId: string, semester: 
 
     for (const academicYear of activeAcademicYears) {
       console.log(`🔍 Trying academic year: ${academicYear.year_name} (${academicYear.year_id})`);
-      
+
       // Find all core courses for the student's department
       const coreCourses = await prisma.course.findMany({
         where: {
-          college_id: student.college_id,
           departmentId: student.department_id,
-          type: 'core'
+          type: 'core',
+          department: {
+            college_id: student.college_id
+          }
         }
       });
 
@@ -143,7 +145,7 @@ export async function autoEnrollStudentForSemester(studentId: string, semester: 
     });
 
     const existingOfferingIds = new Set(existingEnrollments.map((enrollment: any) => enrollment.offeringId));
-    const offeringsToEnroll = semesterOfferings.filter((offering: any) => 
+    const offeringsToEnroll = semesterOfferings.filter((offering: any) =>
       !existingOfferingIds.has(offering.id)
     );
 
@@ -163,7 +165,7 @@ export async function autoEnrollStudentForSemester(studentId: string, semester: 
 
     result.success = true;
     result.enrollmentsCreated = createdEnrollments.length;
-    result.details.courseOfferingsEnrolled = offeringsToEnroll.map((offering: any) => 
+    result.details.courseOfferingsEnrolled = offeringsToEnroll.map((offering: any) =>
       `${offering.course.code} - ${offering.course.name} (Semester ${offering.semester})`
     );
 
@@ -195,7 +197,7 @@ export async function autoEnrollFirstYearStudent(studentId: string): Promise<Aut
  * @returns AutoEnrollmentResult with details of the enrollment process
  */
 export async function autoEnrollStudentBySemester(
-  studentId: string, 
+  studentId: string,
   targetSemester?: number
 ): Promise<AutoEnrollmentResult> {
   const result: AutoEnrollmentResult = {
@@ -210,7 +212,7 @@ export async function autoEnrollStudentBySemester(
 
   try {
     const prisma = Database.getInstance();
-    
+
     // Get student details
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -258,7 +260,7 @@ export async function getAvailableCoursesForSemester(
 ) {
   const prisma = Database.getInstance();
   let targetAcademicYear = academicYearId;
-  
+
   if (!targetAcademicYear) {
     const activeAcademicYear = await prisma.academic_years.findFirst({
       where: {
@@ -266,20 +268,22 @@ export async function getAvailableCoursesForSemester(
         is_active: true
       }
     });
-    
+
     if (!activeAcademicYear) {
       throw new Error('No active academic year found');
     }
-    
+
     targetAcademicYear = activeAcademicYear.year_id;
   }
 
   // Find all core courses for the department
   const coreCourses = await prisma.course.findMany({
     where: {
-      college_id: collegeId,
       departmentId: departmentId,
-      type: 'core'
+      type: 'core',
+      department: {
+        college_id: collegeId
+      }
     }
   });
 
@@ -329,7 +333,7 @@ export async function getCoursesBySemester(
 ) {
   const prisma = Database.getInstance();
   let targetAcademicYear = academicYearId;
-  
+
   if (!targetAcademicYear) {
     const activeAcademicYear = await prisma.academic_years.findFirst({
       where: {
@@ -337,20 +341,22 @@ export async function getCoursesBySemester(
         is_active: true
       }
     });
-    
+
     if (!activeAcademicYear) {
       throw new Error('No active academic year found');
     }
-    
+
     targetAcademicYear = activeAcademicYear.year_id;
   }
 
   // Find all core courses for the department
   const coreCourses = await prisma.course.findMany({
     where: {
-      college_id: collegeId,
       departmentId: departmentId,
-      type: 'core'
+      type: 'core',
+      department: {
+        college_id: collegeId
+      }
     }
   });
 
@@ -383,7 +389,7 @@ export async function getCoursesBySemester(
 
   // Group by semester
   const coursesBySemester: { [semester: number]: any[] } = {};
-  
+
   allOfferings.forEach((offering: any) => {
     const semester = offering.semester;
     if (!coursesBySemester[semester]) {
@@ -413,7 +419,7 @@ export async function promoteStudentToNextSemester(studentId: string): Promise<A
 
   try {
     const prisma = Database.getInstance();
-    
+
     // Get student details
     const student = await prisma.student.findUnique({
       where: { id: studentId },
@@ -440,7 +446,7 @@ export async function promoteStudentToNextSemester(studentId: string): Promise<A
 
     // Auto-enroll in next semester's courses
     const enrollmentResult = await autoEnrollStudentForSemester(studentId, nextSemester);
-    
+
     result.success = enrollmentResult.success;
     result.enrollmentsCreated = enrollmentResult.enrollmentsCreated;
     result.errors = enrollmentResult.errors;

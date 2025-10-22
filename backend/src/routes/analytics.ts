@@ -83,29 +83,25 @@ router.get('/overview/:studyYear?', authenticateToken, async (req: Authenticated
     const totalRecords = attendanceRecords.length;
     const averageAttendance = totalRecords > 0 ? (presentCount / totalRecords) * 100 : 0;
 
-    // Get theory and lab marks for average calculation
-    const theoryMarks = await prisma.theoryMarks.findMany();
-    const labMarks = await prisma.labMarks.findMany();
+    // TODO: Get marks using new StudentMark/TestComponent system
+    // TEMP: Stubbed out marks calculation during schema migration
+    const studentMarks = await prisma.studentMark.findMany({
+      include: {
+        testComponent: true
+      }
+    });
 
     let totalScore = 0;
     let markCount = 0;
     let passedStudents = 0;
 
-    // Process theory marks
-    theoryMarks.forEach(marks => {
-      const totalMarks = (marks.mse1Marks || 0) + (marks.mse2Marks || 0) + (marks.mse3Marks || 0) +
-        (marks.task1Marks || 0) + (marks.task2Marks || 0) + (marks.task3Marks || 0);
-      totalScore += totalMarks;
+    // Process student marks (new system)
+    studentMarks.forEach((mark: any) => {
+      const score = mark.marksObtained || 0;
+      totalScore += score;
       markCount++;
-      if (totalMarks >= 30) passedStudents++; // Adjusted pass threshold based on actual data scale
-    });
-
-    // Process lab marks
-    labMarks.forEach(marks => {
-      const totalMarks = (marks.recordMarks || 0) + (marks.continuousEvaluationMarks || 0) + (marks.labMseMarks || 0);
-      totalScore += totalMarks;
-      markCount++;
-      if (totalMarks >= 30) passedStudents++; // Adjusted pass threshold
+      // TODO: Define proper passing criteria based on test components
+      if (score >= mark.testComponent.maxMarks * 0.4) passedStudents++;
     });
 
     // Calculate real low attendance students
@@ -435,21 +431,15 @@ router.get('/marks/:studyYear?', authenticateToken, async (req: AuthenticatedReq
 
         // Get actual courses for this section with real marks data
         const actualCourses = await Promise.all(section.course_offerings.map(async offering => {
-          // Get real theory marks for this course offering
-          const theoryMarks = await prisma.theoryMarks.findMany({
+          // TODO: Get marks using new StudentMark/TestComponent system
+          const studentMarks = await prisma.studentMark.findMany({
             where: {
               enrollment: {
                 offeringId: offering.id
               }
-            }
-          });
-
-          // Get real lab marks for this course offering
-          const labMarks = await prisma.labMarks.findMany({
-            where: {
-              enrollment: {
-                offeringId: offering.id
-              }
+            },
+            include: {
+              testComponent: true
             }
           });
 
@@ -458,21 +448,13 @@ router.get('/marks/:studyYear?', authenticateToken, async (req: AuthenticatedReq
           let courseMarkCount = 0;
           let coursePassed = 0;
 
-          // Process theory marks
-          theoryMarks.forEach(mark => {
-            const theoryTotal = (mark.mse1Marks || 0) + (mark.mse2Marks || 0) + (mark.mse3Marks || 0) +
-              (mark.task1Marks || 0) + (mark.task2Marks || 0) + (mark.task3Marks || 0);
-            courseTotalMarks += theoryTotal;
+          // Process student marks (new system)
+          studentMarks.forEach((mark: any) => {
+            const score = mark.marksObtained || 0;
+            courseTotalMarks += score;
             courseMarkCount++;
-            if (theoryTotal >= 30) coursePassed++; // Adjusted pass threshold
-          });
-
-          // Process lab marks
-          labMarks.forEach(mark => {
-            const labTotal = (mark.recordMarks || 0) + (mark.continuousEvaluationMarks || 0) + (mark.labMseMarks || 0);
-            courseTotalMarks += labTotal;
-            courseMarkCount++;
-            if (labTotal >= 30) coursePassed++; // Adjusted pass threshold
+            // TODO: Define proper passing criteria
+            if (score >= mark.testComponent.maxMarks * 0.4) coursePassed++;
           });
 
           const courseAvgMarks = courseMarkCount > 0 ? courseTotalMarks / courseMarkCount : 0;
@@ -494,21 +476,21 @@ router.get('/marks/:studyYear?', authenticateToken, async (req: AuthenticatedReq
             students: await Promise.all(offering.enrollments.map(async enrollment => {
               if (!enrollment.student) return null;
 
-              // Get student's marks for this course
-              const theoryMark = theoryMarks.find(mark => mark.enrollmentId === enrollment.id);
-              const labMark = labMarks.find(mark => mark.enrollmentId === enrollment.id);
+              // TODO: Get student's marks using new system
+              const enrollmentMarks = studentMarks.filter((m: any) => m.enrollmentId === enrollment.id);
 
               // Calculate total marks
               let theoryTotal = 0;
-              if (theoryMark) {
-                theoryTotal = (theoryMark.mse1Marks || 0) + (theoryMark.mse2Marks || 0) + (theoryMark.mse3Marks || 0) +
-                  (theoryMark.task1Marks || 0) + (theoryMark.task2Marks || 0) + (theoryMark.task3Marks || 0);
-              }
-
               let labTotal = 0;
-              if (labMark) {
-                labTotal = (labMark.recordMarks || 0) + (labMark.continuousEvaluationMarks || 0) + (labMark.labMseMarks || 0);
-              }
+
+              enrollmentMarks.forEach((mark: any) => {
+                const score = mark.marksObtained || 0;
+                if (mark.testComponent.type === 'theory') {
+                  theoryTotal += score;
+                } else if (mark.testComponent.type === 'lab') {
+                  labTotal += score;
+                }
+              });
 
               const totalMarks = theoryTotal + labTotal;
 
