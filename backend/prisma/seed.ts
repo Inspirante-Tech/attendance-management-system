@@ -69,18 +69,18 @@ async function seed() {
             prisma.academic_years.create({
                 data: {
                     college_id: nmamit.id,
-                    year_name: '2024-25',
-                    start_date: new Date('2024-06-01'),
-                    end_date: new Date('2025-05-31'),
+                    year_name: '2025-26',
+                    start_date: new Date('2025-06-01'),
+                    end_date: new Date('2026-05-31'),
                     is_active: true
                 }
             }),
             prisma.academic_years.create({
                 data: {
                     college_id: nmit.id,
-                    year_name: '2024-25',
-                    start_date: new Date('2024-06-01'),
-                    end_date: new Date('2025-05-31'),
+                    year_name: '2025-26',
+                    start_date: new Date('2025-06-01'),
+                    end_date: new Date('2026-05-31'),
                     is_active: true
                 }
             })
@@ -288,7 +288,7 @@ async function seed() {
                             student: {
                                 create: {
                                     usn,
-                                    semester: 3,
+                                    semester: 5,
                                     batchYear: 2023,
                                     college_id: college.id,
                                     department_id: dept.id,
