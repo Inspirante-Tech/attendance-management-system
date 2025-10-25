@@ -1,31 +1,57 @@
 // src/routes/admin/attendanceRoutes.ts
+/**
+ * Attendance management routes for admins and teachers
+ * Handles CRUD operations for attendance records and course assignments
+ */
 import { Router } from 'express';
 import DatabaseService from '../../lib/database';
 import { AuthenticatedRequest } from '../../middleware/auth';
+import { GetAttendanceParams, CreateAttendanceRequest, UpdateAttendanceRequest } from '../../types/attendance.types';
+import { ApiResponse } from '../../types/common.types';
+import {
+  getAccessibleCourseIds,
+  buildCourseFilter,
+  transformToAttendanceRecord,
+  findCourseOfferingForAttendance,
+  findOrCreateAttendanceSession,
+  isValidAttendanceStatus
+} from '../../utils/attendance.helpers';
 
 const router = Router();
 
 console.log('=== ADMIN ATTENDANCE ROUTES LOADED ===');
 
-// Get courses assigned to the current user (for filtering attendance management)
+/**
+ * GET /assigned-courses
+ * Returns list of courses assigned to the current user
+ * - Admin users see all courses
+ * - Teacher users see only their assigned courses
+ */
+/**
+ * GET /assigned-courses
+ * Returns list of courses assigned to the current user
+ * - Admin users see all courses
+ * - Teacher users see only their assigned courses
+ */
 router.get('/assigned-courses', async (req: AuthenticatedRequest, res) => {
   try {
     const prisma = DatabaseService.getInstance();
     const userId = req.user?.id;
+    const userRoles = req.user?.roles || [];
 
     if (!userId) {
       return res.status(401).json({
         status: 'error',
         error: 'User authentication required'
-      });
+      } as ApiResponse);
     }
 
-    // Check user roles
-    const userRoles = req.user?.roles || [];
-    
-    // If user is admin, return all courses
+    // Get courses based on user role
+    let courses: any[] = [];
+
     if (userRoles.includes('admin')) {
-      const allCourses = await prisma.course.findMany({
+      // Admin sees all courses
+      courses = await prisma.course.findMany({
         include: {
           department: true,
           courseOfferings: {
@@ -35,39 +61,16 @@ router.get('/assigned-courses', async (req: AuthenticatedRequest, res) => {
             }
           }
         },
-        orderBy: {
-          name: 'asc'
-        }
+        orderBy: { name: 'asc' }
       });
-
-      const formattedCourses = allCourses.map(course => ({
-        id: course.id,
-        code: course.code,
-        name: course.name,
-        type: course.type,
-        department: course.department?.name,
-        hasTheoryComponent: course.hasTheoryComponent,
-        hasLabComponent: course.hasLabComponent
-      }));
-
-      return res.json({
-        status: 'success',
-        data: formattedCourses
-      });
-    }
-
-    // If user is teacher, return only courses they're assigned to
-    if (userRoles.includes('teacher')) {
+    } else if (userRoles.includes('teacher')) {
+      // Teacher sees only assigned courses
       const teacher = await prisma.teacher.findUnique({
-        where: { userId: userId },
+        where: { userId },
         include: {
           courseOfferings: {
             include: {
-              course: {
-                include: {
-                  department: true
-                }
-              },
+              course: { include: { department: true } },
               sections: true,
               academic_years: true
             }
@@ -75,72 +78,73 @@ router.get('/assigned-courses', async (req: AuthenticatedRequest, res) => {
         }
       });
 
-      if (!teacher) {
-        return res.json({
-          status: 'success',
-          data: []
+      if (teacher) {
+        // Extract unique courses from course offerings
+        const courseMap = new Map();
+        teacher.courseOfferings.forEach((offering: any) => {
+          const course = offering.course;
+          if (!courseMap.has(course.id)) {
+            courseMap.set(course.id, course);
+          }
         });
+        courses = Array.from(courseMap.values());
       }
-
-      // Get unique courses from course offerings
-      const assignedCourses = teacher.courseOfferings.reduce((acc, offering) => {
-        const course = offering.course;
-        if (!acc.find(c => c.id === course.id)) {
-          acc.push({
-            id: course.id,
-            code: course.code,
-            name: course.name,
-            type: course.type,
-            department: course.department?.name,
-            hasTheoryComponent: course.hasTheoryComponent,
-            hasLabComponent: course.hasLabComponent
-          });
-        }
-        return acc;
-      }, [] as any[]);
-
-      return res.json({
-        status: 'success',
-        data: assignedCourses
-      });
     }
 
-    // For other roles, return empty list
+    // Format courses for response
+    const formattedCourses = courses.map((course: any) => ({
+      id: course.id,
+      code: course.code,
+      name: course.name,
+      type: course.type,
+      department: course.department?.name,
+      hasTheoryComponent: course.hasTheoryComponent,
+      hasLabComponent: course.hasLabComponent
+    }));
+
     return res.json({
       status: 'success',
-      data: []
-    });
+      data: formattedCourses
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Error fetching assigned courses:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 
-// Get attendance for a specific date
+/**
+ * GET /attendance
+ * Retrieves attendance records for a specific date
+ * Query parameters:
+ * - date: Required - Date in ISO format (YYYY-MM-DD)
+ * - courseId: Optional - Filter by specific course
+ * - departmentId: Optional - Filter by department (not fully implemented)
+ */
 router.get('/attendance', async (req: AuthenticatedRequest, res) => {
   try {
     console.log('=== ATTENDANCE ENDPOINT HIT ===');
-    const { date, courseId, departmentId } = req.query;
+
+    const { date, courseId, departmentId } = req.query as Partial<GetAttendanceParams>;
     const userId = req.user?.id;
     const userRoles = req.user?.roles || [];
 
+    // Validate required parameters
     if (!date || typeof date !== 'string') {
-      res.status(400).json({
+      return res.status(400).json({
         status: 'error',
         error: 'Date parameter is required'
-      });
-      return;
+      } as ApiResponse);
     }
 
     if (!userId) {
       return res.status(401).json({
         status: 'error',
         error: 'User authentication required'
-      });
+      } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
@@ -150,64 +154,23 @@ router.get('/attendance', async (req: AuthenticatedRequest, res) => {
     console.log('User roles:', userRoles);
 
     // Get courses that the user is allowed to view
-    let allowedCourseIds: string[] = [];
-    
-    if (userRoles.includes('admin')) {
-      // Admin can see all courses
-      const allCourses = await prisma.course.findMany({
-        select: { id: true }
-      });
-      allowedCourseIds = allCourses.map(c => c.id);
-    } else if (userRoles.includes('teacher')) {
-      // Teacher can only see courses they're assigned to
-      const teacher = await prisma.teacher.findUnique({
-        where: { userId: userId },
-        include: {
-          courseOfferings: {
-            include: {
-              course: true
-            }
-          }
-        }
-      });
-      
-      if (teacher) {
-        allowedCourseIds = [...new Set(teacher.courseOfferings.map(offering => offering.course.id))];
-      }
-    }
-
+    const allowedCourseIds = await getAccessibleCourseIds(prisma, userId, userRoles);
     console.log('Allowed course IDs:', allowedCourseIds);
 
-    // Apply course filter if specified and user is allowed to view it
-    let courseFilter: any = {};
-    if (courseId && typeof courseId === 'string') {
-      if (allowedCourseIds.includes(courseId)) {
-        courseFilter = { id: courseId };
-      } else {
-        // User is not allowed to view this course
-        return res.json({
-          status: 'success',
-          data: [],
-          count: 0,
-          message: 'Access denied to this course'
-        });
-      }
-    } else {
-      // Filter to only allowed courses
-      if (allowedCourseIds.length > 0) {
-        courseFilter = { id: { in: allowedCourseIds } };
-      } else {
-        // User has no course access
-        return res.json({
-          status: 'success',
-          data: [],
-          count: 0
-        });
-      }
+    // Build course filter
+    const courseFilter = buildCourseFilter(allowedCourseIds, courseId as string | undefined);
+
+    // Check if user has no access
+    if (courseFilter.id === 'no-access') {
+      return res.json({
+        status: 'success',
+        data: [],
+        count: 0,
+        message: 'No courses accessible'
+      } as ApiResponse);
     }
 
-    // First, get all students who should have attendance for this date
-    // We'll get all students from active courses/offerings that the user can access
+    // Get all students who should have attendance for this date
     const students = await prisma.student.findMany({
       include: {
         user: true,
@@ -215,54 +178,38 @@ router.get('/attendance', async (req: AuthenticatedRequest, res) => {
         departments: true,
         enrollments: {
           include: {
-            offering: {
-              include: {
-                course: true
-              }
-            }
+            offering: { include: { course: true } }
           },
           where: {
-            offering: {
-              course: courseFilter
-            }
+            offering: { course: courseFilter }
           }
         }
       },
       where: {
         enrollments: {
           some: {
-            offering: {
-              course: courseFilter
-            }
+            offering: { course: courseFilter }
           }
         }
       },
-      orderBy: {
-        usn: 'asc'
-      }
+      orderBy: { usn: 'asc' }
     });
 
     console.log(`Found ${students.length} total students`);
 
-    // Get existing attendance records for this date (filtered by allowed courses)
+    // Get existing attendance records for this date
     const existingAttendance = await prisma.attendanceRecord.findMany({
       where: {
         attendance: {
           classDate: targetDate,
-          offering: {
-            course: courseFilter
-          }
+          offering: { course: courseFilter }
         }
       },
       include: {
         student: true,
         attendance: {
           include: {
-            offering: {
-              include: {
-                course: true
-              }
-            }
+            offering: { include: { course: true } }
           }
         }
       }
@@ -272,88 +219,56 @@ router.get('/attendance', async (req: AuthenticatedRequest, res) => {
 
     // Create a map of existing attendance by student ID
     const attendanceMap = new Map();
-    existingAttendance.forEach(record => {
+    existingAttendance.forEach((record: any) => {
       attendanceMap.set(record.studentId, record);
     });
 
-    // Transform the data for frontend - show all students with their attendance status
-    const transformedData = students.map(student => {
-      const attendanceRecord = attendanceMap.get(student.id);
-      
-      // If student has attendance record, use it; otherwise show as "not marked"
-      if (attendanceRecord) {
-        return {
-          id: attendanceRecord.id,
-          date: attendanceRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
-          studentId: student.id,
-          usn: student.usn,
-          student_name: student.user?.name || '',
-          status: attendanceRecord.status,
-          courseId: attendanceRecord.attendance?.offering?.course?.id,
-          courseName: attendanceRecord.attendance?.offering?.course?.name,
-          courseCode: attendanceRecord.attendance?.offering?.course?.code,
-          periodNumber: attendanceRecord.attendance?.periodNumber,
-          sectionName: student.sections?.section_name || 'Section A'
-        };
-      } else {
-        // Student doesn't have attendance record yet - show as "not marked"
-        const primaryEnrollment = student.enrollments[0]; // Use first enrollment as default
-        return {
-          id: `pending-${student.id}`,
-          date: date,
-          studentId: student.id,
-          usn: student.usn,
-          student_name: student.user?.name || '',
-          status: 'not_marked',
-          courseId: primaryEnrollment?.offering?.course?.id || null,
-          courseName: primaryEnrollment?.offering?.course?.name || 'No Course',
-          courseCode: primaryEnrollment?.offering?.course?.code || 'N/A',
-          periodNumber: 1,
-          sectionName: student.sections?.section_name || 'Section A'
-        };
-      }
-    });
+    // Transform the data for frontend
+    const transformedData = students.map((student: any) =>
+      transformToAttendanceRecord(student, attendanceMap, date)
+    );
 
     res.json({
       status: 'success',
       data: transformedData,
       count: transformedData.length
-    });
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Error fetching attendance data:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 
-// Update attendance status for a specific record
+/**
+ * PUT /attendance/:attendanceId
+ * Updates the status of an existing attendance record
+ * Body: { status: 'present' | 'absent' }
+ */
 router.put('/attendance/:attendanceId', async (req, res) => {
   try {
     const { attendanceId } = req.params;
-    const { status } = req.body;
+    const { status } = req.body as UpdateAttendanceRequest;
 
-    if (!status || !['present', 'absent'].includes(status)) {
-      res.status(400).json({
+    // Validate status
+    if (!status || !isValidAttendanceStatus(status)) {
+      return res.status(400).json({
         status: 'error',
         error: 'Valid status (present/absent) is required'
-      });
-      return;
+      } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
 
+    // Update the attendance record
     const updatedRecord = await prisma.attendanceRecord.update({
       where: { id: attendanceId },
       data: { status },
       include: {
-        student: {
-          include: {
-            user: true
-          }
-        },
+        student: { include: { user: true } },
         attendance: true
       }
     });
@@ -368,103 +283,57 @@ router.put('/attendance/:attendanceId', async (req, res) => {
         student_name: updatedRecord.student?.user?.name || '',
         status: updatedRecord.status
       }
-    });
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Error updating attendance:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 
-// Create attendance record for a specific student
+/**
+ * POST /attendance
+ * Creates or updates an attendance record for a student
+ * Body: { studentId, date, status, courseId? }
+ */
 router.post('/attendance', async (req, res) => {
   try {
-    const { studentId, date, status, courseId } = req.body;
+    const { studentId, date, status, courseId } = req.body as CreateAttendanceRequest;
 
+    // Validate required fields
     if (!studentId || !date || !status) {
-      res.status(400).json({
+      return res.status(400).json({
         status: 'error',
         error: 'studentId, date, and status are required'
-      });
-      return;
+      } as ApiResponse);
     }
 
-    if (!['present', 'absent'].includes(status)) {
-      res.status(400).json({
+    // Validate status
+    if (!isValidAttendanceStatus(status)) {
+      return res.status(400).json({
         status: 'error',
         error: 'Status must be either present or absent'
-      });
-      return;
+      } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
     const targetDate = new Date(date);
 
-    // Find a suitable course offering for this student and date
-    let courseOfferingId = null;
-    
-    if (courseId) {
-      // Try to find a specific course offering for the given course
-      const courseOffering = await prisma.courseOffering.findFirst({
-        where: {
-          courseId: courseId
-        }
-      });
-      courseOfferingId = courseOffering?.id;
-    }
-    
-    if (!courseOfferingId) {
-      // Fall back to any course offering the student is enrolled in
-      const student = await prisma.student.findUnique({
-        where: { id: studentId },
-        include: {
-          enrollments: {
-            include: {
-              offering: true
-            },
-            take: 1
-          }
-        }
-      });
-      
-      if (student?.enrollments?.[0]?.offering) {
-        courseOfferingId = student.enrollments[0].offering.id;
-      }
-    }
+    // Find a suitable course offering for this student
+    const courseOfferingId = await findCourseOfferingForAttendance(prisma, courseId, studentId);
 
     if (!courseOfferingId) {
-      res.status(400).json({
+      return res.status(400).json({
         status: 'error',
         error: 'No suitable course offering found for this student'
-      });
-      return;
+      } as ApiResponse);
     }
 
-    // Check if attendance record already exists for this date and offering
-    const existingAttendance = await prisma.attendance.findFirst({
-      where: {
-        classDate: targetDate,
-        offeringId: courseOfferingId
-      }
-    });
-
-    let attendanceId;
-    if (existingAttendance) {
-      attendanceId = existingAttendance.id;
-    } else {
-      // Create new attendance session
-      const newAttendance = await prisma.attendance.create({
-        data: {
-          classDate: targetDate,
-          offeringId: courseOfferingId,
-          periodNumber: 1
-        }
-      });
-      attendanceId = newAttendance.id;
-    }
+    // Find or create attendance session
+    const attendanceId = await findOrCreateAttendanceSession(prisma, targetDate, courseOfferingId);
 
     // Check if student already has an attendance record for this session
     const existingRecord = await prisma.attendanceRecord.findFirst({
@@ -474,42 +343,29 @@ router.post('/attendance', async (req, res) => {
       }
     });
 
+    let recordData;
+
     if (existingRecord) {
       // Update existing record
       const updatedRecord = await prisma.attendanceRecord.update({
         where: { id: existingRecord.id },
         data: { status },
         include: {
-          student: {
-            include: {
-              user: true
-            }
-          },
-          attendance: {
-            include: {
-              offering: {
-                include: {
-                  course: true
-                }
-              }
-            }
-          }
+          student: { include: { user: true } },
+          attendance: { include: { offering: { include: { course: true } } } }
         }
       });
 
-      res.json({
-        status: 'success',
-        data: {
-          id: updatedRecord.id,
-          date: updatedRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
-          studentId: updatedRecord.studentId,
-          usn: updatedRecord.student?.usn || '',
-          student_name: updatedRecord.student?.user?.name || '',
-          status: updatedRecord.status,
-          courseId: updatedRecord.attendance?.offering?.course?.id,
-          courseName: updatedRecord.attendance?.offering?.course?.name
-        }
-      });
+      recordData = {
+        id: updatedRecord.id,
+        date: updatedRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
+        studentId: updatedRecord.studentId,
+        usn: updatedRecord.student?.usn || '',
+        student_name: updatedRecord.student?.user?.name || '',
+        status: updatedRecord.status,
+        courseId: updatedRecord.attendance?.offering?.course?.id,
+        courseName: updatedRecord.attendance?.offering?.course?.name
+      };
     } else {
       // Create new record
       const newRecord = await prisma.attendanceRecord.create({
@@ -519,44 +375,34 @@ router.post('/attendance', async (req, res) => {
           status: status
         },
         include: {
-          student: {
-            include: {
-              user: true
-            }
-          },
-          attendance: {
-            include: {
-              offering: {
-                include: {
-                  course: true
-                }
-              }
-            }
-          }
+          student: { include: { user: true } },
+          attendance: { include: { offering: { include: { course: true } } } }
         }
       });
 
-      res.json({
-        status: 'success',
-        data: {
-          id: newRecord.id,
-          date: newRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
-          studentId: newRecord.studentId,
-          usn: newRecord.student?.usn || '',
-          student_name: newRecord.student?.user?.name || '',
-          status: newRecord.status,
-          courseId: newRecord.attendance?.offering?.course?.id,
-          courseName: newRecord.attendance?.offering?.course?.name
-        }
-      });
+      recordData = {
+        id: newRecord.id,
+        date: newRecord.attendance?.classDate?.toISOString().split('T')[0] || date,
+        studentId: newRecord.studentId,
+        usn: newRecord.student?.usn || '',
+        student_name: newRecord.student?.user?.name || '',
+        status: newRecord.status,
+        courseId: newRecord.attendance?.offering?.course?.id,
+        courseName: newRecord.attendance?.offering?.course?.name
+      };
     }
+
+    res.json({
+      status: 'success',
+      data: recordData
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Error creating/updating attendance record:', error);
     res.status(500).json({
       status: 'error',
       error: error instanceof Error ? error.message : 'Unknown error'
-    });
+    } as ApiResponse);
   }
 });
 

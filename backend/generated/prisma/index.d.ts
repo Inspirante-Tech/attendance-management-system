@@ -129,7 +129,7 @@ export type test_type = (typeof test_type)[keyof typeof test_type]
 export const attendance_status: {
   present: 'present',
   absent: 'absent',
-  not: 'not'
+  unmarked: 'unmarked'
 };
 
 export type attendance_status = (typeof attendance_status)[keyof typeof attendance_status]
@@ -26963,7 +26963,7 @@ export namespace Prisma {
     academic_years?: XOR<Academic_yearsNullableScalarRelationFilter, academic_yearsWhereInput> | null
     enrollments?: StudentEnrollmentListRelationFilter
     testComponents?: TestComponentListRelationFilter
-  }, "id">
+  }, "id" | "unique_course_offering">
 
   export type CourseOfferingOrderByWithAggregationInput = {
     id?: SortOrder
@@ -27180,146 +27180,7 @@ export namespace Prisma {
     id?: UuidWithAggregatesFilter<"AttendanceRecord"> | string
     attendanceId?: UuidNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
     studentId?: UuidNullableWithAggregatesFilter<"AttendanceRecord"> | string | null
-    status?: Enumattendance_statusNullableWithAggregatesFilter<"AttendanceRecord"> | $Enums.attendance_status | null
-  }
-
-  export type TheoryMarksWhereInput = {
-    AND?: TheoryMarksWhereInput | TheoryMarksWhereInput[]
-    OR?: TheoryMarksWhereInput[]
-    NOT?: TheoryMarksWhereInput | TheoryMarksWhereInput[]
-    id?: UuidFilter<"TheoryMarks"> | string
-    enrollmentId?: UuidFilter<"TheoryMarks"> | string
-    mse1Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    mse2Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    mse3Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task1Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task2Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task3Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableFilter<"TheoryMarks"> | Date | string | null
-    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
-  }
-
-  export type TheoryMarksOrderByWithRelationInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    mse1Marks?: SortOrderInput | SortOrder
-    mse2Marks?: SortOrderInput | SortOrder
-    mse3Marks?: SortOrderInput | SortOrder
-    task1Marks?: SortOrderInput | SortOrder
-    task2Marks?: SortOrderInput | SortOrder
-    task3Marks?: SortOrderInput | SortOrder
-    lastUpdatedAt?: SortOrderInput | SortOrder
-    enrollment?: StudentEnrollmentOrderByWithRelationInput
-  }
-
-  export type TheoryMarksWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    enrollmentId?: string
-    AND?: TheoryMarksWhereInput | TheoryMarksWhereInput[]
-    OR?: TheoryMarksWhereInput[]
-    NOT?: TheoryMarksWhereInput | TheoryMarksWhereInput[]
-    mse1Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    mse2Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    mse3Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task1Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task2Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    task3Marks?: IntNullableFilter<"TheoryMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableFilter<"TheoryMarks"> | Date | string | null
-    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
-  }, "id" | "enrollmentId">
-
-  export type TheoryMarksOrderByWithAggregationInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    mse1Marks?: SortOrderInput | SortOrder
-    mse2Marks?: SortOrderInput | SortOrder
-    mse3Marks?: SortOrderInput | SortOrder
-    task1Marks?: SortOrderInput | SortOrder
-    task2Marks?: SortOrderInput | SortOrder
-    task3Marks?: SortOrderInput | SortOrder
-    lastUpdatedAt?: SortOrderInput | SortOrder
-    _count?: TheoryMarksCountOrderByAggregateInput
-    _avg?: TheoryMarksAvgOrderByAggregateInput
-    _max?: TheoryMarksMaxOrderByAggregateInput
-    _min?: TheoryMarksMinOrderByAggregateInput
-    _sum?: TheoryMarksSumOrderByAggregateInput
-  }
-
-  export type TheoryMarksScalarWhereWithAggregatesInput = {
-    AND?: TheoryMarksScalarWhereWithAggregatesInput | TheoryMarksScalarWhereWithAggregatesInput[]
-    OR?: TheoryMarksScalarWhereWithAggregatesInput[]
-    NOT?: TheoryMarksScalarWhereWithAggregatesInput | TheoryMarksScalarWhereWithAggregatesInput[]
-    id?: UuidWithAggregatesFilter<"TheoryMarks"> | string
-    enrollmentId?: UuidWithAggregatesFilter<"TheoryMarks"> | string
-    mse1Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    mse2Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    mse3Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    task1Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    task2Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    task3Marks?: IntNullableWithAggregatesFilter<"TheoryMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableWithAggregatesFilter<"TheoryMarks"> | Date | string | null
-  }
-
-  export type LabMarksWhereInput = {
-    AND?: LabMarksWhereInput | LabMarksWhereInput[]
-    OR?: LabMarksWhereInput[]
-    NOT?: LabMarksWhereInput | LabMarksWhereInput[]
-    id?: UuidFilter<"LabMarks"> | string
-    enrollmentId?: UuidFilter<"LabMarks"> | string
-    recordMarks?: IntNullableFilter<"LabMarks"> | number | null
-    continuousEvaluationMarks?: IntNullableFilter<"LabMarks"> | number | null
-    labMseMarks?: IntNullableFilter<"LabMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableFilter<"LabMarks"> | Date | string | null
-    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
-  }
-
-  export type LabMarksOrderByWithRelationInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    recordMarks?: SortOrderInput | SortOrder
-    continuousEvaluationMarks?: SortOrderInput | SortOrder
-    labMseMarks?: SortOrderInput | SortOrder
-    lastUpdatedAt?: SortOrderInput | SortOrder
-    enrollment?: StudentEnrollmentOrderByWithRelationInput
-  }
-
-  export type LabMarksWhereUniqueInput = Prisma.AtLeast<{
-    id?: string
-    enrollmentId?: string
-    AND?: LabMarksWhereInput | LabMarksWhereInput[]
-    OR?: LabMarksWhereInput[]
-    NOT?: LabMarksWhereInput | LabMarksWhereInput[]
-    recordMarks?: IntNullableFilter<"LabMarks"> | number | null
-    continuousEvaluationMarks?: IntNullableFilter<"LabMarks"> | number | null
-    labMseMarks?: IntNullableFilter<"LabMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableFilter<"LabMarks"> | Date | string | null
-    enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
-  }, "id" | "enrollmentId">
-
-  export type LabMarksOrderByWithAggregationInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    recordMarks?: SortOrderInput | SortOrder
-    continuousEvaluationMarks?: SortOrderInput | SortOrder
-    labMseMarks?: SortOrderInput | SortOrder
-    lastUpdatedAt?: SortOrderInput | SortOrder
-    _count?: LabMarksCountOrderByAggregateInput
-    _avg?: LabMarksAvgOrderByAggregateInput
-    _max?: LabMarksMaxOrderByAggregateInput
-    _min?: LabMarksMinOrderByAggregateInput
-    _sum?: LabMarksSumOrderByAggregateInput
-  }
-
-  export type LabMarksScalarWhereWithAggregatesInput = {
-    AND?: LabMarksScalarWhereWithAggregatesInput | LabMarksScalarWhereWithAggregatesInput[]
-    OR?: LabMarksScalarWhereWithAggregatesInput[]
-    NOT?: LabMarksScalarWhereWithAggregatesInput | LabMarksScalarWhereWithAggregatesInput[]
-    id?: UuidWithAggregatesFilter<"LabMarks"> | string
-    enrollmentId?: UuidWithAggregatesFilter<"LabMarks"> | string
-    recordMarks?: IntNullableWithAggregatesFilter<"LabMarks"> | number | null
-    continuousEvaluationMarks?: IntNullableWithAggregatesFilter<"LabMarks"> | number | null
-    labMseMarks?: IntNullableWithAggregatesFilter<"LabMarks"> | number | null
-    lastUpdatedAt?: DateTimeNullableWithAggregatesFilter<"LabMarks"> | Date | string | null
+    status?: Enumattendance_statusWithAggregatesFilter<"AttendanceRecord"> | $Enums.attendance_status
   }
 
   export type AdminWhereInput = {
@@ -28520,152 +28381,7 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     attendanceId?: NullableStringFieldUpdateOperationsInput | string | null
     studentId?: NullableStringFieldUpdateOperationsInput | string | null
-    status?: NullableEnumattendance_statusFieldUpdateOperationsInput | $Enums.attendance_status | null
-  }
-
-  export type TheoryMarksCreateInput = {
-    id?: string
-    mse1Marks?: number | null
-    mse2Marks?: number | null
-    mse3Marks?: number | null
-    task1Marks?: number | null
-    task2Marks?: number | null
-    task3Marks?: number | null
-    lastUpdatedAt?: Date | string | null
-    enrollment: StudentEnrollmentCreateNestedOneWithoutTheoryMarksInput
-  }
-
-  export type TheoryMarksUncheckedCreateInput = {
-    id?: string
-    enrollmentId: string
-    mse1Marks?: number | null
-    mse2Marks?: number | null
-    mse3Marks?: number | null
-    task1Marks?: number | null
-    task2Marks?: number | null
-    task3Marks?: number | null
-    lastUpdatedAt?: Date | string | null
-  }
-
-  export type TheoryMarksUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    mse1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    enrollment?: StudentEnrollmentUpdateOneRequiredWithoutTheoryMarksNestedInput
-  }
-
-  export type TheoryMarksUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    enrollmentId?: StringFieldUpdateOperationsInput | string
-    mse1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type TheoryMarksCreateManyInput = {
-    id?: string
-    enrollmentId: string
-    mse1Marks?: number | null
-    mse2Marks?: number | null
-    mse3Marks?: number | null
-    task1Marks?: number | null
-    task2Marks?: number | null
-    task3Marks?: number | null
-    lastUpdatedAt?: Date | string | null
-  }
-
-  export type TheoryMarksUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    mse1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type TheoryMarksUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    enrollmentId?: StringFieldUpdateOperationsInput | string
-    mse1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    mse3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task1Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task2Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    task3Marks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type LabMarksCreateInput = {
-    id?: string
-    recordMarks?: number | null
-    continuousEvaluationMarks?: number | null
-    labMseMarks?: number | null
-    lastUpdatedAt?: Date | string | null
-    enrollment: StudentEnrollmentCreateNestedOneWithoutLabMarksInput
-  }
-
-  export type LabMarksUncheckedCreateInput = {
-    id?: string
-    enrollmentId: string
-    recordMarks?: number | null
-    continuousEvaluationMarks?: number | null
-    labMseMarks?: number | null
-    lastUpdatedAt?: Date | string | null
-  }
-
-  export type LabMarksUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    recordMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    continuousEvaluationMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    labMseMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-    enrollment?: StudentEnrollmentUpdateOneRequiredWithoutLabMarksNestedInput
-  }
-
-  export type LabMarksUncheckedUpdateInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    enrollmentId?: StringFieldUpdateOperationsInput | string
-    recordMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    continuousEvaluationMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    labMseMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type LabMarksCreateManyInput = {
-    id?: string
-    enrollmentId: string
-    recordMarks?: number | null
-    continuousEvaluationMarks?: number | null
-    labMseMarks?: number | null
-    lastUpdatedAt?: Date | string | null
-  }
-
-  export type LabMarksUpdateManyMutationInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    recordMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    continuousEvaluationMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    labMseMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
-  }
-
-  export type LabMarksUncheckedUpdateManyInput = {
-    id?: StringFieldUpdateOperationsInput | string
-    enrollmentId?: StringFieldUpdateOperationsInput | string
-    recordMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    continuousEvaluationMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    labMseMarks?: NullableIntFieldUpdateOperationsInput | number | null
-    lastUpdatedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    status?: Enumattendance_statusFieldUpdateOperationsInput | $Enums.attendance_status
   }
 
   export type AdminCreateInput = {
@@ -29923,112 +29639,14 @@ export namespace Prisma {
     status?: SortOrder
   }
 
-  export type Enumattendance_statusNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: $Enums.attendance_status | Enumattendance_statusFieldRefInput<$PrismaModel> | null
-    in?: $Enums.attendance_status[] | ListEnumattendance_statusFieldRefInput<$PrismaModel> | null
-    notIn?: $Enums.attendance_status[] | ListEnumattendance_statusFieldRefInput<$PrismaModel> | null
-    not?: NestedEnumattendance_statusNullableWithAggregatesFilter<$PrismaModel> | $Enums.attendance_status | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedEnumattendance_statusNullableFilter<$PrismaModel>
-    _max?: NestedEnumattendance_statusNullableFilter<$PrismaModel>
-  }
-
-  export type StudentEnrollmentScalarRelationFilter = {
-    is?: StudentEnrollmentWhereInput
-    isNot?: StudentEnrollmentWhereInput
-  }
-
-  export type TheoryMarksCountOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    mse1Marks?: SortOrder
-    mse2Marks?: SortOrder
-    mse3Marks?: SortOrder
-    task1Marks?: SortOrder
-    task2Marks?: SortOrder
-    task3Marks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type TheoryMarksAvgOrderByAggregateInput = {
-    mse1Marks?: SortOrder
-    mse2Marks?: SortOrder
-    mse3Marks?: SortOrder
-    task1Marks?: SortOrder
-    task2Marks?: SortOrder
-    task3Marks?: SortOrder
-  }
-
-  export type TheoryMarksMaxOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    mse1Marks?: SortOrder
-    mse2Marks?: SortOrder
-    mse3Marks?: SortOrder
-    task1Marks?: SortOrder
-    task2Marks?: SortOrder
-    task3Marks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type TheoryMarksMinOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    mse1Marks?: SortOrder
-    mse2Marks?: SortOrder
-    mse3Marks?: SortOrder
-    task1Marks?: SortOrder
-    task2Marks?: SortOrder
-    task3Marks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type TheoryMarksSumOrderByAggregateInput = {
-    mse1Marks?: SortOrder
-    mse2Marks?: SortOrder
-    mse3Marks?: SortOrder
-    task1Marks?: SortOrder
-    task2Marks?: SortOrder
-    task3Marks?: SortOrder
-  }
-
-  export type LabMarksCountOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    recordMarks?: SortOrder
-    continuousEvaluationMarks?: SortOrder
-    labMseMarks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type LabMarksAvgOrderByAggregateInput = {
-    recordMarks?: SortOrder
-    continuousEvaluationMarks?: SortOrder
-    labMseMarks?: SortOrder
-  }
-
-  export type LabMarksMaxOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    recordMarks?: SortOrder
-    continuousEvaluationMarks?: SortOrder
-    labMseMarks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type LabMarksMinOrderByAggregateInput = {
-    id?: SortOrder
-    enrollmentId?: SortOrder
-    recordMarks?: SortOrder
-    continuousEvaluationMarks?: SortOrder
-    labMseMarks?: SortOrder
-    lastUpdatedAt?: SortOrder
-  }
-
-  export type LabMarksSumOrderByAggregateInput = {
-    recordMarks?: SortOrder
-    continuousEvaluationMarks?: SortOrder
-    labMseMarks?: SortOrder
+  export type Enumattendance_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.attendance_status | Enumattendance_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.attendance_status[] | ListEnumattendance_statusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.attendance_status[] | ListEnumattendance_statusFieldRefInput<$PrismaModel>
+    not?: NestedEnumattendance_statusWithAggregatesFilter<$PrismaModel> | $Enums.attendance_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnumattendance_statusFilter<$PrismaModel>
+    _max?: NestedEnumattendance_statusFilter<$PrismaModel>
   }
 
   export type AdminCountOrderByAggregateInput = {

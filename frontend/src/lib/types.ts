@@ -171,7 +171,26 @@ export interface DepartmentData {
   icon_color: string
 }
 
-// Marks interfaces
+// New Marks Schema Interfaces
+export interface TestComponent {
+  id: string
+  courseOfferingId: string
+  name: string  // e.g., "MSE1", "MSE2", "Lab1"
+  maxMarks: number
+  weightage: number  // percentage
+  type: 'theory' | 'lab'
+}
+
+export interface StudentMarkData {
+  id: string
+  testComponentId: string
+  testName: string
+  maxMarks: number
+  marksObtained: number | null
+  weightage: number
+}
+
+// DEPRECATED: Old marks schema interfaces - kept for backward compatibility
 export interface TheoryMarks {
   marks_id: string
   enrollment_id: string
@@ -199,6 +218,11 @@ export interface CourseMarks {
   course_type: 'core' | 'department_elective' | 'open_elective'
   has_theory_component: boolean
   has_lab_component: boolean
+  // New schema support
+  testComponents?: TestComponent[]
+  theoryMarks?: StudentMarkData[]
+  labMarks?: StudentMarkData[]
+  // Old schema (deprecated)
   theory_marks?: TheoryMarks
   lab_marks?: LabMarks
   total_theory_marks?: number

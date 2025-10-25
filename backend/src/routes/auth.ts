@@ -1,26 +1,50 @@
 // src/routes/auth.ts
+/**
+ * Authentication routes
+ * Handles login, logout, token refresh, and password management
+ */
 import { Router } from 'express';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import DatabaseService from '../lib/database';
 import { authenticateToken, AuthenticatedRequest, JWT_SECRET } from '../middleware/auth';
+import { LoginRequest, ChangePasswordRequest, LoginResponseData } from '../types/auth.types';
+import { ApiResponse } from '../types/common.types';
+import {
+  validatePassword,
+  hashPassword,
+  validatePasswordStrength,
+  generateToken,
+  hasRoleAccess,
+  buildUserProfile,
+  migrateLegacyPassword,
+  validateLoginCredentials
+} from '../utils/auth.helpers';
 
 const router = Router();
 
 console.log('=== AUTH ROUTES LOADED ===');
 
-// Login endpoint
+/**
+ * POST /login
+ * Authenticates user and returns JWT token
+ * Body: { username, password, role? }
+ */
+/**
+ * POST /login
+ * Authenticates user and returns JWT token
+ * Body: { username, password, role? }
+ */
 router.post('/login', async (req, res) => {
   try {
-    const { username, password, role } = req.body;
+    const { username, password, role } = req.body as LoginRequest;
 
-    // Validate input
-    if (!username || !password) {
+    // Validate credentials
+    const validationError = validateLoginCredentials(username, password);
+    if (validationError) {
       return res.status(400).json({
         status: 'error',
-        error: 'Username and password are required',
+        error: validationError,
         code: 'MISSING_CREDENTIALS'
-      });
+      } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
@@ -57,130 +81,65 @@ router.post('/login', async (req, res) => {
         status: 'error',
         error: 'Invalid credentials',
         code: 'INVALID_CREDENTIALS'
-      });
+      } as ApiResponse);
     }
 
-    // Check password (handle both bcrypt hashed and plain text legacy passwords)
-    let passwordValid = false;
-    
-    try {
-      // Try bcrypt first
-      passwordValid = await bcrypt.compare(password, user.passwordHash);
-    } catch (error) {
-      // If bcrypt fails, try plain text comparison (for legacy data)
-      passwordValid = password === user.passwordHash;
-      
-      // If plain text matches, hash the password for future use
-      if (passwordValid) {
-        const hashedPassword = await bcrypt.hash(password, 12);
-        await prisma.user.update({
-          where: { id: user.id },
-          data: { passwordHash: hashedPassword }
-        });
-      }
-    }
+    // Validate password (supports legacy plain text)
+    const passwordValid = await validatePassword(password, user.passwordHash);
 
     if (!passwordValid) {
       return res.status(401).json({
         status: 'error',
         error: 'Invalid credentials',
         code: 'INVALID_CREDENTIALS'
-      });
+      } as ApiResponse);
     }
 
-    // Check if user has the requested role (if specified)
-    const userRoles = user.userRoles.map(r => r.role);
-    if (role && !userRoles.includes(role)) {
-      // Allow admin users to access analytics
-      // Allow teacher users to access analytics
-      if (role === 'analytics' && (userRoles.includes('admin') || userRoles.includes('teacher'))) {
-        // Admin or teacher can access analytics, continue
-      } else {
-        return res.status(403).json({
-          status: 'error',
-          error: `Access denied. You don't have ${role} privileges`,
-          code: 'ROLE_ACCESS_DENIED',
-          userRoles,
-          requestedRole: role
-        });
-      }
+    // Migrate legacy password if needed
+    if (password === user.passwordHash) {
+      await migrateLegacyPassword(prisma, user.id, password);
+    }
+
+    // Check role access
+    const userRoles = user.userRoles.map((r: any) => r.role);
+    if (role && !hasRoleAccess(userRoles, role)) {
+      return res.status(403).json({
+        status: 'error',
+        error: `Access denied. You don't have ${role} privileges`,
+        code: 'ROLE_ACCESS_DENIED',
+        userRoles,
+        requestedRole: role
+      } as ApiResponse);
     }
 
     // Generate JWT token
-    const token = jwt.sign(
-      { 
-        userId: user.id,
+    const token = generateToken(user.id, user.username, userRoles, JWT_SECRET);
+
+    // Build user profile
+    const profile = buildUserProfile(user, userRoles);
+
+    // Prepare response data
+    const responseData: LoginResponseData = {
+      user: {
+        id: user.id,
         username: user.username,
-        roles: userRoles
+        email: user.email,
+        name: user.name,
+        phone: user.phone,
+        roles: userRoles,
+        primaryRole: role || userRoles[0],
+        profile
       },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Prepare user response data
-    const userData = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      name: user.name,
-      phone: user.phone,
-      roles: userRoles,
-      primaryRole: role || userRoles[0], // Use requested role or first role as primary
-      profile: null as any
+      token,
+      expiresIn: '24h'
     };
-
-    // Add role-specific profile data
-    if (user.student && userRoles.includes('student')) {
-      userData.profile = {
-        type: 'student',
-        usn: user.student.usn,
-        semester: user.student.semester,
-        batchYear: user.student.batchYear,
-        college: user.student.colleges ? {
-          id: user.student.colleges.id,
-          name: user.student.colleges.name,
-          code: user.student.colleges.code
-        } : null,
-        department: user.student.departments ? {
-          id: user.student.departments.id,
-          name: user.student.departments.name,
-          code: user.student.departments.code
-        } : null,
-        section: user.student.sections ? {
-          id: user.student.sections.section_id,
-          name: user.student.sections.section_name
-        } : null
-      };
-    } else if (user.teacher && userRoles.includes('teacher')) {
-      userData.profile = {
-        type: 'teacher',
-        college: user.teacher.colleges ? {
-          id: user.teacher.colleges.id,
-          name: user.teacher.colleges.name,
-          code: user.teacher.colleges.code
-        } : null,
-        department: user.teacher.department ? {
-          id: user.teacher.department.id,
-          name: user.teacher.department.name,
-          code: user.teacher.department.code
-        } : null
-      };
-    } else if (user.admin && userRoles.includes('admin')) {
-      userData.profile = {
-        type: 'admin'
-      };
-    }
 
     res.json({
       status: 'success',
       message: 'Login successful',
-      data: {
-        user: userData,
-        token,
-        expiresIn: '24h'
-      },
+      data: responseData,
       timestamp: new Date().toISOString()
-    });
+    } as ApiResponse<LoginResponseData>);
 
   } catch (error) {
     console.error('Login error:', error);
@@ -189,15 +148,18 @@ router.post('/login', async (req, res) => {
       error: 'Login failed',
       code: 'LOGIN_ERROR',
       timestamp: new Date().toISOString()
-    });
+    } as ApiResponse);
   }
 });
 
-// Get current user profile
+/**
+ * GET /me
+ * Returns the current authenticated user's profile
+ */
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     const prisma = DatabaseService.getInstance();
-    
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id },
       include: {
@@ -241,11 +203,11 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
         status: 'error',
         error: 'User not found',
         code: 'USER_NOT_FOUND'
-      });
+      } as ApiResponse);
     }
 
-    const userRoles = user.userRoles.map(r => r.role);
-    
+    const userRoles = user.userRoles.map((r: any) => r.role);
+
     res.json({
       status: 'success',
       data: {
@@ -261,7 +223,7 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
         createdAt: user.createdAt
       },
       timestamp: new Date().toISOString()
-    });
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Get profile error:', error);
@@ -269,22 +231,22 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res) => {
       status: 'error',
       error: 'Failed to get user profile',
       code: 'PROFILE_ERROR'
-    });
+    } as ApiResponse);
   }
 });
 
-// Refresh token endpoint
+/**
+ * POST /refresh
+ * Generates a new JWT token for the authenticated user
+ */
 router.post('/refresh', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
     // Generate new token with same user data
-    const token = jwt.sign(
-      { 
-        userId: req.user!.id,
-        username: req.user!.username,
-        roles: req.user!.roles
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
+    const token = generateToken(
+      req.user!.id,
+      req.user!.username,
+      req.user!.roles,
+      JWT_SECRET
     );
 
     res.json({
@@ -294,7 +256,7 @@ router.post('/refresh', authenticateToken, async (req: AuthenticatedRequest, res
         expiresIn: '24h'
       },
       timestamp: new Date().toISOString()
-    });
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Token refresh error:', error);
@@ -302,45 +264,53 @@ router.post('/refresh', authenticateToken, async (req: AuthenticatedRequest, res
       status: 'error',
       error: 'Failed to refresh token',
       code: 'REFRESH_ERROR'
-    });
+    } as ApiResponse);
   }
 });
 
-// Logout endpoint (client-side token deletion, could implement token blacklist)
+/**
+ * POST /logout
+ * Logs out user (client-side token deletion)
+ * Note: Could implement token blacklist for additional security
+ */
 router.post('/logout', authenticateToken, (req: AuthenticatedRequest, res) => {
-  // In a more sophisticated setup, you might want to blacklist the token
-  // For now, we'll just send a success response and let the client delete the token
-  
   res.json({
     status: 'success',
     message: 'Logged out successfully',
     timestamp: new Date().toISOString()
-  });
+  } as ApiResponse);
 });
 
-// Change password endpoint
+/**
+ * POST /change-password
+ * Changes the user's password
+ * Body: { currentPassword, newPassword }
+ */
 router.post('/change-password', authenticateToken, async (req: AuthenticatedRequest, res) => {
   try {
-    const { currentPassword, newPassword } = req.body;
+    const { currentPassword, newPassword } = req.body as ChangePasswordRequest;
 
+    // Validate request
     if (!currentPassword || !newPassword) {
       return res.status(400).json({
         status: 'error',
         error: 'Current password and new password are required',
         code: 'MISSING_PASSWORDS'
-      });
+      } as ApiResponse);
     }
 
-    if (newPassword.length < 6) {
+    // Validate new password strength
+    const strengthError = validatePasswordStrength(newPassword);
+    if (strengthError) {
       return res.status(400).json({
         status: 'error',
-        error: 'New password must be at least 6 characters long',
+        error: strengthError,
         code: 'PASSWORD_TOO_SHORT'
-      });
+      } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
-    
+
     const user = await prisma.user.findUnique({
       where: { id: req.user!.id }
     });
@@ -350,30 +320,22 @@ router.post('/change-password', authenticateToken, async (req: AuthenticatedRequ
         status: 'error',
         error: 'User not found',
         code: 'USER_NOT_FOUND'
-      });
+      } as ApiResponse);
     }
 
     // Verify current password
-    let currentPasswordValid = false;
-    try {
-      currentPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
-    } catch (error) {
-      // Try plain text for legacy passwords
-      currentPasswordValid = currentPassword === user.passwordHash;
-    }
+    const currentPasswordValid = await validatePassword(currentPassword, user.passwordHash);
 
     if (!currentPasswordValid) {
       return res.status(401).json({
         status: 'error',
         error: 'Current password is incorrect',
         code: 'INVALID_CURRENT_PASSWORD'
-      });
+      } as ApiResponse);
     }
 
-    // Hash new password
-    const hashedNewPassword = await bcrypt.hash(newPassword, 12);
-
-    // Update password
+    // Hash and update new password
+    const hashedNewPassword = await hashPassword(newPassword);
     await prisma.user.update({
       where: { id: user.id },
       data: { passwordHash: hashedNewPassword }
@@ -383,7 +345,7 @@ router.post('/change-password', authenticateToken, async (req: AuthenticatedRequ
       status: 'success',
       message: 'Password changed successfully',
       timestamp: new Date().toISOString()
-    });
+    } as ApiResponse);
 
   } catch (error) {
     console.error('Change password error:', error);
@@ -391,11 +353,15 @@ router.post('/change-password', authenticateToken, async (req: AuthenticatedRequ
       status: 'error',
       error: 'Failed to change password',
       code: 'PASSWORD_CHANGE_ERROR'
-    });
+    } as ApiResponse);
   }
 });
 
-// Verify token endpoint (for client-side token validation)
+/**
+ * POST /verify
+ * Verifies if the JWT token is valid
+ * Returns user information if valid
+ */
 router.post('/verify', authenticateToken, (req: AuthenticatedRequest, res) => {
   res.json({
     status: 'success',
@@ -404,7 +370,7 @@ router.post('/verify', authenticateToken, (req: AuthenticatedRequest, res) => {
       user: req.user
     },
     timestamp: new Date().toISOString()
-  });
+  } as ApiResponse);
 });
 
 export default router;

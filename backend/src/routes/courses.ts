@@ -697,8 +697,8 @@ router.delete('/:id/force', async (req, res) => {
         where: { offeringId: offering.id }
       })
 
-      // Delete theory marks for enrollments in this offering
-      await prisma.theoryMarks.deleteMany({
+      // Delete student marks for enrollments in this offering (new system)
+      await prisma.studentMark.deleteMany({
         where: {
           enrollment: {
             offeringId: offering.id
@@ -706,13 +706,9 @@ router.delete('/:id/force', async (req, res) => {
         }
       })
 
-      // Delete lab marks for enrollments in this offering
-      await prisma.labMarks.deleteMany({
-        where: {
-          enrollment: {
-            offeringId: offering.id
-          }
-        }
+      // Delete test components for this offering
+      await prisma.testComponent.deleteMany({
+        where: { courseOfferingId: offering.id }
       })
 
       // Delete enrollments for this offering

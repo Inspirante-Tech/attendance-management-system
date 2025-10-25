@@ -50,7 +50,7 @@ class DatabaseService {
   public static async getDataSummary() {
     try {
       const prisma = this.getInstance();
-      
+
       const summary = await Promise.all([
         prisma.college.count(),
         prisma.department.count(),
@@ -61,8 +61,8 @@ class DatabaseService {
         prisma.courseOffering.count(),
         prisma.studentEnrollment.count(),
         prisma.attendance.count(),
-        prisma.theoryMarks.count(),
-        prisma.labMarks.count(),
+        prisma.studentMark.count(),
+        prisma.testComponent.count(),
       ]);
 
       return {
@@ -75,8 +75,8 @@ class DatabaseService {
         courseOfferings: summary[6],
         enrollments: summary[7],
         attendanceSessions: summary[8],
-        theoryMarks: summary[9],
-        labMarks: summary[10],
+        studentMarks: summary[9],
+        testComponents: summary[10],
       };
     } catch (error) {
       console.error('Failed to get data summary:', error);

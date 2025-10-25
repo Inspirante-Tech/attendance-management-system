@@ -110,29 +110,42 @@ export interface StudentMark {
     id: string
     code: string
     name: string
+    hasTheoryComponent?: boolean
+    hasLabComponent?: boolean
   }
-  // Theory marks
-  theoryMarks?: {
-    id: string
-    mse1_marks?: number | null
-    mse2_marks?: number | null
-    mse3_marks?: number | null
-    task1_marks?: number | null
-    task2_marks?: number | null
-    task3_marks?: number | null
-    last_updated_at?: string
-  }
-  // Lab marks
-  labMarks?: {
-    id: string
-    record_marks?: number | null
-    continuous_evaluation_marks?: number | null
-    lab_mse_marks?: number | null
-    last_updated_at?: string
-  }
-  updatedAt: string
+  // Test components available for this course offering
+  testComponents?: TestComponent[]
+  // Theory marks (grouped from studentMarks)
+  theoryMarks?: StudentMarkData[]
+  // Lab marks (grouped from studentMarks)
+  labMarks?: StudentMarkData[]
+  // Totals
+  theoryTotal?: number
+  labTotal?: number
+  grandTotal?: number
+  updatedAt?: string
 }
 
+export interface TestComponent {
+  id: string
+  courseOfferingId: string
+  name: string  // e.g., "MSE1", "MSE2", "Lab1"
+  maxMarks: number
+  weightage: number  // percentage
+  type: 'theory' | 'lab'
+}
+
+export interface StudentMarkData {
+  id: string
+  testComponentId: string
+  testName: string
+  maxMarks: number
+  marksObtained: number | null
+  weightage: number
+}
+
+// DEPRECATED: Old marks schema - kept for backward compatibility
+// Will be removed once all frontend components migrate to new schema
 export interface TheoryMarks {
   id: string
   enrollmentId: string
@@ -145,6 +158,7 @@ export interface TheoryMarks {
   last_updated_at?: string
 }
 
+// DEPRECATED: Old marks schema - kept for backward compatibility
 export interface LabMarks {
   id: string
   enrollmentId: string

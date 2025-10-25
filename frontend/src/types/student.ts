@@ -1,5 +1,23 @@
 //for student dashboard necessary creds
 
+// New Marks Schema Types
+export interface TestComponent {
+  id: string
+  courseOfferingId: string
+  name: string  // e.g., "MSE1", "MSE2", "Lab1"
+  maxMarks: number
+  weightage: number  // percentage
+  type: 'theory' | 'lab'
+}
+
+export interface StudentMarkData {
+  id: string
+  testComponentId: string
+  testName: string
+  maxMarks: number
+  marksObtained: number | null
+  weightage: number
+}
 
 export interface StudentInfo {
   user_id: string
@@ -13,12 +31,20 @@ export interface StudentInfo {
   academic_year: string
   photo_url: string
 }
+
 export interface MarksDataItem {
   course_code: string | null;
   course_name: string | null;
   course_type: string | null;
   has_theory_component: boolean;
   has_lab_component: boolean;
+  // New schema support
+  testComponents?: TestComponent[];
+  theoryMarks?: StudentMarkData[];
+  labMarks?: StudentMarkData[];
+  theoryTotal?: number;
+  labTotal?: number;
+  // Old schema (deprecated)
   theory_marks: TheoryMarks | null;
   lab_marks: LabMarks | null;
   total_theory_marks: number;
@@ -42,6 +68,7 @@ export interface StudentMarksResponse {
   marksData: MarksDataItem[];
 }
 
+// DEPRECATED: Old marks schema - kept for backward compatibility
 export interface TheoryMarks {
   mse1Marks?: number;
   mse2Marks?: number;
@@ -51,6 +78,7 @@ export interface TheoryMarks {
   task3Marks?: number;
 }
 
+// DEPRECATED: Old marks schema - kept for backward compatibility
 export interface LabMarks {
   recordMarks?: number;
   continuousEvaluationMarks?: number;

@@ -14,14 +14,14 @@ export class ImportService {
   static async importCSVData(table: string, buffer: Buffer, prisma: any): Promise<ImportResult> {
     const records: any[] = [];
     const errors: string[] = [];
-    
+
     console.log(`=== IMPORT CSV DATA CALLED ===`);
     console.log(`Starting import for table: ${table}`);
     console.log(`Buffer size: ${buffer.length}`);
-    
+
     return new Promise((resolve) => {
       const stream = Readable.from(buffer);
-      
+
       stream
         .pipe(csv())
         .on('data', (data: any) => {
@@ -32,10 +32,10 @@ export class ImportService {
           console.log(`Parsed ${records.length} records from CSV`);
           try {
             let recordsProcessed = 0;
-            
+
             console.log(`Processing table: ${table.toLowerCase()}`);
             console.log(`Available records: ${records.length}`);
-            
+
             switch (table.toLowerCase()) {
               case 'colleges':
                 recordsProcessed = await ImportService.importColleges(records, prisma, errors);
@@ -77,15 +77,23 @@ export class ImportService {
                 recordsProcessed = await ImportService.importStudentEnrollments(records, prisma, errors);
                 break;
               case 'theory_marks':
-                recordsProcessed = await ImportService.importTheoryMarks(records, prisma, errors);
+                // TODO: MIGRATE TO NEW MARKS SCHEMA
+                // The theory_marks import needs to be rewritten to use TestComponent + StudentMark
+                errors.push('Theory marks import not yet migrated to new schema. Use admin marks API instead.');
+                recordsProcessed = 0;
                 break;
+              // recordsProcessed = await ImportService.importTheoryMarks(records, prisma, errors);
               case 'lab_marks':
-                recordsProcessed = await ImportService.importLabMarks(records, prisma, errors);
+                // TODO: MIGRATE TO NEW MARKS SCHEMA  
+                // The lab_marks import needs to be rewritten to use TestComponent + StudentMark
+                errors.push('Lab marks import not yet migrated to new schema. Use admin marks API instead.');
+                recordsProcessed = 0;
                 break;
+              // recordsProcessed = await ImportService.importLabMarks(records, prisma, errors);
               default:
                 errors.push(`Unknown table: ${table}`);
             }
-            
+
             resolve({
               success: errors.length === 0,
               message: errors.length === 0 ? 'Import completed successfully' : 'Import completed with errors',
@@ -106,7 +114,7 @@ export class ImportService {
 
   static async importColleges(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         await prisma.college.create({
@@ -121,16 +129,16 @@ export class ImportService {
         errors.push(`College ${record.college_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importUsers(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     console.log(`Importing ${records.length} user records...`);
     console.log('First record:', records[0]);
-    
+
     for (const record of records) {
       try {
         console.log('Processing user record:', record);
@@ -141,7 +149,7 @@ export class ImportService {
           phone: record.phone || null
         };
         console.log('User data to create:', userData);
-        
+
         const result = await prisma.user.create({
           data: userData
         });
@@ -152,26 +160,26 @@ export class ImportService {
         errors.push(`User ${record.username}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     console.log(`Imported ${count} users`);
     return count;
   }
 
   static async importDepartments(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find college by code
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Department ${record.department_name}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         await prisma.department.create({
           data: {
             college_id: college.id,
@@ -184,25 +192,25 @@ export class ImportService {
         errors.push(`Department ${record.department_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importSections(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find college first
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Section ${record.section_name}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         // Find department by college_id and department_code
         const department = await prisma.department.findFirst({
           where: {
@@ -210,12 +218,12 @@ export class ImportService {
             college_id: college.id
           }
         });
-        
+
         if (!department) {
           errors.push(`Section ${record.section_name}: Department ${record.department_code} in college ${record.college_code} not found`);
           continue;
         }
-        
+
         await prisma.sections.create({
           data: {
             department_id: department.id,
@@ -227,35 +235,35 @@ export class ImportService {
         errors.push(`Section ${record.section_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importStudents(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find user
         const user = await prisma.user.findUnique({
           where: { username: record.username }
         });
-        
+
         if (!user) {
           errors.push(`Student ${record.username}: User not found`);
           continue;
         }
-        
+
         // Find college
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Student ${record.username}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         // Find department
         const department = await prisma.department.findFirst({
           where: {
@@ -263,12 +271,12 @@ export class ImportService {
             college_id: college.id
           }
         });
-        
+
         if (!department) {
           errors.push(`Student ${record.username}: Department ${record.department_code} not found`);
           continue;
         }
-        
+
         // Find section
         const section = await prisma.sections.findFirst({
           where: {
@@ -276,12 +284,12 @@ export class ImportService {
             department_id: department.id
           }
         });
-        
+
         if (!section) {
           errors.push(`Student ${record.username}: Section ${record.section_name} not found`);
           continue;
         }
-        
+
         const createdStudent = await prisma.student.create({
           data: {
             userId: user.id,
@@ -303,41 +311,41 @@ export class ImportService {
           console.warn(`Failed to auto-enroll imported student ${createdStudent.id}:`, enrollmentError);
           // Don't fail the import if auto-enrollment fails
         }
-        
+
         count++;
       } catch (error) {
         errors.push(`Student ${record.username}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importTeachers(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find user
         const user = await prisma.user.findUnique({
           where: { username: record.username }
         });
-        
+
         if (!user) {
           errors.push(`Teacher ${record.username}: User not found`);
           continue;
         }
-        
+
         // Find college
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Teacher ${record.username}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         // Find department
         const department = await prisma.department.findFirst({
           where: {
@@ -345,12 +353,12 @@ export class ImportService {
             college_id: college.id
           }
         });
-        
+
         if (!department) {
           errors.push(`Teacher ${record.username}: Department ${record.department_code} not found`);
           continue;
         }
-        
+
         await prisma.teacher.create({
           data: {
             userId: user.id,
@@ -358,31 +366,31 @@ export class ImportService {
             departmentId: department.id
           }
         });
-        
+
         count++;
       } catch (error) {
         errors.push(`Teacher ${record.username}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importCourses(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find college
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Course ${record.course_code}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         // Find department (optional)
         let department = null;
         if (record.department_code) {
@@ -393,7 +401,7 @@ export class ImportService {
             }
           });
         }
-        
+
         await prisma.course.create({
           data: {
             college_id: college.id,
@@ -410,33 +418,33 @@ export class ImportService {
         errors.push(`Course ${record.course_code}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importCourseOfferings(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find course
         const course = await prisma.course.findFirst({
           where: { code: record.course_code }
         });
-        
+
         if (!course) {
           errors.push(`Course offering ${record.course_code}: Course not found`);
           continue;
         }
-        
+
         // Find academic year
         const academicYear = await prisma.academic_years.findFirst({
-          where: { 
+          where: {
             year_name: record.academic_year,
-            college_id: course.college_id 
+            college_id: course.college_id
           }
         });
-        
+
         // Find section
         const section = await prisma.sections.findFirst({
           where: {
@@ -447,7 +455,7 @@ export class ImportService {
             }
           }
         });
-        
+
         // Find teacher
         const teacher = await prisma.teacher.findFirst({
           where: {
@@ -457,7 +465,7 @@ export class ImportService {
             college_id: course.college_id
           }
         });
-        
+
         await prisma.courseOffering.create({
           data: {
             courseId: course.id,
@@ -472,38 +480,38 @@ export class ImportService {
         errors.push(`Course offering ${record.course_code}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importStudentEnrollments(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find student
         const student = await prisma.student.findFirst({
           where: { usn: record.student_usn }
         });
-        
+
         // Find course
         const course = await prisma.course.findFirst({
           where: { code: record.course_code }
         });
-        
+
         // Find academic year
         const academicYear = await prisma.academic_years.findFirst({
-          where: { 
+          where: {
             year_name: record.academic_year,
-            college_id: course.college_id 
+            college_id: course.college_id
           }
         });
-        
+
         if (!student || !course) {
           errors.push(`Enrollment ${record.student_usn}-${record.course_code}: Student or course not found`);
           continue;
         }
-        
+
         // Find course offering
         const courseOffering = await prisma.courseOffering.findFirst({
           where: {
@@ -512,7 +520,7 @@ export class ImportService {
             semester: parseInt(record.semester) || 1
           }
         });
-        
+
         if (!courseOffering) {
           errors.push(`Enrollment ${record.student_usn}-${record.course_code}: Course offering not found`);
           continue;
@@ -530,25 +538,25 @@ export class ImportService {
         errors.push(`Enrollment ${record.student_usn}-${record.course_code}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importUserRoles(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find user
         const user = await prisma.user.findUnique({
           where: { username: record.username }
         });
-        
+
         if (!user) {
           errors.push(`User role ${record.username}: User not found`);
           continue;
         }
-        
+
         await prisma.userRoleAssignment.create({
           data: {
             userId: user.id,
@@ -560,25 +568,25 @@ export class ImportService {
         errors.push(`User role ${record.username}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importAcademicYears(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find college
         const college = await prisma.college.findUnique({
           where: { code: record.college_code }
         });
-        
+
         if (!college) {
           errors.push(`Academic year ${record.year_name}: College ${record.college_code} not found`);
           continue;
         }
-        
+
         await prisma.academic_years.create({
           data: {
             college_id: college.id,
@@ -593,20 +601,20 @@ export class ImportService {
         errors.push(`Academic year ${record.year_name}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importAttendance(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find course
         const course = await prisma.course.findFirst({
           where: { code: record.course_code }
         });
-        
+
         // Find section
         const section = await prisma.sections.findFirst({
           where: {
@@ -617,7 +625,7 @@ export class ImportService {
             }
           }
         });
-        
+
         // Find teacher
         const teacher = await prisma.teacher.findFirst({
           where: {
@@ -627,7 +635,7 @@ export class ImportService {
             college_id: course.college_id
           }
         });
-        
+
         if (!course || !section || !teacher) {
           errors.push(`Attendance ${record.course_code}-${record.class_date}: Missing course, section, or teacher`);
           continue;
@@ -641,7 +649,7 @@ export class ImportService {
             teacherId: teacher?.id
           }
         });
-        
+
         if (!courseOffering) {
           errors.push(`Attendance ${record.course_code}-${record.class_date}: Course offering not found`);
           continue;
@@ -661,36 +669,36 @@ export class ImportService {
         errors.push(`Attendance ${record.course_code}-${record.class_date}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
   static async importAttendanceRecords(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
-    
+
     for (const record of records) {
       try {
         // Find student
         const student = await prisma.student.findFirst({
           where: { usn: record.student_usn }
         });
-        
+
         // Find attendance session
         const attendance = await prisma.attendance.findFirst({
           where: {
-            offering: { 
-              course: { code: record.course_code } 
+            offering: {
+              course: { code: record.course_code }
             },
             classDate: new Date(record.class_date),
             periodNumber: parseInt(record.period_number) || 1
           }
         });
-        
+
         if (!student || !attendance) {
           errors.push(`Attendance record ${record.student_usn}-${record.class_date}: Missing references`);
           continue;
         }
-        
+
         await prisma.attendanceRecord.create({
           data: {
             attendanceId: attendance.id,
@@ -703,10 +711,13 @@ export class ImportService {
         errors.push(`Attendance record ${record.student_usn}-${record.class_date}: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
-    
+
     return count;
   }
 
+  // DEPRECATED: Old marks schema - kept for reference
+  // TODO: Rewrite using TestComponent + StudentMark schema
+  /*
   static async importTheoryMarks(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
     
@@ -761,7 +772,11 @@ export class ImportService {
     
     return count;
   }
+  */
 
+  // DEPRECATED: Old marks schema - kept for reference
+  // TODO: Rewrite using TestComponent + StudentMark schema
+  /*
   static async importLabMarks(records: any[], prisma: any, errors: string[]): Promise<number> {
     let count = 0;
     
@@ -813,4 +828,5 @@ export class ImportService {
     
     return count;
   }
+  */
 }

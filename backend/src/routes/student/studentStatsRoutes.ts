@@ -23,28 +23,33 @@ router.get("/:userId/stats", async (req, res) => {
     }
 
     // 2. Get course enrollments
-   const enrollments = await prisma.studentEnrollment.findMany({
-  where: { studentId: student.id },
-  include: {
-    offering: {
+    const enrollments = await prisma.studentEnrollment.findMany({
+      where: { studentId: student.id },
       include: {
-        course: true,
-        attendances: {
+        offering: {
           include: {
-            attendanceRecords: {
-              where: { studentId: student.id }
+            course: true,
+            attendances: {
+              include: {
+                attendanceRecords: {
+                  where: { studentId: student.id }
+                }
+              }
             }
           }
         }
       }
-    }
-  }
-});
+    });
 
 
     const courseAttendance = enrollments.map((enrollment) => {
-      const  attendances  = enrollment.offering?.attendances;
-        const course = enrollment.offering?.course;
+      const attendances = enrollment.offering?.attendances || [];
+      const course = enrollment.offering?.course;
+
+      if (!course) {
+        return null;
+      }
+
       // Flatten all attendance records for this course
       const records = attendances.flatMap((a) => a.attendanceRecords);
 
@@ -72,7 +77,7 @@ router.get("/:userId/stats", async (req, res) => {
         required_percentage,
         status,
       };
-    });
+    }).filter((item): item is NonNullable<typeof item> => item !== null);
 
     // 3. Overall stats
     const total_present = courseAttendance.reduce((sum, c) => sum + c.present, 0);
@@ -83,7 +88,7 @@ router.get("/:userId/stats", async (req, res) => {
       : 0;
 
     // 4. Monthly trend (optional: group by month/year)
-    const monthly_trend = []; // You can implement grouping with date-fns
+    const monthly_trend: any[] = []; // You can implement grouping with date-fns
 
     res.json({
       courseAttendance,
