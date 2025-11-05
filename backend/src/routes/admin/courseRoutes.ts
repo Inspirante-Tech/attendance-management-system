@@ -123,7 +123,7 @@ router.get('/courses/:courseId/eligible-students', async (req, res) => {
 		// 1. Their current semester (e.g., semester 5 for year 3 courses)
 		// 2. The course's year field (e.g., year: 3 for semester 5,6)
 		// 3. Same college and (for core/dept elective) same department
-		
+
 		// Verify course year matches semester
 		const expectedCourseYear = Math.ceil(semesterNumber / 2);
 		if (course.year && course.year !== expectedCourseYear) {
