@@ -174,7 +174,9 @@ exports.Prisma.CourseScalarFieldEnum = {
   name: 'name',
   departmentId: 'departmentId',
   year: 'year',
-  type: 'type'
+  type: 'type',
+  hasTheoryComponent: 'hasTheoryComponent',
+  hasLabComponent: 'hasLabComponent'
 };
 
 exports.Prisma.DepartmentElectiveGroupScalarFieldEnum = {
