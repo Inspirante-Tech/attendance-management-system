@@ -1,5 +1,7 @@
 // src/middleware/auth.ts
 import { Request, Response, NextFunction } from 'express';
+import type { ParamsDictionary } from 'express-serve-static-core';
+import type { ParsedQs } from 'qs';
 import jwt from 'jsonwebtoken';
 import DatabaseService from '../lib/database';
 
@@ -13,9 +15,19 @@ export interface AuthenticatedUser {
   roles: string[];
 }
 
-export interface AuthenticatedRequest extends Request {
+export type AuthenticatedRequest<
+  P extends ParamsDictionary = ParamsDictionary,
+  ResBody = any,
+  ReqBody = any,
+  ReqQuery extends ParsedQs = ParsedQs,
+  Locals extends Record<string, any> = Record<string, any>
+> = Request<P, ResBody, ReqBody, ReqQuery, Locals> & {
   user?: AuthenticatedUser;
-}
+  params: P;
+  query: ReqQuery;
+  body: ReqBody;
+  locals: Locals;
+};
 
 // Middleware to verify JWT token
 export const authenticateToken = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {

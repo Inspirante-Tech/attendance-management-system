@@ -9,7 +9,8 @@
     "moduleResolution": "node",
 
     "lib": ["ES2020"],
-    "types": ["node"],
+    "types": ["node", "express"],
+    "typeRoots": ["./src/types", "./node_modules/@types"],
 
     "esModuleInterop": true,
     "resolveJsonModule": true,

@@ -145,9 +145,7 @@ router.get('/marks', authenticateToken, async (req: AuthenticatedRequest, res) =
                             select: {
                                 id: true,
                                 code: true,
-                                name: true,
-                                hasTheoryComponent: true,
-                                hasLabComponent: true
+                                name: true
                             }
                         },
                         testComponents: true

@@ -62,9 +62,7 @@ router.get('/courses', authenticateToken, async (req: AuthenticatedRequest, res)
                 id: offering.course.id,
                 name: offering.course.name,
                 code: offering.course.code,
-                type: offering.course.type,
-                hasTheoryComponent: offering.course.hasTheoryComponent,
-                hasLabComponent: offering.course.hasLabComponent,
+                    type: offering.course.type,
                 department: offering.course.department?.code || 'Unknown',
                 departmentName: offering.course.department?.name || 'Unknown'
             },
