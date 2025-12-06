@@ -287,8 +287,9 @@ router.get("/:userId/marks", async (req, res) => {
       else if (percentage >= 40) grade = "C";
 
       return {
-        courseCode: course?.code || "N/A",
-        courseName: course?.name || "N/A",
+        course_code: course?.code || "N/A",
+        course_name: course?.name || "N/A",
+        course_type: course?.type || "core",
         theoryMarks,
         labMarks,
         theoryTotal,

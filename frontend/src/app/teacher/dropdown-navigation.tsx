@@ -252,7 +252,10 @@ export function DropdownNavigation({
         setCourses(filteredCourses)
       } else {
         // Fallback to admin API if no teacher courses available
-        const allCoursesData = await adminApi.getAllCourses()
+        const response = await adminApi.getAllCourses()
+        
+        // Handle different response formats
+        const allCoursesData = Array.isArray(response) ? response : response?.data || response?.courses || []
 
         // Filter courses by department
         const departmentCourses = allCoursesData.filter((course: any) =>

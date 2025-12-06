@@ -19,6 +19,7 @@
     "create-admin": "node create-admin.js",
     "excel:create-samples": "node create-sample-excel.js",
     "excel:seed": "node seed-from-excel.js",
+    "db:seed-marks": "ts-node prisma/seed-marks-attendance.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "prisma": {

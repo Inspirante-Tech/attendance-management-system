@@ -181,9 +181,7 @@ async function seed() {
                             name: course.name,
                             departmentId: dept.id,
                             type: course.type,
-                            year: 3,
-                            hasTheoryComponent: true,
-                            hasLabComponent: course.code.endsWith('L')
+                            year: 3
                         }
                     })
                 )
