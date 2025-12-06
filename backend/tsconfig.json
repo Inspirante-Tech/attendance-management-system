@@ -7,7 +7,7 @@
     "outDir": "dist",
 
     "moduleResolution": "node",
-    "types": ["node"],
+  
     "lib": ["ES2020"],
 
     "esModuleInterop": true,
