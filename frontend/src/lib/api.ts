@@ -454,7 +454,7 @@ export const adminApi = {
     return apiRequest<{ status: string; data: any[] }>(`/api/admin/student-courses/${studentId}`)
   },
 
-  async updateAttendance(attendanceId: string, status: 'present' | 'absent'): Promise<{ status: string; data: any }> {
+  async updateAttendance(attendanceId: string, status: 'present' | 'absent' | 'not_marked'): Promise<{ status: string; data: any }> {
     return apiRequest<{ status: string; data: any }>(`/api/admin/attendance/${attendanceId}`, {
       method: 'PUT',
       body: JSON.stringify({ status })
@@ -464,7 +464,7 @@ export const adminApi = {
   async createAttendanceRecord(data: {
     studentId: string
     date: string
-    status: 'present' | 'absent'
+    status: 'present' | 'absent' | 'not_marked'
     courseId?: string
   }): Promise<{ status: string; data: any }> {
     return apiRequest<{ status: string; data: any }>('/api/admin/attendance', {

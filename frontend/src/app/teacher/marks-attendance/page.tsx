@@ -106,7 +106,7 @@ export default function TeacherMarksAttendancePage() {
                     courses={courses}
                     selectedCourseId={selectedCourseId}
                     teacherId={teacherId}
-                    initialMode="marks"
+                    initialMode="attendance"
                 />
             </div>
         </div>

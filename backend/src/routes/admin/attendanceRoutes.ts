@@ -244,7 +244,7 @@ router.get('/attendance', async (req: AuthenticatedRequest, res) => {
 /**
  * PUT /attendance/:attendanceId
  * Updates the status of an existing attendance record
- * Body: { status: 'present' | 'absent' }
+ * Body: { status: 'present' | 'absent' | 'not_marked' }
  */
 router.put('/attendance/:attendanceId', async (req, res) => {
   try {
@@ -252,14 +252,47 @@ router.put('/attendance/:attendanceId', async (req, res) => {
     const { status } = req.body as UpdateAttendanceRequest;
 
     // Validate status
-    if (!status || !isValidAttendanceStatus(status)) {
+    if (!status || !['present', 'absent', 'not_marked'].includes(status)) {
       return res.status(400).json({
         status: 'error',
-        error: 'Valid status (present/absent) is required'
+        error: 'Valid status (present/absent/not_marked) is required'
       } as ApiResponse);
     }
 
     const prisma = DatabaseService.getInstance();
+
+    if (status === 'not_marked') {
+      const existingRecord = await prisma.attendanceRecord.findUnique({
+        where: { id: attendanceId },
+        include: {
+          student: { include: { user: true } },
+          attendance: true
+        }
+      });
+
+      if (!existingRecord) {
+        return res.status(404).json({
+          status: 'error',
+          error: 'Attendance record not found'
+        } as ApiResponse);
+      }
+
+      await prisma.attendanceRecord.delete({
+        where: { id: attendanceId }
+      });
+
+      return res.json({
+        status: 'success',
+        data: {
+          id: attendanceId,
+          date: existingRecord.attendance?.classDate?.toISOString().split('T')[0] || '',
+          studentId: existingRecord.studentId,
+          usn: existingRecord.student?.usn || '',
+          student_name: existingRecord.student?.user?.name || '',
+          status: 'not_marked'
+        }
+      } as ApiResponse);
+    }
 
     // Update the attendance record
     const updatedRecord = await prisma.attendanceRecord.update({

@@ -25,7 +25,7 @@ interface Student {
   student_id: string
   usn: string
   name: string
-  attendance_status: 'present' | 'absent'
+  attendance_status: 'present' | 'absent' | 'unmarked'
   photo_url?: string
 }
 
@@ -74,17 +74,28 @@ export function AttendanceMarking({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [courseOffering.course_id, courseOffering.course_code])
 
-  const markAttendance = (studentId: string, status: 'present' | 'absent') => {
+  const markAttendance = (studentId: string, status: 'present' | 'absent' | 'unmarked') => {
     setStudents(prev => prev.map(student =>
       student.student_id === studentId
         ? { ...student, attendance_status: status }
         : student
     ))
   }
-  const markAllPresent = () => {
+
+  const getNextBulkStatus = (items: Student[]): Student['attendance_status'] => {
+    if (items.length === 0) return 'present'
+    const areAllPresent = items.every((student) => student.attendance_status === 'present')
+    const areAllAbsent = items.every((student) => student.attendance_status === 'absent')
+    if (areAllPresent) return 'absent'
+    if (areAllAbsent) return 'unmarked'
+    return 'present'
+  }
+
+  const markAllStudents = () => {
+    const nextStatus = getNextBulkStatus(students)
     setStudents(prev => prev.map(student => ({
       ...student,
-      attendance_status: 'present' as const
+      attendance_status: nextStatus
     })))
   }
 
@@ -129,7 +140,9 @@ export function AttendanceMarking({
   }
   const presentCount = students.filter(s => s.attendance_status === 'present').length
   const absentCount = students.filter(s => s.attendance_status === 'absent').length
+  const unmarkedCount = students.filter(s => s.attendance_status === 'unmarked').length
   const attendancePercentage = students.length > 0 ? (presentCount / students.length) * 100 : 0
+  const nextBulkStatus = getNextBulkStatus(students)
 
   if (loading) {
     return (
@@ -185,10 +198,10 @@ export function AttendanceMarking({
                 </div>
               </div>
               <button
-                onClick={markAllPresent}
+                onClick={markAllStudents}
                 className="px-3 sm:px-4 py-2 bg-green-100 text-green-700 rounded text-sm sm:text-base font-medium hover:bg-green-200 transition-colors whitespace-nowrap"
               >
-                Reset All to Present
+                Set All {nextBulkStatus === 'present' ? 'Present' : nextBulkStatus === 'absent' ? 'Absent' : 'Unmarked'}
               </button>
             </div>
           </div>
@@ -212,6 +225,9 @@ export function AttendanceMarking({
                                   attendancePercentage >= 10 ? 'w-1/12' : 'w-0'
                   }`}
               />            </div>          </div>
+          {unmarkedCount > 0 && (
+            <p className="mt-2 text-xs text-gray-600">Unmarked: {unmarkedCount}</p>
+          )}
         </CardContent>
       </Card>
 
@@ -241,13 +257,22 @@ export function AttendanceMarking({
                     <td className="py-3 px-2 sm:px-4 text-sm sm:text-base font-medium truncate max-w-0">{student.name}</td>
                     <td className="py-3 px-2 sm:px-4 text-center">
                       <button
-                        onClick={() => markAttendance(student.student_id, student.attendance_status === 'present' ? 'absent' : 'present')}
+                        onClick={() => {
+                          const nextStatus = student.attendance_status === 'unmarked'
+                            ? 'present'
+                            : student.attendance_status === 'present'
+                              ? 'absent'
+                              : 'unmarked'
+                          markAttendance(student.student_id, nextStatus)
+                        }}
                         className={`px-3 sm:px-4 py-2 rounded text-sm sm:text-base font-medium transition-colors whitespace-nowrap ${student.attendance_status === 'present'
                             ? 'bg-green-600 text-white hover:bg-green-700'
-                            : 'bg-red-600 text-white hover:bg-red-700'
+                            : student.attendance_status === 'absent'
+                              ? 'bg-red-600 text-white hover:bg-red-700'
+                              : 'bg-gray-500 text-white hover:bg-gray-600'
                           }`}
                       >
-                        {student.attendance_status === 'present' ? 'Present' : 'Absent'}
+                        {student.attendance_status === 'unmarked' ? 'Unmarked' : student.attendance_status === 'present' ? 'Present' : 'Absent'}
                       </button>
                     </td>
                   </tr>

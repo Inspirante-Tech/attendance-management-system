@@ -52,6 +52,8 @@ interface AttendanceRecord {
   courseName?: string
 }
 
+type AttendanceStatus = AttendanceRecord['status']
+
 interface AttendanceDay {
   present: number
   absent: number
@@ -63,7 +65,7 @@ interface MarksAttendanceProps {
   onNavigateToUsers?: (filters: { usn?: string }) => void
   selectedStudentId?: string
   selectedStudentName?: string
-  initialMode?: 'marks' | 'attendance'
+  initialMode?: 'attendance'|'marks'
 }
 
 export default function MarksAttendanceManagement({
@@ -85,6 +87,8 @@ export default function MarksAttendanceManagement({
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [savingAttendance, setSavingAttendance] = useState(false)
+  const [initialAttendanceRecords, setInitialAttendanceRecords] = useState<AttendanceRecord[]>([])
 
   // Load data from database
   useEffect(() => {
@@ -207,6 +211,7 @@ export default function MarksAttendanceManagement({
           : transformedAttendance
 
         setAttendanceRecords(filteredAttendance)
+        setInitialAttendanceRecords(filteredAttendance)
       }
     } catch (err) {
       setError('Failed to load attendance data')
@@ -224,6 +229,10 @@ export default function MarksAttendanceManagement({
     if (selectedCourse === 'all') return true
     return record.courseId === selectedCourse
   })
+
+  const selectedCourseAttendanceRecords = attendanceRecords.filter(record =>
+    selectedCourse !== 'all' && record.courseId === selectedCourse
+  )
 
   // Handle marks editing
   const handleMarkEdit = async (enrollmentId: string, field: string, value: string) => {
@@ -284,44 +293,116 @@ export default function MarksAttendanceManagement({
   }
 
   // Handle attendance toggle
-  const toggleAttendance = async (recordId: string) => {
+  const toggleAttendance = (recordId: string) => {
     const record = attendanceRecords.find(r => r.id === recordId)
     if (!record) return
 
+    // Stage local status change; persist only when Save Attendance is clicked.
+    const newStatus: AttendanceStatus =
+      record.status === 'not_marked'
+        ? 'present'
+        : record.status === 'present'
+          ? 'absent'
+          : 'not_marked'
+
+    setAttendanceRecords(prev => prev.map(r =>
+      r.id === recordId ? { ...r, status: newStatus } : r
+    ))
+  }
+
+  const getNextAttendanceStatusForCourse = (records: AttendanceRecord[]): AttendanceStatus => {
+    if (records.length === 0) return 'present'
+    const areAllPresent = records.every((record) => record.status === 'present')
+    const areAllAbsent = records.every((record) => record.status === 'absent')
+    if (areAllPresent) return 'absent'
+    if (areAllAbsent) return 'not_marked'
+    return 'present'
+  }
+
+  const toggleAllAttendanceForCourse = () => {
+    if (selectedCourse === 'all') {
+      setError('Please select a specific course to mark attendance')
+      return
+    }
+
+    const courseRecords = attendanceRecords.filter((record) => record.courseId === selectedCourse)
+    if (courseRecords.length === 0) return
+
+    const targetStatus = getNextAttendanceStatusForCourse(courseRecords)
+
+    setAttendanceRecords(prev => prev.map((record) =>
+      record.courseId === selectedCourse ? { ...record, status: targetStatus } : record
+    ))
+  }
+
+  const getRecordKey = (record: AttendanceRecord) => `${record.studentId}:${record.courseId || ''}`
+
+  const getAttendanceChangeCount = () => {
+    const initialStatusByKey = new Map(
+      initialAttendanceRecords.map((record) => [getRecordKey(record), record.status])
+    )
+
+    return attendanceRecords
+      .filter((record) => selectedCourse !== 'all' && record.courseId === selectedCourse)
+      .filter((record) => initialStatusByKey.get(getRecordKey(record)) !== record.status)
+      .length
+  }
+
+  const saveAttendanceChanges = async () => {
+    if (selectedCourse === 'all') {
+      setError('Please select a specific course to mark attendance')
+      return
+    }
+
+    const initialByKey = new Map(
+      initialAttendanceRecords.map((record) => [getRecordKey(record), record])
+    )
+
+    const changedRecords = attendanceRecords
+      .filter((record) => record.courseId === selectedCourse)
+      .filter((record) => initialByKey.get(getRecordKey(record))?.status !== record.status)
+
+    if (changedRecords.length === 0) return
+
+    setSavingAttendance(true)
+    setError(null)
+
     try {
-      // Check if this is a placeholder record (starts with "pending-") or status is not_marked
-      if (recordId.startsWith('pending-') || record.status === 'not_marked') {
-        // For placeholder or not_marked students, create a new attendance record
-        const response = await adminApi.createAttendanceRecord({
-          studentId: record.studentId,
-          date: record.date,
-          status: 'present',
-          courseId: record.courseId
-        })
+      await Promise.all(changedRecords.map(async (record) => {
+        const key = getRecordKey(record)
+        const initialRecord = initialByKey.get(key)
+        const initialId = initialRecord?.id
+        const updateId = !record.id.startsWith('pending-') ? record.id : initialId
 
-        if (response.status === 'success') {
-          setAttendanceRecords(prev => prev.map(r =>
-            r.id === recordId ? {
-              ...r,
-              status: 'present',
-              id: response.data.id // Update with real attendance record ID
-            } : r
-          ))
+        if (record.status === 'not_marked') {
+          if (updateId && !updateId.startsWith('pending-')) {
+            await adminApi.updateAttendance(updateId, 'not_marked')
+          }
+          return
         }
-      } else {
-        // Toggle existing attendance record
-        const newStatus = record.status === 'present' ? 'absent' : 'present'
-        const response = await adminApi.updateAttendance(recordId, newStatus)
 
-        if (response.status === 'success') {
-          setAttendanceRecords(prev => prev.map(r =>
-            r.id === recordId ? { ...r, status: newStatus } : r
-          ))
+        const wasUnmarked = !initialRecord || initialRecord.status === 'not_marked' || !!initialId?.startsWith('pending-')
+        if (wasUnmarked) {
+          await adminApi.createAttendanceRecord({
+            studentId: record.studentId,
+            date: record.date,
+            status: record.status,
+            courseId: record.courseId
+          })
+          return
         }
-      }
+
+        if (updateId) {
+          await adminApi.updateAttendance(updateId, record.status)
+        }
+      }))
+
+      await loadAttendanceData()
     } catch (err) {
-      console.error('Error updating attendance:', err)
-      setError('Failed to update attendance')
+      console.error('Error saving attendance:', err)
+      setError('Failed to save attendance changes')
+    } finally {
+      setSavingAttendance(false)
     }
   }
 
@@ -331,6 +412,9 @@ export default function MarksAttendanceManagement({
     absent: attendanceRecords.filter(r => r.status === 'absent').length,
     total: attendanceRecords.length
   }
+
+  const nextBulkAttendanceStatus = getNextAttendanceStatusForCourse(selectedCourseAttendanceRecords)
+  const attendanceChangesCount = getAttendanceChangeCount()
 
   // Generate calendar for current month
   const generateCalendar = () => {
@@ -416,6 +500,13 @@ export default function MarksAttendanceManagement({
               </CardDescription>
             </div>
             <div className="flex gap-2">
+            <Button
+                variant={activeTab === 'attendance' ? 'default' : 'outline'}
+                onClick={() => setActiveTab('attendance')}
+              >
+                <Calendar className="w-4 h-4 mr-2" />
+                Attendance
+              </Button>
               <Button
                 variant={activeTab === 'marks' ? 'default' : 'outline'}
                 onClick={() => setActiveTab('marks')}
@@ -423,13 +514,7 @@ export default function MarksAttendanceManagement({
                 <BookOpen className="w-4 h-4 mr-2" />
                 Marks
               </Button>
-              <Button
-                variant={activeTab === 'attendance' ? 'default' : 'outline'}
-                onClick={() => setActiveTab('attendance')}
-              >
-                <Calendar className="w-4 h-4 mr-2" />
-                Attendance
-              </Button>
+              
             </div>
           </div>
         </CardHeader>
@@ -663,9 +748,36 @@ export default function MarksAttendanceManagement({
                     }
                   </CardDescription>
                 </div>
-                <Button size="sm">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={toggleAllAttendanceForCourse}
+                  disabled={
+                    selectedCourse === 'all' ||
+                    selectedCourseAttendanceRecords.length === 0 ||
+                    savingAttendance
+                  }
+                >
+                  {`Set All ${
+                      nextBulkAttendanceStatus === 'present'
+                        ? 'Present'
+                        : nextBulkAttendanceStatus === 'absent'
+                          ? 'Absent'
+                          : 'Unmarked'
+                    }`}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={saveAttendanceChanges}
+                  disabled={
+                    selectedCourse === 'all' ||
+                    attendanceChangesCount === 0 ||
+                    savingAttendance
+                  }
+                  className="bg-emerald-600 hover:bg-emerald-700"
+                >
                   <Save className="w-4 h-4 mr-2" />
-                  Save Changes
+                  {savingAttendance ? 'Saving...' : `Save (${attendanceChangesCount})`}
                 </Button>
               </div>
             </CardHeader>

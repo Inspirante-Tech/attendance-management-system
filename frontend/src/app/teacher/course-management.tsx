@@ -129,7 +129,7 @@ export function CourseManagement({
             courses={courses}
             teacherId={teacherId}
             selectedCourseId={courseOffering.offering_id || courseOffering.course_id}
-            initialMode="marks"
+            initialMode="attendance"
           />
         </TabsContent>
       </Tabs>
