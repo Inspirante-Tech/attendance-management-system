@@ -1,6 +1,6 @@
-const XLSX = require("xlsx");
 const path = require("path");
 const fs = require("fs");
+const { createExcelFile } = require("./excel-utils");
 
 const OUTPUT_DIR = path.join(__dirname, "excel-seed-data");
 
@@ -12,13 +12,9 @@ if (!fs.existsSync(OUTPUT_DIR)) {
 /**
  * Create an Excel file from JSON data
  */
-function createExcelFile(filename, data) {
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-
+async function writeExcelFile(filename, data) {
   const filePath = path.join(OUTPUT_DIR, filename);
-  XLSX.writeFile(workbook, filePath);
+  await createExcelFile(filePath, data);
   console.log(`✅ Created: ${filename}`);
 }
 
@@ -404,17 +400,24 @@ const academicYears = [
 // Create all Excel files
 console.log("📊 Creating sample Excel files...\n");
 
-createExcelFile("colleges.xlsx", colleges);
-createExcelFile("departments.xlsx", departments);
-createExcelFile("sections.xlsx", sections);
-createExcelFile("users.xlsx", users);
-createExcelFile("students.xlsx", students);
-createExcelFile("teachers.xlsx", teachers);
-createExcelFile("courses.xlsx", courses);
-createExcelFile("academic_years.xlsx", academicYears);
-
-console.log("\n✅ All sample Excel files created successfully!");
-console.log(`📁 Files location: ${OUTPUT_DIR}`);
-console.log(
-  "\n📝 You can now edit these files and run: node seed-from-excel.js"
-);
+Promise.all([
+  writeExcelFile("colleges.xlsx", colleges),
+  writeExcelFile("departments.xlsx", departments),
+  writeExcelFile("sections.xlsx", sections),
+  writeExcelFile("users.xlsx", users),
+  writeExcelFile("students.xlsx", students),
+  writeExcelFile("teachers.xlsx", teachers),
+  writeExcelFile("courses.xlsx", courses),
+  writeExcelFile("academic_years.xlsx", academicYears),
+])
+  .then(() => {
+    console.log("\n✅ All sample Excel files created successfully!");
+    console.log(`📁 Files location: ${OUTPUT_DIR}`);
+    console.log(
+      "\n📝 You can now edit these files and run: node seed-from-excel.js",
+    );
+  })
+  .catch((error) => {
+    console.error("Failed to create sample Excel files:", error);
+    process.exitCode = 1;
+  });

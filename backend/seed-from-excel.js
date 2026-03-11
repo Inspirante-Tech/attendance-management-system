@@ -1,8 +1,8 @@
 const { PrismaClient } = require("./generated/prisma");
-const XLSX = require("xlsx");
 const bcrypt = require("bcryptjs");
 const path = require("path");
 const fs = require("fs");
+const { readExcelFile } = require("./excel-utils");
 
 const prisma = new PrismaClient();
 
@@ -13,7 +13,7 @@ const DEFAULT_PASSWORD = "password123"; // Default password for all users
 /**
  * Read Excel file and convert to JSON
  */
-function readExcelFile(filename) {
+async function loadExcelFile(filename) {
   const filePath = path.join(EXCEL_FILES_DIR, filename);
 
   if (!fs.existsSync(filePath)) {
@@ -21,10 +21,7 @@ function readExcelFile(filename) {
     return null;
   }
 
-  const workbook = XLSX.readFile(filePath);
-  const sheetName = workbook.SheetNames[0];
-  const worksheet = workbook.Sheets[sheetName];
-  const data = XLSX.utils.sheet_to_json(worksheet);
+  const data = await readExcelFile(filePath);
 
   console.log(`✅ Loaded ${data.length} rows from ${filename}`);
   return data;
@@ -35,7 +32,7 @@ function readExcelFile(filename) {
  */
 async function seedColleges() {
   console.log("\n📚 Seeding Colleges...");
-  const data = readExcelFile("colleges.xlsx");
+  const data = await loadExcelFile("colleges.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -66,7 +63,7 @@ async function seedColleges() {
  */
 async function seedDepartments() {
   console.log("\n🏢 Seeding Departments...");
-  const data = readExcelFile("departments.xlsx");
+  const data = await loadExcelFile("departments.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -103,7 +100,7 @@ async function seedDepartments() {
     } catch (error) {
       console.error(
         `  ✗ Error creating department ${row.code}:`,
-        error.message
+        error.message,
       );
     }
   }
@@ -115,7 +112,7 @@ async function seedDepartments() {
  */
 async function seedSections() {
   console.log("\n📋 Seeding Sections...");
-  const data = readExcelFile("sections.xlsx");
+  const data = await loadExcelFile("sections.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -133,7 +130,7 @@ async function seedSections() {
 
       if (!department) {
         console.error(
-          `  ✗ Department not found: ${row.department_code} in ${row.college_code}`
+          `  ✗ Department not found: ${row.department_code} in ${row.college_code}`,
         );
         continue;
       }
@@ -153,12 +150,12 @@ async function seedSections() {
       });
       count++;
       console.log(
-        `  ✓ Section ${row.section_name} - ${row.department_code} (${row.college_code})`
+        `  ✓ Section ${row.section_name} - ${row.department_code} (${row.college_code})`,
       );
     } catch (error) {
       console.error(
         `  ✗ Error creating section ${row.section_name}:`,
-        error.message
+        error.message,
       );
     }
   }
@@ -170,7 +167,7 @@ async function seedSections() {
  */
 async function seedUsers() {
   console.log("\n👥 Seeding Users...");
-  const data = readExcelFile("users.xlsx");
+  const data = await loadExcelFile("users.xlsx");
   if (!data) return;
 
   const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 10);
@@ -224,7 +221,7 @@ async function seedUsers() {
  */
 async function seedStudents() {
   console.log("\n🎓 Seeding Students...");
-  const data = readExcelFile("students.xlsx");
+  const data = await loadExcelFile("students.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -307,7 +304,7 @@ async function seedStudents() {
  */
 async function seedTeachers() {
   console.log("\n👨‍🏫 Seeding Teachers...");
-  const data = readExcelFile("teachers.xlsx");
+  const data = await loadExcelFile("teachers.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -361,12 +358,12 @@ async function seedTeachers() {
 
       count++;
       console.log(
-        `  ✓ ${row.username} - ${user.name} (${row.department_code})`
+        `  ✓ ${row.username} - ${user.name} (${row.department_code})`,
       );
     } catch (error) {
       console.error(
         `  ✗ Error creating teacher ${row.username}:`,
-        error.message
+        error.message,
       );
     }
   }
@@ -378,7 +375,7 @@ async function seedTeachers() {
  */
 async function seedCourses() {
   console.log("\n📖 Seeding Courses...");
-  const data = readExcelFile("courses.xlsx");
+  const data = await loadExcelFile("courses.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -396,7 +393,7 @@ async function seedCourses() {
 
       if (!department) {
         console.error(
-          `  ✗ Department not found: ${row.department_code} in ${row.college_code}`
+          `  ✗ Department not found: ${row.department_code} in ${row.college_code}`,
         );
         continue;
       }
@@ -448,7 +445,7 @@ async function seedCourses() {
  */
 async function seedAcademicYears() {
   console.log("\n📅 Seeding Academic Years...");
-  const data = readExcelFile("academic_years.xlsx");
+  const data = await loadExcelFile("academic_years.xlsx");
   if (!data) return;
 
   let count = 0;
@@ -472,7 +469,7 @@ async function seedAcademicYears() {
     } catch (error) {
       console.error(
         `  ✗ Error creating academic year ${row.year_name}:`,
-        error.message
+        error.message,
       );
     }
   }
@@ -492,7 +489,7 @@ async function seedDatabase() {
       fs.mkdirSync(EXCEL_FILES_DIR, { recursive: true });
       console.log(`✅ Created directory: ${EXCEL_FILES_DIR}`);
       console.log(
-        "\n⚠️  Please add your Excel files to this directory and run again.\n"
+        "\n⚠️  Please add your Excel files to this directory and run again.\n",
       );
       return;
     }
@@ -509,7 +506,7 @@ async function seedDatabase() {
 
     console.log("\n✅ Database seeding completed successfully!");
     console.log(
-      `\n📝 Note: All users have been created with default password: "${DEFAULT_PASSWORD}"\n`
+      `\n📝 Note: All users have been created with default password: "${DEFAULT_PASSWORD}"\n`,
     );
   } catch (error) {
     console.error("\n❌ Error during seeding:", error);

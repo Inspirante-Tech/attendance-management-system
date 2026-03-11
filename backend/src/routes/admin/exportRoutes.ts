@@ -1,13 +1,19 @@
 // src/routes/admin/exportRoutes.ts
 import { Router, Request, Response } from 'express';
 import DatabaseService from '../../lib/database';
-import XLSX from 'xlsx';
 import archiver from 'archiver';
+import { createExcelBuffer } from '../../lib/excel';
 
 const router = Router();
 const prisma = DatabaseService.getInstance();
 
 console.log('=== ADMIN EXPORT ROUTES LOADED ===');
+
+type ExportRow = Record<string, unknown>;
+
+function createWorkbookEntry(sheetName: string, rows: ExportRow[]) {
+    return createExcelBuffer(sheetName, rows);
+}
 
 // Get all academic years
 router.get('/academic-years', async (req: Request, res: Response) => {
@@ -321,36 +327,32 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
         ]);
 
         // Create Excel workbooks
-        const workbooks: { [key: string]: XLSX.WorkBook } = {};
+        const workbooks: { [key: string]: Promise<Buffer> } = {};
 
         // 1. Colleges
-        workbooks['colleges'] = XLSX.utils.book_new();
         const collegesData = colleges.map(c => ({
             code: c.code,
             name: c.name
         }));
-        XLSX.utils.book_append_sheet(workbooks['colleges'], XLSX.utils.json_to_sheet(collegesData), 'Colleges');
+        workbooks['colleges'] = createWorkbookEntry('Colleges', collegesData);
 
         // 2. Departments
-        workbooks['departments'] = XLSX.utils.book_new();
         const departmentsData = departments.map(d => ({
             college_code: d.colleges.code,
             code: d.code,
             name: d.name
         }));
-        XLSX.utils.book_append_sheet(workbooks['departments'], XLSX.utils.json_to_sheet(departmentsData), 'Departments');
+        workbooks['departments'] = createWorkbookEntry('Departments', departmentsData);
 
         // 3. Sections
-        workbooks['sections'] = XLSX.utils.book_new();
         const sectionsData = sections.map(s => ({
             college_code: s.departments.colleges.code,
             department_code: s.departments.code,
             section_name: s.section_name
         }));
-        XLSX.utils.book_append_sheet(workbooks['sections'], XLSX.utils.json_to_sheet(sectionsData), 'Sections');
+        workbooks['sections'] = createWorkbookEntry('Sections', sectionsData);
 
         // 4. Users
-        workbooks['users'] = XLSX.utils.book_new();
         const usersData = users.map(u => ({
             username: u.username,
             name: u.name,
@@ -358,10 +360,9 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             phone: u.phone || '',
             role: u.userRoles[0]?.role || 'student'
         }));
-        XLSX.utils.book_append_sheet(workbooks['users'], XLSX.utils.json_to_sheet(usersData), 'Users');
+        workbooks['users'] = createWorkbookEntry('Users', usersData);
 
         // 5. Students
-        workbooks['students'] = XLSX.utils.book_new();
         const studentsData = students.map(s => ({
             usn: s.usn,
             college_code: s.colleges.code,
@@ -370,19 +371,17 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             semester: s.semester || 1,
             batch_year: s.batchYear
         }));
-        XLSX.utils.book_append_sheet(workbooks['students'], XLSX.utils.json_to_sheet(studentsData), 'Students');
+        workbooks['students'] = createWorkbookEntry('Students', studentsData);
 
         // 6. Teachers
-        workbooks['teachers'] = XLSX.utils.book_new();
         const teachersData = teachers.map(t => ({
             username: t.user.username,
             college_code: t.colleges.code,
             department_code: t.department?.code || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['teachers'], XLSX.utils.json_to_sheet(teachersData), 'Teachers');
+        workbooks['teachers'] = createWorkbookEntry('Teachers', teachersData);
 
         // 7. Courses
-        workbooks['courses'] = XLSX.utils.book_new();
         const coursesData = courses.map(c => ({
             college_code: c.department.colleges.code,
             department_code: c.department.code,
@@ -391,20 +390,18 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             type: c.type,
             year: c.year
         }));
-        XLSX.utils.book_append_sheet(workbooks['courses'], XLSX.utils.json_to_sheet(coursesData), 'Courses');
+        workbooks['courses'] = createWorkbookEntry('Courses', coursesData);
 
         // 8. Academic Years
-        workbooks['academic_years'] = XLSX.utils.book_new();
         const academicYearsData = academicYears.map(ay => ({
             college_code: ay.colleges.code,
             year_name: ay.year_name,
             start_date: ay.start_date ? new Date(ay.start_date).toISOString().split('T')[0] : '',
             end_date: ay.end_date ? new Date(ay.end_date).toISOString().split('T')[0] : ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['academic_years'], XLSX.utils.json_to_sheet(academicYearsData), 'Academic Years');
+        workbooks['academic_years'] = createWorkbookEntry('Academic Years', academicYearsData);
 
         // 9. Course Offerings
-        workbooks['course_offerings'] = XLSX.utils.book_new();
         const offeringsData = courseOfferings.map(co => ({
             course_code: co.course.code,
             teacher_username: co.teacher?.user.username || '',
@@ -412,10 +409,9 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             semester: co.semester,
             year_name: academicYear.year_name
         }));
-        XLSX.utils.book_append_sheet(workbooks['course_offerings'], XLSX.utils.json_to_sheet(offeringsData), 'Course Offerings');
+        workbooks['course_offerings'] = createWorkbookEntry('Course Offerings', offeringsData);
 
         // 10. Attendance Records
-        workbooks['attendance_records'] = XLSX.utils.book_new();
         const attendanceData = attendanceRecords.map(ar => ({
             student_usn: ar.student?.user.username || '',
             course_code: ar.attendance?.offering?.course.code || '',
@@ -425,10 +421,9 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             status: ar.status,
             syllabus_covered: ar.attendance?.syllabusCovered || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['attendance_records'], XLSX.utils.json_to_sheet(attendanceData), 'Attendance Records');
+        workbooks['attendance_records'] = createWorkbookEntry('Attendance Records', attendanceData);
 
         // 11. Test Components
-        workbooks['test_components'] = XLSX.utils.book_new();
         const testComponentsData = testComponents.map(tc => ({
             course_code: tc.courseOffering?.course.code || '',
             section_name: tc.courseOffering?.sections?.section_name || '',
@@ -437,10 +432,9 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             max_marks: tc.maxMarks,
             weightage: tc.weightage
         }));
-        XLSX.utils.book_append_sheet(workbooks['test_components'], XLSX.utils.json_to_sheet(testComponentsData), 'Test Components');
+        workbooks['test_components'] = createWorkbookEntry('Test Components', testComponentsData);
 
         // 12. Student Marks
-        workbooks['student_marks'] = XLSX.utils.book_new();
         const studentMarksData = studentMarks.map(sm => ({
             student_usn: sm.enrollment?.student?.user.username || '',
             course_code: sm.testComponent?.courseOffering?.course.code || '',
@@ -450,7 +444,7 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
             marks_obtained: sm.marksObtained ?? '',
             max_marks: sm.testComponent?.maxMarks || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['student_marks'], XLSX.utils.json_to_sheet(studentMarksData), 'Student Marks');
+        workbooks['student_marks'] = createWorkbookEntry('Student Marks', studentMarksData);
 
         // Create ZIP archive
         const archive = archiver('zip', {
@@ -467,7 +461,7 @@ router.get('/export-academic-year/:yearId', async (req: Request, res: Response) 
 
         // Add each Excel file to the archive
         for (const [name, workbook] of Object.entries(workbooks)) {
-            const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+            const buffer = await workbook;
             archive.append(buffer, { name: `${name}.xlsx` });
         }
 
@@ -744,36 +738,32 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
         ]);
 
         // Create Excel workbooks
-        const workbooks: { [key: string]: XLSX.WorkBook } = {};
+        const workbooks: { [key: string]: Promise<Buffer> } = {};
 
         // 1. Colleges
-        workbooks['colleges'] = XLSX.utils.book_new();
         const collegesData = colleges.map(c => ({
             code: c.code,
             name: c.name
         }));
-        XLSX.utils.book_append_sheet(workbooks['colleges'], XLSX.utils.json_to_sheet(collegesData), 'Colleges');
+        workbooks['colleges'] = createWorkbookEntry('Colleges', collegesData);
 
         // 2. Departments
-        workbooks['departments'] = XLSX.utils.book_new();
         const departmentsData = departments.map(d => ({
             college_code: d.colleges.code,
             code: d.code,
             name: d.name
         }));
-        XLSX.utils.book_append_sheet(workbooks['departments'], XLSX.utils.json_to_sheet(departmentsData), 'Departments');
+        workbooks['departments'] = createWorkbookEntry('Departments', departmentsData);
 
         // 3. Sections
-        workbooks['sections'] = XLSX.utils.book_new();
         const sectionsData = sections.map(s => ({
             college_code: s.departments.colleges.code,
             department_code: s.departments.code,
             section_name: s.section_name
         }));
-        XLSX.utils.book_append_sheet(workbooks['sections'], XLSX.utils.json_to_sheet(sectionsData), 'Sections');
+        workbooks['sections'] = createWorkbookEntry('Sections', sectionsData);
 
         // 4. Users
-        workbooks['users'] = XLSX.utils.book_new();
         const usersData = users.map(u => ({
             username: u.username,
             name: u.name,
@@ -781,10 +771,9 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             phone: u.phone || '',
             role: u.userRoles[0]?.role || 'student'
         }));
-        XLSX.utils.book_append_sheet(workbooks['users'], XLSX.utils.json_to_sheet(usersData), 'Users');
+        workbooks['users'] = createWorkbookEntry('Users', usersData);
 
         // 5. Students
-        workbooks['students'] = XLSX.utils.book_new();
         const studentsData = students.map(s => ({
             usn: s.usn,
             college_code: s.colleges.code,
@@ -793,19 +782,17 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             semester: s.semester || 1,
             batch_year: s.batchYear
         }));
-        XLSX.utils.book_append_sheet(workbooks['students'], XLSX.utils.json_to_sheet(studentsData), 'Students');
+        workbooks['students'] = createWorkbookEntry('Students', studentsData);
 
         // 6. Teachers
-        workbooks['teachers'] = XLSX.utils.book_new();
         const teachersData = teachers.map(t => ({
             username: t.user.username,
             college_code: t.colleges.code,
             department_code: t.department?.code || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['teachers'], XLSX.utils.json_to_sheet(teachersData), 'Teachers');
+        workbooks['teachers'] = createWorkbookEntry('Teachers', teachersData);
 
         // 7. Courses
-        workbooks['courses'] = XLSX.utils.book_new();
         const coursesData = courses.map(c => ({
             college_code: c.department.colleges.code,
             department_code: c.department.code,
@@ -814,20 +801,18 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             type: c.type,
             year: c.year
         }));
-        XLSX.utils.book_append_sheet(workbooks['courses'], XLSX.utils.json_to_sheet(coursesData), 'Courses');
+        workbooks['courses'] = createWorkbookEntry('Courses', coursesData);
 
         // 8. Academic Years
-        workbooks['academic_years'] = XLSX.utils.book_new();
         const academicYearsData = academicYears.map(ay => ({
             college_code: ay.colleges.code,
             year_name: ay.year_name,
             start_date: ay.start_date ? new Date(ay.start_date).toISOString().split('T')[0] : '',
             end_date: ay.end_date ? new Date(ay.end_date).toISOString().split('T')[0] : ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['academic_years'], XLSX.utils.json_to_sheet(academicYearsData), 'Academic Years');
+        workbooks['academic_years'] = createWorkbookEntry('Academic Years', academicYearsData);
 
         // 9. Course Offerings
-        workbooks['course_offerings'] = XLSX.utils.book_new();
         const offeringsDataAll = courseOfferings.map(co => ({
             course_code: co.course.code,
             teacher_username: co.teacher?.user.username || '',
@@ -835,10 +820,9 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             semester: co.semester,
             year_name: co.academic_years?.year_name || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['course_offerings'], XLSX.utils.json_to_sheet(offeringsDataAll), 'Course Offerings');
+        workbooks['course_offerings'] = createWorkbookEntry('Course Offerings', offeringsDataAll);
 
         // 10. Attendance Records
-        workbooks['attendance_records'] = XLSX.utils.book_new();
         const attendanceDataAll = attendanceRecords.map(ar => ({
             student_usn: ar.student?.user.username || '',
             course_code: ar.attendance?.offering?.course.code || '',
@@ -849,10 +833,9 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             status: ar.status,
             syllabus_covered: ar.attendance?.syllabusCovered || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['attendance_records'], XLSX.utils.json_to_sheet(attendanceDataAll), 'Attendance Records');
+        workbooks['attendance_records'] = createWorkbookEntry('Attendance Records', attendanceDataAll);
 
         // 11. Test Components
-        workbooks['test_components'] = XLSX.utils.book_new();
         const testComponentsDataAll = testComponents.map(tc => ({
             course_code: tc.courseOffering?.course.code || '',
             section_name: tc.courseOffering?.sections?.section_name || '',
@@ -862,10 +845,9 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             max_marks: tc.maxMarks,
             weightage: tc.weightage
         }));
-        XLSX.utils.book_append_sheet(workbooks['test_components'], XLSX.utils.json_to_sheet(testComponentsDataAll), 'Test Components');
+        workbooks['test_components'] = createWorkbookEntry('Test Components', testComponentsDataAll);
 
         // 12. Student Marks
-        workbooks['student_marks'] = XLSX.utils.book_new();
         const studentMarksDataAll = studentMarks.map(sm => ({
             student_usn: sm.enrollment?.student?.user.username || '',
             course_code: sm.testComponent?.courseOffering?.course.code || '',
@@ -876,7 +858,7 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
             marks_obtained: sm.marksObtained ?? '',
             max_marks: sm.testComponent?.maxMarks || ''
         }));
-        XLSX.utils.book_append_sheet(workbooks['student_marks'], XLSX.utils.json_to_sheet(studentMarksDataAll), 'Student Marks');
+        workbooks['student_marks'] = createWorkbookEntry('Student Marks', studentMarksDataAll);
 
         // Create ZIP archive
         const archive = archiver('zip', {
@@ -893,7 +875,7 @@ router.get('/export-all-data', async (req: Request, res: Response) => {
 
         // Add each Excel file to the archive
         for (const [name, workbook] of Object.entries(workbooks)) {
-            const buffer = XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' });
+            const buffer = await workbook;
             archive.append(buffer, { name: `${name}.xlsx` });
         }
 

@@ -1,9 +1,9 @@
 // Excel Import Route for Admin Dashboard
 import { Router } from 'express';
 import multer from 'multer';
-import XLSX from 'xlsx';
 import DatabaseService from '../../lib/database';
 import bcrypt from 'bcryptjs';
+import { parseExcelBuffer } from '../../lib/excel';
 
 const router = Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -22,10 +22,7 @@ router.post('/import-excel/:type', upload.single('file'), async (req, res) => {
         }
 
         // Parse Excel file
-        const workbook = XLSX.read(file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = XLSX.utils.sheet_to_json(worksheet);
+        const data = await parseExcelBuffer(file.buffer);
 
         if (!data || data.length === 0) {
             return res.status(400).json({

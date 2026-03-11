@@ -6,9 +6,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 // Excel Import Route for Admin Dashboard
 const express_1 = require("express");
 const multer_1 = __importDefault(require("multer"));
-const xlsx_1 = __importDefault(require("xlsx"));
 const database_1 = __importDefault(require("../../lib/database"));
 const bcryptjs_1 = __importDefault(require("bcryptjs"));
+const excel_1 = require("../../lib/excel");
 const router = (0, express_1.Router)();
 const upload = (0, multer_1.default)({ storage: multer_1.default.memoryStorage() });
 // Excel upload endpoint
@@ -23,10 +23,7 @@ router.post('/import-excel/:type', upload.single('file'), async (req, res) => {
             });
         }
         // Parse Excel file
-        const workbook = xlsx_1.default.read(file.buffer, { type: 'buffer' });
-        const sheetName = workbook.SheetNames[0];
-        const worksheet = workbook.Sheets[sheetName];
-        const data = xlsx_1.default.utils.sheet_to_json(worksheet);
+        const data = await (0, excel_1.parseExcelBuffer)(file.buffer);
         if (!data || data.length === 0) {
             return res.status(400).json({
                 success: false,
