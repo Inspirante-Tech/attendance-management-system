@@ -304,7 +304,7 @@ export default function TeacherDashboard() {
               <span>Analytics</span>
             </a>
           </div>
-        </div>
+        </div>    
 
         {/* Teacher Profile Card */}
         <Card className="bg-gradient-to-r from-emerald-600 to-green-700 text-white">

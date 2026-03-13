@@ -37,6 +37,7 @@ interface StudentMarkComponent {
   obtainedMarks: number | null;
   maxMarks: number;
   weightage: number;
+  status?: "present" | "absent";
 }
 // Types for marks and attendance
 interface StudentMark {
@@ -420,7 +421,10 @@ export default function TeacherMarksAttendanceManagement({
           // Overlay actual marks
           student.marks.forEach(m => {
             const comp = studentMarks.find(c => c.componentId === m.componentId);
-            if (comp) comp.obtainedMarks = m.obtainedMarks;
+            if (comp) {
+              comp.obtainedMarks = m.obtainedMarks;
+              comp.status = (m as any).status ?? 'present';
+            }
           });
 
           // Build student row
@@ -946,7 +950,8 @@ export default function TeacherMarksAttendanceManagement({
         studentId: student.id, // backend expects this
         marks: student.marks.map((m) => ({
           componentId: m.componentId,
-          marksObtained: m.obtainedMarks ?? 0, // null → 0
+          marksObtained: m.status === 'absent' ? null : (m.obtainedMarks ?? null),
+          status: m.status ?? 'present',
         })),
       }));
 
@@ -1334,12 +1339,12 @@ export default function TeacherMarksAttendanceManagement({
                       const round1 = (num: number) => Math.round(num * 10) / 10;
 
 
-                      // Show raw sum of marks for theory and lab
+                      // Show raw sum of marks for theory and lab (exclude absent)
                       const theoryTotal = mark.marks
-                        .filter((m) => m.type === "theory")
+                        .filter((m) => m.type === "theory" && m.status !== 'absent')
                         .reduce((sum, m) => sum + (m.obtainedMarks ?? 0), 0);
                       const labTotal = mark.marks
-                        .filter((m) => m.type === "lab")
+                        .filter((m) => m.type === "lab" && m.status !== 'absent')
                         .reduce((sum, m) => sum + (m.obtainedMarks ?? 0), 0);
 
                       return (
@@ -1356,42 +1361,52 @@ export default function TeacherMarksAttendanceManagement({
                           {/* Editable Theory Marks */}
                           {componentsTest.filter((c) => c.type === "theory").map((comp) => {
                             const studentMark = mark.marks.find((m) => m.componentId === comp.id);
+                            const isAbsent = studentMark?.status === 'absent';
                             return (
                               <td key={comp.id} className="border border-gray-300 px-3 py-2 text-center">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={comp.maxMarks}
-                                  value={studentMark?.obtainedMarks ?? ""}
-                                  placeholder="-"
-                                  className="w-16 border px-1 py-1 text-sm rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const numValue = value === "" ? null : Number(value);
-
-                                    // Validate against max marks
-                                    if (numValue !== null && (numValue < 0 || numValue > comp.maxMarks)) {
-                                      return; // Don't update if invalid
-                                    }
-
-                                    const updatedMarks = marks.map((m) => {
-                                      if (m.enrollmentId === mark.enrollmentId) {
-                                        return {
-                                          ...m,
-                                          marks: m.marks.map((sm) => {
-                                            if (sm.componentId === comp.id) {
-                                              return { ...sm, obtainedMarks: numValue };
-                                            }
-                                            return sm;
-                                          }),
-                                        };
-                                      }
-                                      return m;
-                                    });
-                                    setMarks(updatedMarks);
-                                    setHasUnsavedChanges(true);
-                                  }}
-                                />
+                                <div className="flex flex-col items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={comp.maxMarks}
+                                    value={isAbsent ? "" : (studentMark?.obtainedMarks ?? "")}
+                                    placeholder={isAbsent ? "AB" : "-"}
+                                    disabled={isAbsent}
+                                    className={`w-16 border px-1 py-1 text-sm rounded text-center focus:outline-none focus:ring-2 focus:ring-blue-500 ${isAbsent ? 'bg-red-50 text-red-400 cursor-not-allowed border-red-200' : ''}`}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      const numValue = value === "" ? null : Number(value);
+                                      if (numValue !== null && (numValue < 0 || numValue > comp.maxMarks)) return;
+                                      setMarks((prev) => prev.map((m) => {
+                                        if (m.enrollmentId === mark.enrollmentId) {
+                                          return { ...m, marks: m.marks.map((sm) => sm.componentId === comp.id ? { ...sm, obtainedMarks: numValue } : sm) };
+                                        }
+                                        return m;
+                                      }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                  />
+                                  <button
+                                    title={isAbsent ? 'Mark as Present' : 'Mark as Absent'}
+                                    className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
+                                      isAbsent
+                                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                    }`}
+                                    onClick={() => {
+                                      const newStatus = isAbsent ? 'present' : 'absent';
+                                      setMarks((prev) => prev.map((m) => {
+                                        if (m.enrollmentId === mark.enrollmentId) {
+                                          return { ...m, marks: m.marks.map((sm) => sm.componentId === comp.id ? { ...sm, status: newStatus, obtainedMarks: newStatus === 'absent' ? null : sm.obtainedMarks } : sm) };
+                                        }
+                                        return m;
+                                      }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                  >
+                                    {isAbsent ? 'AB ✓' : 'AB'}
+                                  </button>
+                                </div>
                               </td>
                             );
                           })}
@@ -1401,42 +1416,52 @@ export default function TeacherMarksAttendanceManagement({
                           {/* Editable Lab Marks */}
                           {componentsTest.filter((c) => c.type === "lab").map((comp) => {
                             const studentMark = mark.marks.find((m) => m.componentId === comp.id);
+                            const isAbsent = studentMark?.status === 'absent';
                             return (
                               <td key={comp.id} className="border border-gray-300 px-3 py-2 text-center">
-                                <input
-                                  type="number"
-                                  min="0"
-                                  max={comp.maxMarks}
-                                  value={studentMark?.obtainedMarks ?? ""}
-                                  placeholder="-"
-                                  className="w-16 border px-1 py-1 text-sm rounded text-center focus:outline-none focus:ring-2 focus:ring-green-500"
-                                  onChange={(e) => {
-                                    const value = e.target.value;
-                                    const numValue = value === "" ? null : Number(value);
-
-                                    // Validate against max marks
-                                    if (numValue !== null && (numValue < 0 || numValue > comp.maxMarks)) {
-                                      return; // Don't update if invalid
-                                    }
-
-                                    const updatedMarks = marks.map((m) => {
-                                      if (m.enrollmentId === mark.enrollmentId) {
-                                        return {
-                                          ...m,
-                                          marks: m.marks.map((sm) => {
-                                            if (sm.componentId === comp.id) {
-                                              return { ...sm, obtainedMarks: numValue };
-                                            }
-                                            return sm;
-                                          }),
-                                        };
-                                      }
-                                      return m;
-                                    });
-                                    setMarks(updatedMarks);
-                                    setHasUnsavedChanges(true);
-                                  }}
-                                />
+                                <div className="flex flex-col items-center gap-1">
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max={comp.maxMarks}
+                                    value={isAbsent ? "" : (studentMark?.obtainedMarks ?? "")}
+                                    placeholder={isAbsent ? "AB" : "-"}
+                                    disabled={isAbsent}
+                                    className={`w-16 border px-1 py-1 text-sm rounded text-center focus:outline-none focus:ring-2 focus:ring-green-500 ${isAbsent ? 'bg-red-50 text-red-400 cursor-not-allowed border-red-200' : ''}`}
+                                    onChange={(e) => {
+                                      const value = e.target.value;
+                                      const numValue = value === "" ? null : Number(value);
+                                      if (numValue !== null && (numValue < 0 || numValue > comp.maxMarks)) return;
+                                      setMarks((prev) => prev.map((m) => {
+                                        if (m.enrollmentId === mark.enrollmentId) {
+                                          return { ...m, marks: m.marks.map((sm) => sm.componentId === comp.id ? { ...sm, obtainedMarks: numValue } : sm) };
+                                        }
+                                        return m;
+                                      }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                  />
+                                  <button
+                                    title={isAbsent ? 'Mark as Present' : 'Mark as Absent'}
+                                    className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
+                                      isAbsent
+                                        ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                                        : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                                    }`}
+                                    onClick={() => {
+                                      const newStatus = isAbsent ? 'present' : 'absent';
+                                      setMarks((prev) => prev.map((m) => {
+                                        if (m.enrollmentId === mark.enrollmentId) {
+                                          return { ...m, marks: m.marks.map((sm) => sm.componentId === comp.id ? { ...sm, status: newStatus, obtainedMarks: newStatus === 'absent' ? null : sm.obtainedMarks } : sm) };
+                                        }
+                                        return m;
+                                      }));
+                                      setHasUnsavedChanges(true);
+                                    }}
+                                  >
+                                    {isAbsent ? 'AB ✓' : 'AB'}
+                                  </button>
+                                </div>
                               </td>
                             );
                           })}

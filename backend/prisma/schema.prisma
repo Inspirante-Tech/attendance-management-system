@@ -280,7 +280,8 @@ model StudentMark {
   marksObtained   Int?               @map("marks_obtained")
   enrollment      StudentEnrollment  @relation(fields: [enrollmentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
   testComponent   TestComponent      @relation(fields: [testComponentId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-
+  status          mark_status        @default(present)
+  
   @@unique([enrollmentId, testComponentId]) // one student can have only one mark per test
   @@map("student_marks")
 }
@@ -308,4 +309,8 @@ enum user_role {
   teacher
   admin
   report_viewer
+}
+enum mark_status {
+  present
+  absent
 }

@@ -153,6 +153,14 @@ export const user_role: {
 
 export type user_role = (typeof user_role)[keyof typeof user_role]
 
+
+export const mark_status: {
+  present: 'present',
+  absent: 'absent'
+};
+
+export type mark_status = (typeof mark_status)[keyof typeof mark_status]
+
 }
 
 export type test_type = $Enums.test_type
@@ -170,6 +178,10 @@ export const course_type: typeof $Enums.course_type
 export type user_role = $Enums.user_role
 
 export const user_role: typeof $Enums.user_role
+
+export type mark_status = $Enums.mark_status
+
+export const mark_status: typeof $Enums.mark_status
 
 /**
  * ##  Prisma Client ʲˢ
@@ -24795,6 +24807,7 @@ export namespace Prisma {
     enrollmentId: string | null
     testComponentId: string | null
     marksObtained: number | null
+    status: $Enums.mark_status | null
   }
 
   export type StudentMarkMaxAggregateOutputType = {
@@ -24802,6 +24815,7 @@ export namespace Prisma {
     enrollmentId: string | null
     testComponentId: string | null
     marksObtained: number | null
+    status: $Enums.mark_status | null
   }
 
   export type StudentMarkCountAggregateOutputType = {
@@ -24809,6 +24823,7 @@ export namespace Prisma {
     enrollmentId: number
     testComponentId: number
     marksObtained: number
+    status: number
     _all: number
   }
 
@@ -24826,6 +24841,7 @@ export namespace Prisma {
     enrollmentId?: true
     testComponentId?: true
     marksObtained?: true
+    status?: true
   }
 
   export type StudentMarkMaxAggregateInputType = {
@@ -24833,6 +24849,7 @@ export namespace Prisma {
     enrollmentId?: true
     testComponentId?: true
     marksObtained?: true
+    status?: true
   }
 
   export type StudentMarkCountAggregateInputType = {
@@ -24840,6 +24857,7 @@ export namespace Prisma {
     enrollmentId?: true
     testComponentId?: true
     marksObtained?: true
+    status?: true
     _all?: true
   }
 
@@ -24934,6 +24952,7 @@ export namespace Prisma {
     enrollmentId: string
     testComponentId: string
     marksObtained: number | null
+    status: $Enums.mark_status
     _count: StudentMarkCountAggregateOutputType | null
     _avg: StudentMarkAvgAggregateOutputType | null
     _sum: StudentMarkSumAggregateOutputType | null
@@ -24960,6 +24979,7 @@ export namespace Prisma {
     enrollmentId?: boolean
     testComponentId?: boolean
     marksObtained?: boolean
+    status?: boolean
     enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
     testComponent?: boolean | TestComponentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["studentMark"]>
@@ -24969,6 +24989,7 @@ export namespace Prisma {
     enrollmentId?: boolean
     testComponentId?: boolean
     marksObtained?: boolean
+    status?: boolean
     enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
     testComponent?: boolean | TestComponentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["studentMark"]>
@@ -24978,6 +24999,7 @@ export namespace Prisma {
     enrollmentId?: boolean
     testComponentId?: boolean
     marksObtained?: boolean
+    status?: boolean
     enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
     testComponent?: boolean | TestComponentDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["studentMark"]>
@@ -24987,9 +25009,10 @@ export namespace Prisma {
     enrollmentId?: boolean
     testComponentId?: boolean
     marksObtained?: boolean
+    status?: boolean
   }
 
-  export type StudentMarkOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "enrollmentId" | "testComponentId" | "marksObtained", ExtArgs["result"]["studentMark"]>
+  export type StudentMarkOmit<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetOmit<"id" | "enrollmentId" | "testComponentId" | "marksObtained" | "status", ExtArgs["result"]["studentMark"]>
   export type StudentMarkInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     enrollment?: boolean | StudentEnrollmentDefaultArgs<ExtArgs>
     testComponent?: boolean | TestComponentDefaultArgs<ExtArgs>
@@ -25014,6 +25037,7 @@ export namespace Prisma {
       enrollmentId: string
       testComponentId: string
       marksObtained: number | null
+      status: $Enums.mark_status
     }, ExtArgs["result"]["studentMark"]>
     composites: {}
   }
@@ -25443,6 +25467,7 @@ export namespace Prisma {
     readonly enrollmentId: FieldRef<"StudentMark", 'String'>
     readonly testComponentId: FieldRef<"StudentMark", 'String'>
     readonly marksObtained: FieldRef<"StudentMark", 'Int'>
+    readonly status: FieldRef<"StudentMark", 'mark_status'>
   }
     
 
@@ -26077,7 +26102,8 @@ export namespace Prisma {
     id: 'id',
     enrollmentId: 'enrollmentId',
     testComponentId: 'testComponentId',
-    marksObtained: 'marksObtained'
+    marksObtained: 'marksObtained',
+    status: 'status'
   };
 
   export type StudentMarkScalarFieldEnum = (typeof StudentMarkScalarFieldEnum)[keyof typeof StudentMarkScalarFieldEnum]
@@ -26214,6 +26240,20 @@ export namespace Prisma {
    * Reference to a field of type 'test_type[]'
    */
   export type ListEnumtest_typeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'test_type[]'>
+    
+
+
+  /**
+   * Reference to a field of type 'mark_status'
+   */
+  export type Enummark_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'mark_status'>
+    
+
+
+  /**
+   * Reference to a field of type 'mark_status[]'
+   */
+  export type ListEnummark_statusFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'mark_status[]'>
     
 
 
@@ -27417,6 +27457,7 @@ export namespace Prisma {
     enrollmentId?: UuidFilter<"StudentMark"> | string
     testComponentId?: UuidFilter<"StudentMark"> | string
     marksObtained?: IntNullableFilter<"StudentMark"> | number | null
+    status?: Enummark_statusFilter<"StudentMark"> | $Enums.mark_status
     enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
     testComponent?: XOR<TestComponentScalarRelationFilter, TestComponentWhereInput>
   }
@@ -27426,6 +27467,7 @@ export namespace Prisma {
     enrollmentId?: SortOrder
     testComponentId?: SortOrder
     marksObtained?: SortOrderInput | SortOrder
+    status?: SortOrder
     enrollment?: StudentEnrollmentOrderByWithRelationInput
     testComponent?: TestComponentOrderByWithRelationInput
   }
@@ -27439,6 +27481,7 @@ export namespace Prisma {
     enrollmentId?: UuidFilter<"StudentMark"> | string
     testComponentId?: UuidFilter<"StudentMark"> | string
     marksObtained?: IntNullableFilter<"StudentMark"> | number | null
+    status?: Enummark_statusFilter<"StudentMark"> | $Enums.mark_status
     enrollment?: XOR<StudentEnrollmentScalarRelationFilter, StudentEnrollmentWhereInput>
     testComponent?: XOR<TestComponentScalarRelationFilter, TestComponentWhereInput>
   }, "id" | "enrollmentId_testComponentId">
@@ -27448,6 +27491,7 @@ export namespace Prisma {
     enrollmentId?: SortOrder
     testComponentId?: SortOrder
     marksObtained?: SortOrderInput | SortOrder
+    status?: SortOrder
     _count?: StudentMarkCountOrderByAggregateInput
     _avg?: StudentMarkAvgOrderByAggregateInput
     _max?: StudentMarkMaxOrderByAggregateInput
@@ -27463,6 +27507,7 @@ export namespace Prisma {
     enrollmentId?: UuidWithAggregatesFilter<"StudentMark"> | string
     testComponentId?: UuidWithAggregatesFilter<"StudentMark"> | string
     marksObtained?: IntNullableWithAggregatesFilter<"StudentMark"> | number | null
+    status?: Enummark_statusWithAggregatesFilter<"StudentMark"> | $Enums.mark_status
   }
 
   export type CollegeCreateInput = {
@@ -28588,6 +28633,7 @@ export namespace Prisma {
   export type StudentMarkCreateInput = {
     id?: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
     enrollment: StudentEnrollmentCreateNestedOneWithoutStudentMarksInput
     testComponent: TestComponentCreateNestedOneWithoutStudentMarksInput
   }
@@ -28597,11 +28643,13 @@ export namespace Prisma {
     enrollmentId: string
     testComponentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
     enrollment?: StudentEnrollmentUpdateOneRequiredWithoutStudentMarksNestedInput
     testComponent?: TestComponentUpdateOneRequiredWithoutStudentMarksNestedInput
   }
@@ -28611,6 +28659,7 @@ export namespace Prisma {
     enrollmentId?: StringFieldUpdateOperationsInput | string
     testComponentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type StudentMarkCreateManyInput = {
@@ -28618,11 +28667,13 @@ export namespace Prisma {
     enrollmentId: string
     testComponentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type StudentMarkUncheckedUpdateManyInput = {
@@ -28630,6 +28681,7 @@ export namespace Prisma {
     enrollmentId?: StringFieldUpdateOperationsInput | string
     testComponentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type UuidFilter<$PrismaModel = never> = {
@@ -29735,6 +29787,13 @@ export namespace Prisma {
     _max?: NestedEnumtest_typeFilter<$PrismaModel>
   }
 
+  export type Enummark_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.mark_status | Enummark_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    not?: NestedEnummark_statusFilter<$PrismaModel> | $Enums.mark_status
+  }
+
   export type StudentEnrollmentScalarRelationFilter = {
     is?: StudentEnrollmentWhereInput
     isNot?: StudentEnrollmentWhereInput
@@ -29755,6 +29814,7 @@ export namespace Prisma {
     enrollmentId?: SortOrder
     testComponentId?: SortOrder
     marksObtained?: SortOrder
+    status?: SortOrder
   }
 
   export type StudentMarkAvgOrderByAggregateInput = {
@@ -29766,6 +29826,7 @@ export namespace Prisma {
     enrollmentId?: SortOrder
     testComponentId?: SortOrder
     marksObtained?: SortOrder
+    status?: SortOrder
   }
 
   export type StudentMarkMinOrderByAggregateInput = {
@@ -29773,10 +29834,21 @@ export namespace Prisma {
     enrollmentId?: SortOrder
     testComponentId?: SortOrder
     marksObtained?: SortOrder
+    status?: SortOrder
   }
 
   export type StudentMarkSumOrderByAggregateInput = {
     marksObtained?: SortOrder
+  }
+
+  export type Enummark_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.mark_status | Enummark_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    not?: NestedEnummark_statusWithAggregatesFilter<$PrismaModel> | $Enums.mark_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnummark_statusFilter<$PrismaModel>
+    _max?: NestedEnummark_statusFilter<$PrismaModel>
   }
 
   export type academic_yearsCreateNestedManyWithoutCollegesInput = {
@@ -31707,6 +31779,10 @@ export namespace Prisma {
     connect?: TestComponentWhereUniqueInput
   }
 
+  export type Enummark_statusFieldUpdateOperationsInput = {
+    set?: $Enums.mark_status
+  }
+
   export type StudentEnrollmentUpdateOneRequiredWithoutStudentMarksNestedInput = {
     create?: XOR<StudentEnrollmentCreateWithoutStudentMarksInput, StudentEnrollmentUncheckedCreateWithoutStudentMarksInput>
     connectOrCreate?: StudentEnrollmentCreateOrConnectWithoutStudentMarksInput
@@ -32040,6 +32116,23 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedEnumtest_typeFilter<$PrismaModel>
     _max?: NestedEnumtest_typeFilter<$PrismaModel>
+  }
+
+  export type NestedEnummark_statusFilter<$PrismaModel = never> = {
+    equals?: $Enums.mark_status | Enummark_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    not?: NestedEnummark_statusFilter<$PrismaModel> | $Enums.mark_status
+  }
+
+  export type NestedEnummark_statusWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: $Enums.mark_status | Enummark_statusFieldRefInput<$PrismaModel>
+    in?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    notIn?: $Enums.mark_status[] | ListEnummark_statusFieldRefInput<$PrismaModel>
+    not?: NestedEnummark_statusWithAggregatesFilter<$PrismaModel> | $Enums.mark_status
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedEnummark_statusFilter<$PrismaModel>
+    _max?: NestedEnummark_statusFilter<$PrismaModel>
   }
 
   export type academic_yearsCreateWithoutCollegesInput = {
@@ -34660,6 +34753,7 @@ export namespace Prisma {
   export type StudentMarkCreateWithoutEnrollmentInput = {
     id?: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
     testComponent: TestComponentCreateNestedOneWithoutStudentMarksInput
   }
 
@@ -34667,6 +34761,7 @@ export namespace Prisma {
     id?: string
     testComponentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkCreateOrConnectWithoutEnrollmentInput = {
@@ -34802,6 +34897,7 @@ export namespace Prisma {
     enrollmentId?: UuidFilter<"StudentMark"> | string
     testComponentId?: UuidFilter<"StudentMark"> | string
     marksObtained?: IntNullableFilter<"StudentMark"> | number | null
+    status?: Enummark_statusFilter<"StudentMark"> | $Enums.mark_status
   }
 
   export type CourseOfferingCreateWithoutAttendancesInput = {
@@ -35564,6 +35660,7 @@ export namespace Prisma {
   export type StudentMarkCreateWithoutTestComponentInput = {
     id?: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
     enrollment: StudentEnrollmentCreateNestedOneWithoutStudentMarksInput
   }
 
@@ -35571,6 +35668,7 @@ export namespace Prisma {
     id?: string
     enrollmentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkCreateOrConnectWithoutTestComponentInput = {
@@ -36440,11 +36538,13 @@ export namespace Prisma {
     id?: string
     testComponentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkUpdateWithoutEnrollmentInput = {
     id?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
     testComponent?: TestComponentUpdateOneRequiredWithoutStudentMarksNestedInput
   }
 
@@ -36452,12 +36552,14 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     testComponentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type StudentMarkUncheckedUpdateManyWithoutEnrollmentInput = {
     id?: StringFieldUpdateOperationsInput | string
     testComponentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type AttendanceRecordCreateManyAttendanceInput = {
@@ -36638,11 +36740,13 @@ export namespace Prisma {
     id?: string
     enrollmentId: string
     marksObtained?: number | null
+    status?: $Enums.mark_status
   }
 
   export type StudentMarkUpdateWithoutTestComponentInput = {
     id?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
     enrollment?: StudentEnrollmentUpdateOneRequiredWithoutStudentMarksNestedInput
   }
 
@@ -36650,12 +36754,14 @@ export namespace Prisma {
     id?: StringFieldUpdateOperationsInput | string
     enrollmentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
   export type StudentMarkUncheckedUpdateManyWithoutTestComponentInput = {
     id?: StringFieldUpdateOperationsInput | string
     enrollmentId?: StringFieldUpdateOperationsInput | string
     marksObtained?: NullableIntFieldUpdateOperationsInput | number | null
+    status?: Enummark_statusFieldUpdateOperationsInput | $Enums.mark_status
   }
 
 

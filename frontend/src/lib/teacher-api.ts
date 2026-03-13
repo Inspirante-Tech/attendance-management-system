@@ -209,9 +209,10 @@ export type StudentMarkComponent = {
     componentId: string
     componentName: string
     type: "theory" | "lab" | string   // restrict if you know all possible types
-    obtainedMarks: number
+    obtainedMarks: number | null
     maxMarks: number
     weightage: number
+    status?: 'present' | 'absent'
 }
 
 // A student with marks across multiple components
@@ -942,7 +943,8 @@ export class TeacherAPI {
             studentId: string;
             marks: Array<{
                 componentId: string;
-                marksObtained: number;
+                marksObtained: number | null;
+                status?: 'present' | 'absent';
             }>;
         }>
     ): Promise<any> {
@@ -1067,7 +1069,8 @@ export class TeacherAPI {
                     type: m.type,
                     obtainedMarks: m.obtainedMarks ?? null,
                     maxMarks: m.maxMarks,
-                    weightage: m.weightage
+                    weightage: m.weightage,
+                    status: m.status ?? 'present'
                 }))
             }));
 

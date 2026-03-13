@@ -6,7 +6,7 @@ import { authenticateToken, AuthenticatedRequest } from '../../middleware/auth';
 const router = Router();
 
 // Update student marks (teachers can only update marks for their assigned courses)
-// Body: { marks: [{ testComponentId: string, marksObtained: number }] }
+// Body: { marks: [{ testComponentId: string, marksObtained: number ,status?: "present" | "absent"}] }
 router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedRequest, res) => {
     const { enrollmentId } = req.params;
     const { marks } = req.body;
@@ -64,8 +64,19 @@ router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedR
 
         // Validate marks don't exceed max
         for (const mark of marks) {
+            const status = mark.status ?? "present";
+            let marksObtained = mark.marksObtained;
+
+            if (status === "absent") {
+                marksObtained = null;
+            }
             const testComponent = enrollment.offering.testComponents.find(tc => tc.id === mark.testComponentId);
-            if (testComponent && mark.marksObtained > testComponent.maxMarks) {
+            if (
+        status === "present" &&
+        testComponent &&
+        marksObtained != null &&
+        marksObtained > testComponent.maxMarks
+    ) {
                 return res.status(400).json({
                     status: 'error',
                     error: `Marks obtained (${mark.marksObtained}) exceed max marks (${testComponent.maxMarks}) for ${testComponent.name}`
@@ -75,6 +86,8 @@ router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedR
 
         // Update or create marks
         const updatePromises = marks.map(async (mark) => {
+            const markStatus = (mark.status === 'absent' ? 'absent' : 'present') as 'absent' | 'present';
+            const resolvedMarks = markStatus === 'absent' ? null : mark.marksObtained;
             return prisma.studentMark.upsert({
                 where: {
                     enrollmentId_testComponentId: {
@@ -83,12 +96,14 @@ router.put('/marks/:enrollmentId', authenticateToken, async (req: AuthenticatedR
                     }
                 },
                 update: {
-                    marksObtained: mark.marksObtained
+                    marksObtained: resolvedMarks,
+                    status: markStatus
                 },
                 create: {
                     enrollmentId,
                     testComponentId: mark.testComponentId,
-                    marksObtained: mark.marksObtained
+                    marksObtained: resolvedMarks,
+                    status: markStatus
                 }
             });
         });

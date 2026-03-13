@@ -2182,6 +2182,7 @@ router.get('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                 componentName: sm.testComponent.name,
                 type: sm.testComponent.type,
                 obtainedMarks: sm.marksObtained,
+                status: sm.status,
                 maxMarks: sm.testComponent.maxMarks,
                 weightage: sm.testComponent.weightage
             }))
@@ -2246,6 +2247,9 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                     continue;
                 }
 
+                const markStatus = mark.status === 'absent' ? 'absent' : 'present';
+                const marksObtained = markStatus === 'absent' ? null : mark.marksObtained;
+
                 const existing = await prisma.studentMark.findUnique({
                     where: {
                         enrollmentId_testComponentId: {
@@ -2258,7 +2262,7 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                 if (existing) {
                     const updated = await prisma.studentMark.update({
                         where: { id: existing.id },
-                        data: { marksObtained: mark.marksObtained },
+                        data: { marksObtained, status: markStatus },
                     });
                     updatedMarks.push(updated);
                 } else {
@@ -2266,7 +2270,8 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                         data: {
                             enrollmentId: enrollment.id,
                             testComponentId: mark.componentId,
-                            marksObtained: mark.marksObtained,
+                            marksObtained,
+                            status: markStatus,
                         },
                     });
                     updatedMarks.push(created);
