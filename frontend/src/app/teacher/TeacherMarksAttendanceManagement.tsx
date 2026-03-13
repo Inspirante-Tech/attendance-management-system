@@ -141,6 +141,7 @@ export default function TeacherMarksAttendanceManagement({
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [savingAttendance, setSavingAttendance] = useState(false);
   const [initialAttendanceRecords, setInitialAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [datesWithData, setDatesWithData] = useState<Set<string>>(new Set());
 
   useEffect(() => {
     if (selectedCourseId && (selectedCourse === "all" || !selectedCourse)) {
@@ -246,6 +247,24 @@ export default function TeacherMarksAttendanceManagement({
       }
     }
   }, [activeTab, selectedCourse, selectedDate]);
+
+  // Fetch dates-with-data whenever the course changes (once per course, not per month)
+  useEffect(() => {
+    if (activeTab !== "attendance" || !selectedCourse || selectedCourse === "all") {
+      setDatesWithData(new Set());
+      return;
+    }
+    TeacherAPI.getAttendanceDates(selectedCourse)
+      .then((res) => {
+        if (res.status === "success") {
+          setDatesWithData(new Set(res.dates));
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to fetch attendance dates:", err);
+        setDatesWithData(new Set());
+      });
+  }, [activeTab, selectedCourse]);
 
   // const loadMarksData = async () => {
   //   setLoading(true);
@@ -660,6 +679,14 @@ export default function TeacherMarksAttendanceManagement({
       );
 
       await loadAttendanceData();
+      // Refresh calendar dots after saving
+      if (selectedCourse && selectedCourse !== "all") {
+        TeacherAPI.getAttendanceDates(selectedCourse)
+          .then((res) => {
+            if (res.status === "success") setDatesWithData(new Set(res.dates));
+          })
+          .catch(() => {});
+      }
     } catch (err) {
       console.error("Error saving attendance:", err);
       setError("Failed to save attendance changes");
@@ -789,7 +816,7 @@ export default function TeacherMarksAttendanceManagement({
         2,
         "0"
       )}-${String(day).padStart(2, "0")}`;
-      const hasData = false; // We'll load this from API later
+      const hasData = datesWithData.has(date);
       const isSelected = date === selectedDate;
       
       // Disable future dates
@@ -931,6 +958,7 @@ export default function TeacherMarksAttendanceManagement({
       maxMarks?: number;
       weightage?: number;
       obtainedMarks: number | null;
+      status?: 'present' | 'absent';
     }[];
     last_updated_at?: string;
   }
