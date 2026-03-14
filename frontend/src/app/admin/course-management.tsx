@@ -958,10 +958,10 @@ export default function CourseManagement({ onNavigateToUsers, initialFilters }: 
           <p className="text-gray-800">Manage courses across all departments</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={refreshData} variant="outline" size="sm">
+          {/* <Button onClick={refreshData} variant="outline" size="sm">
             <RefreshCw className="h-4 w-4 mr-2" />
             Refresh
-          </Button>
+          </Button> */}
           <Button onClick={() => setShowAddForm(true)} size="sm">
             <Plus className="h-4 w-4 mr-2" />
             Add Course
