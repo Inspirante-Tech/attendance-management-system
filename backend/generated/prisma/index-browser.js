@@ -269,7 +269,8 @@ exports.Prisma.StudentMarkScalarFieldEnum = {
   id: 'id',
   enrollmentId: 'enrollmentId',
   testComponentId: 'testComponentId',
-  marksObtained: 'marksObtained'
+  marksObtained: 'marksObtained',
+  status: 'status'
 };
 
 exports.Prisma.SortOrder = {
@@ -308,6 +309,11 @@ exports.attendance_status = exports.$Enums.attendance_status = {
 exports.test_type = exports.$Enums.test_type = {
   theory: 'theory',
   lab: 'lab'
+};
+
+exports.mark_status = exports.$Enums.mark_status = {
+  present: 'present',
+  absent: 'absent'
 };
 
 exports.Prisma.ModelName = {

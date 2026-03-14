@@ -5,6 +5,73 @@ import { authenticateToken, AuthenticatedRequest } from '../../middleware/auth';
 
 const router = Router();
 
+// Get all dates where attendance exists for teacher's courses (for calendar)
+router.get('/attendance/calendar', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+        const prisma = DatabaseService.getInstance();
+        const userId = req.user?.id;
+        const { courseId } = req.query;
+
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'User authentication required' });
+        }
+
+        const teacher = await prisma.teacher.findFirst({ where: { userId } });
+        if (!teacher) {
+            return res.status(403).json({ status: 'error', message: 'Teacher access required' });
+        }
+
+        const whereClause: any = {
+            teacherId: teacher.id,
+            status: {
+                in: ['confirmed', 'held']
+            }
+        };
+
+        if (courseId) {
+            let courseOffering = await prisma.courseOffering.findFirst({
+                where: { id: courseId as string, teacherId: teacher.id }
+            });
+
+            if (!courseOffering) {
+                courseOffering = await prisma.courseOffering.findFirst({
+                    where: { courseId: courseId as string, teacherId: teacher.id }
+                });
+            }
+
+            if (!courseOffering) {
+                return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
+            }
+
+            whereClause.offeringId = courseOffering.id;
+        }
+
+        const attendanceDates = await prisma.attendance.findMany({
+            where: whereClause,
+            select: {
+                classDate: true
+            },
+            distinct: ['classDate'],
+            orderBy: {
+                classDate: 'asc'
+            }
+        });
+
+        res.json({
+            status: 'success',
+            data: attendanceDates.map(d => d.classDate)
+        });
+
+    } catch (error) {
+        console.error('Error fetching attendance calendar dates:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to fetch attendance dates',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
 // Get attendance by date for teacher's courses
 router.get('/attendance', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
@@ -28,7 +95,9 @@ router.get('/attendance', authenticateToken, async (req: AuthenticatedRequest, r
         const whereClause: any = {
             teacherId: teacher.id,
             classDate: new Date(date as string),
-            status: 'confirmed'
+            status: {
+                in: ['confirmed', 'held']
+            }
         };
 
         if (courseId) {

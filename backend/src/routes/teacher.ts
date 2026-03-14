@@ -472,6 +472,145 @@ router.post('/attendance', authenticateToken, async (req: AuthenticatedRequest, 
     }
 });
 
+// Get dates that have attendance data for a course offering (used by calendar)
+router.get('/courses/:offeringId/attendance-dates', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const { offeringId } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+        }
+
+        const prisma = DatabaseService.getInstance();
+
+        // Verify teacher exists and has access to this offering
+        const teacher = await prisma.teacher.findUnique({ where: { userId } });
+        if (!teacher) {
+            return res.status(403).json({ status: 'error', message: 'Teacher not found' });
+        }
+
+        const offering = await prisma.courseOffering.findFirst({
+            where: { id: offeringId, teacherId: teacher.id }
+        });
+        if (!offering) {
+            return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
+        }
+
+        // Fetch all attendance sessions for this offering, ordered by date
+        const sessions = await prisma.attendance.findMany({
+            where: { offeringId },
+            select: { classDate: true },
+            orderBy: { classDate: 'asc' }
+        });
+
+        // Format dates safely from @db.Date (UTC midnight) to YYYY-MM-DD, deduplicate
+        const seen = new Set<string>();
+        const dates: string[] = [];
+        for (const s of sessions) {
+            const d = s.classDate;
+            const y = d.getUTCFullYear();
+            const m = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(d.getUTCDate()).padStart(2, '0');
+            const key = `${y}-${m}-${day}`;
+            if (!seen.has(key)) {
+                seen.add(key);
+                dates.push(key);
+            }
+        }
+
+        return res.json({ status: 'success', dates });
+    } catch (error) {
+        console.error('Attendance dates error:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to load attendance dates',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
+// Get full attendance data for a specific offering + date
+router.get('/courses/:offeringId/attendance/:date', authenticateToken, async (req: AuthenticatedRequest, res) => {
+    try {
+        const userId = req.user?.id;
+        const { offeringId, date } = req.params;
+
+        if (!userId) {
+            return res.status(401).json({ status: 'error', message: 'User not authenticated' });
+        }
+
+        // Validate date format
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+            return res.status(400).json({ status: 'error', message: 'Invalid date format. Use YYYY-MM-DD.' });
+        }
+
+        const prisma = DatabaseService.getInstance();
+
+        // Verify teacher exists and has access to this offering
+        const teacher = await prisma.teacher.findUnique({ where: { userId } });
+        if (!teacher) {
+            return res.status(403).json({ status: 'error', message: 'Teacher not found' });
+        }
+
+        const offering = await prisma.courseOffering.findFirst({
+            where: { id: offeringId, teacherId: teacher.id }
+        });
+        if (!offering) {
+            return res.status(403).json({ status: 'error', message: 'Access denied to this course' });
+        }
+
+        // Parse the date as UTC midnight to match @db.Date storage
+        const [year, month, day] = date.split('-').map(Number);
+        const dateStart = new Date(Date.UTC(year, month - 1, day, 0, 0, 0, 0));
+        const dateEnd = new Date(Date.UTC(year, month - 1, day, 23, 59, 59, 999));
+
+        // Find attendance session(s) for this offering and date
+        const sessions = await prisma.attendance.findMany({
+            where: {
+                offeringId,
+                classDate: { gte: dateStart, lte: dateEnd }
+            },
+            include: {
+                attendanceRecords: {
+                    include: {
+                        student: {
+                            include: {
+                                user: { select: { name: true } }
+                            }
+                        }
+                    }
+                }
+            },
+            orderBy: { periodNumber: 'asc' }
+        });
+
+        const data = sessions.map(session => ({
+            sessionId: session.id,
+            classDate: date,
+            periodNumber: session.periodNumber,
+            syllabusCovered: session.syllabusCovered,
+            status: session.status,
+            records: session.attendanceRecords.map(r => ({
+                recordId: r.id,
+                studentId: r.studentId,
+                usn: r.student?.usn ?? null,
+                studentName: r.student?.user?.name ?? null,
+                status: r.status
+            }))
+        }));
+
+        return res.json({ status: 'success', date, data });
+    } catch (error) {
+        console.error('Attendance by date error:', error);
+        return res.status(500).json({
+            status: 'error',
+            message: 'Failed to load attendance for date',
+            error: error instanceof Error ? error.message : 'Unknown error'
+        });
+    }
+});
+
 // Get attendance history for a course
 router.get('/courses/:offeringId/attendance-history', authenticateToken, async (req: AuthenticatedRequest, res) => {
     try {
@@ -2182,6 +2321,7 @@ router.get('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                 componentName: sm.testComponent.name,
                 type: sm.testComponent.type,
                 obtainedMarks: sm.marksObtained,
+                status: sm.status,
                 maxMarks: sm.testComponent.maxMarks,
                 weightage: sm.testComponent.weightage
             }))
@@ -2246,6 +2386,9 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                     continue;
                 }
 
+                const markStatus = mark.status === 'absent' ? 'absent' : 'present';
+                const marksObtained = markStatus === 'absent' ? null : mark.marksObtained;
+
                 const existing = await prisma.studentMark.findUnique({
                     where: {
                         enrollmentId_testComponentId: {
@@ -2258,7 +2401,7 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                 if (existing) {
                     const updated = await prisma.studentMark.update({
                         where: { id: existing.id },
-                        data: { marksObtained: mark.marksObtained },
+                        data: { marksObtained, status: markStatus },
                     });
                     updatedMarks.push(updated);
                 } else {
@@ -2266,7 +2409,8 @@ router.post('/course/:courseId/teacher/:teacherId/marks', async (req, res) => {
                         data: {
                             enrollmentId: enrollment.id,
                             testComponentId: mark.componentId,
-                            marksObtained: mark.marksObtained,
+                            marksObtained,
+                            status: markStatus,
                         },
                     });
                     updatedMarks.push(created);
@@ -2351,6 +2495,9 @@ router.put('/teacher/marks/:enrollmentId', async (req, res) => {
         res.status(500).json({ status: 'error', message: 'Failed to update marks' });
     }
 });
+
+
+router.use('/', attendanceRoutes);
 
 
 export default router;

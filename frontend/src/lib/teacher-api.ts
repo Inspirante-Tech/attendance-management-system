@@ -209,9 +209,10 @@ export type StudentMarkComponent = {
     componentId: string
     componentName: string
     type: "theory" | "lab" | string   // restrict if you know all possible types
-    obtainedMarks: number
+    obtainedMarks: number | null
     maxMarks: number
     weightage: number
+    status?: 'present' | 'absent'
 }
 
 // A student with marks across multiple components
@@ -771,6 +772,31 @@ export class TeacherAPI {
         return await response.json();
     }
 
+    static async getAttendanceDates(offeringId: string): Promise<{ status: string; dates: string[] }> {
+        const params = new URLSearchParams();
+        params.append('courseId', offeringId);
+
+        const response = await fetch(`${API_BASE_URL}/teacher/attendance/calendar?${params.toString()}`, {
+            method: 'GET',
+            headers: getAuthHeaders(),
+            credentials: 'include'
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+        }
+
+        const payload = await response.json();
+
+        return {
+            status: payload.status,
+            dates: Array.isArray(payload.data)
+                ? payload.data.map((value: string) => new Date(value).toISOString().split('T')[0])
+                : []
+        };
+    }
+
     static async getStudentAttendance(courseId: string, date: string): Promise<{ status: string; data: any[] }> {
         const params = new URLSearchParams();
         params.append('courseId', courseId);
@@ -942,7 +968,8 @@ export class TeacherAPI {
             studentId: string;
             marks: Array<{
                 componentId: string;
-                marksObtained: number;
+                marksObtained: number | null;
+                status?: 'present' | 'absent';
             }>;
         }>
     ): Promise<any> {
@@ -1067,7 +1094,8 @@ export class TeacherAPI {
                     type: m.type,
                     obtainedMarks: m.obtainedMarks ?? null,
                     maxMarks: m.maxMarks,
-                    weightage: m.weightage
+                    weightage: m.weightage,
+                    status: m.status ?? 'present'
                 }))
             }));
 
